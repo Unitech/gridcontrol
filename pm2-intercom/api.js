@@ -30,6 +30,7 @@ var API = {
     app.get('/list_tasks', taskCommander.list_tasks);
     app.post('/trigger', taskCommander.trigger_task);
     app.post('/init_task_group', taskCommander.init_task_group);
+    app.delete('/clear_all_tasks', taskCommander.clear_all_tasks);
   },
   expose : function(opts, cb) {
     var app  = express();

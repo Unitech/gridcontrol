@@ -10,11 +10,15 @@ var TaskCommander = module.exports = {
   list_tasks : function(req, res, next) {
     return res.send(global._task_meta.list);
   },
+  clear_all_tasks : function(req, res, next) {
+    pm2.delete('all', function() {
+      res.send({success:true});
+    });
+  },
   trigger_task: function(req, res, next) {
-    var task_file  = req.body.task_file;
-    var task_param = req.body.params;
+    var task_id  = req.body.task_id;
 
-    var url = 'http://localhost:' + global._task_meta.list[task_file].port;
+    var url = 'http://localhost:' + global._task_meta.list[task_id].port;
 
     // Proxy query to the right service
     req.pipe(request({

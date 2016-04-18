@@ -1,7 +1,8 @@
 
-var express = require('express');
-var app = express();
+var express    = require('express');
+var app        = express();
 var bodyParser = require('body-parser');
+var clone      = require('./lib/safeclonedeep.js');
 
 var task = require(process.env.TASK_PATH);
 
@@ -20,7 +21,8 @@ app.get('/', function(req, res) {
 
 app.post('/', function (req, res) {
   task(req.body, function(err, data) {
-    res.send({err:err, data:data});
+    // Safe clone deep response
+    res.send({err:err, data:clone(data)});
   });
 });
 

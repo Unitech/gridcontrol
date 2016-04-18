@@ -23,6 +23,7 @@ describe('API tests', function() {
   });
 
   it('should start all fixtures tasks', function(done) {
+    this.timeout(5000);
     var base_folder = path.join(__dirname, 'fixtures', 'app1');
     var task_folder = path.join(__dirname, 'fixtures', 'app1', 'tasks');
 
@@ -37,6 +38,28 @@ describe('API tests', function() {
       ret['echo'].task_id.should.eql('echo');
       ret['echo'].pm2_name.should.eql('task:echo');
       ret['ping'].task_id.should.eql('ping');
+      // Wait 2 seconds before starting to process msg
+      setTimeout(done, 1000);
+    });
+  });
+
+  it('should trigger task', function(done) {
+    request.post('http://localhost:10000/trigger', {
+      form : {
+        task_id : 'echo',
+        data : {
+          name : 'yey'
+        }
+      }
+    }, function(err, raw, body) {
+      var res = JSON.parse(body);
+      res.data.hello.should.eql('yey');
+      done();
+    });
+  });
+
+  it('should clear all tasks', function(done) {
+    request.delete('http://localhost:10000/clear_all_tasks', function(err, raw, body) {
       done();
     });
   });
