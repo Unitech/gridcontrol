@@ -13,7 +13,12 @@
     "body-parser" : "*",
     "async" : "*",
     "pmx" : "*",
-    "debug" : "*"
+    "debug" : "*",
+
+    "airswarm" : "*",
+    "network-address" : "*",
+    "chokidar" : "*",
+    "tar-fs" : "*"
   },
   "devDependencies" : {
     "should" : "*",

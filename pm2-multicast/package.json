@@ -10,8 +10,7 @@
     "airswarm" : "*",
     "network-address" : "*",
     "chokidar" : "*",
-    "tar" : "*",
-    "fstream" : "*"
+    "tar-fs" : "*"
   },
   "author": "",
   "license": "ISC"

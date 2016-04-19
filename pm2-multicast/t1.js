@@ -1,41 +1,28 @@
 var airswarm = require('airswarm');
-
-airswarm('testing', function (sock) {
-  sock.write('hello world (' + process.pid + ')\n');
-
-  fstream.Reader({ path: path.join(__dirname, 'node_modules'), type: "Directory" })
-    .on('error', onError)
-    .pipe(packer)
-    .pipe(sock);
-
-  //sock.pipe(process.stdout);
-})
-
-var address = require('network-address');
-
-console.log(address());
-
-
 var fs = require('fs');
-var path = require('path');
-var fstream = require('fstream');
-var tar = require('tar');
+var sockets = [];
 
-function onError(err) {
-  console.error('An error occurred:', err);
-}
+var input = fs.createReadStream('./hello');
 
-function onEnd() {
-  console.log('Packed!');
-}
+var connection = airswarm('testing', function (sock) {
+  console.log('New peer connected on IP %s', sock.remoteAddress);
 
-var packer = tar.Pack()
-  .on('error', onError)
-  .on('end', onEnd);
+  sock.on('close', function() {
+    console.log('Sock on ip %s disconnected', sock.remoteAddress);
+  });
 
-var dirDest = fs.createWriteStream('dir.tar');
+  sock.on('data', function(data) {
+    var dt = JSON.parse(data);
+    console.log(dt);
+  });
 
-fstream.Reader({ path: path.join(__dirname, 'node_modules'), type: "Directory" })
-  .on('error', onError)
-  .pipe(packer)
-  .pipe(dirDest);
+  //input.pipe(sock);
+
+});
+
+setInterval(function() {
+  console.log('Sockets connected %d', connection.peers.length);
+}, 3000);
+
+// var address = require('network-address');
+// console.log(address());

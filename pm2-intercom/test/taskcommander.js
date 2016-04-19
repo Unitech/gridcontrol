@@ -7,8 +7,7 @@ describe('TaskCommander', function() {
   it('should test global module', function() {
     TaskCommander.should.have.properties([
       '_getAllTasksInFolder',
-      '_startTasks',
-      '_initTaskGroup'
+      '_startTasks'
     ]);
   });
 
