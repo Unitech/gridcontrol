@@ -2,20 +2,6 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 var pm2        = require('pm2');
 
-/**
- * Global object with task meta
- * list -> list of available tasks
- *   -> port     // Port on which task is running on
- *   -> task_id  // Task UID
- *   -> pm2_name // Task PM2 application name
- *   -> path     // Task full path
- * port_offset -> port on which task LB has to listen to
- */
-global._task_meta = {
-  list   : {},
-  port_offset : 10001
-};
-
 var API = {
   setMiddlewares : function(app) {
     app.use(bodyParser.urlencoded({
@@ -25,12 +11,40 @@ var API = {
     app.use(bodyParser.json());
   },
   mountRoutes : function(app) {
-    var taskCommander = require('./controllers/taskCommander.js');
+    var taskController  = require('./tasks/controller.js');
+    var filesController = require('./files/controller.js');
 
-    app.get('/list_tasks', taskCommander.list_tasks);
-    app.post('/trigger', taskCommander.trigger_task);
-    app.post('/init_task_group', taskCommander.init_task_group);
-    app.delete('/clear_all_tasks', taskCommander.clear_all_tasks);
+    /**
+     * Files endpoints
+     */
+    app.get('/files/get_current_sync', filesController.get_current_sync);
+
+    /**
+     * Task endpoints
+     */
+    app.get('/list_tasks', taskController.list_tasks);
+    app.post('/trigger', taskController.trigger_task);
+    app.post('/init_task_group', taskController.init_task_group);
+    app.delete('/clear_all_tasks', taskController.clear_all_tasks);
+
+    /**
+     * Misc endpoints
+     */
+    app.get('/ping', function(req, res, next) {
+      return res.send('pong');
+    });
+
+    app.get('/conf', function(req, res, next) {
+      return res.send(global._task_meta);
+    });
+
+    app.post('/conf', function(req, res, next) {
+      // Set current process as "the task master"
+      if (req.body.is_task_master)
+        global._task_meta.is_task_master = req.body.is_task_master;
+      res.send(global._task_meta);
+    });
+
   },
   expose : function(opts, cb) {
     var app  = express();

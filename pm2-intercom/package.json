@@ -15,6 +15,9 @@
     "pmx" : "*",
     "debug" : "*",
 
+    "bunyan"  : "*",
+    "moniker" : "*",
+    "pump" : "*",
     "airswarm" : "*",
     "network-address" : "*",
     "chokidar" : "*",
