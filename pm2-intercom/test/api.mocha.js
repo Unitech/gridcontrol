@@ -1,5 +1,7 @@
 
-var API    = require('../../index.js').API;
+process.env.DEBUG="api";
+
+var API    = require('../index.js').API;
 var should = require('should');
 var path = require('path');
 var request = require('request');
@@ -23,10 +25,10 @@ describe('API tests', function() {
 
   it('should conf as task initiator', function(done) {
     request.post('http://localhost:10000/conf', {
-      is_task_master : true
+      is_file_master : true
     }, function(err, res, body) {
       body = JSON.parse(body);
-      body.is_task_master.should.be.true;
+      body.is_file_master.should.be.true;
       done();
     });
   });
@@ -36,7 +38,7 @@ describe('API tests', function() {
       b = JSON.parse(b);
       b.hostname.should.not.be.null;
       b.address.should.not.be.null;
-      b.is_task_master.should.be.true;
+      b.is_file_master.should.be.true;
       done();
     });
   });
@@ -51,8 +53,8 @@ describe('API tests', function() {
 
   it('should start all fixtures tasks', function(done) {
     this.timeout(5000);
-    var base_folder = path.join(__dirname, '..', 'fixtures', 'app1');
-    var task_folder = path.join(__dirname, '..', 'fixtures', 'app1', 'tasks');
+    var base_folder = path.join(__dirname, 'fixtures', 'app1');
+    var task_folder = path.join(__dirname, 'fixtures', 'app1', 'tasks');
 
     request.post('http://localhost:10000/init_task_group', {
       form : {

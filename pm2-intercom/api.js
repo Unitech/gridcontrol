@@ -1,6 +1,7 @@
 var express    = require('express');
 var bodyParser = require('body-parser');
 var pm2        = require('pm2');
+var debug      = require('debug')('api');
 
 var API = {
   setMiddlewares : function(app) {
@@ -40,8 +41,8 @@ var API = {
 
     app.post('/conf', function(req, res, next) {
       // Set current process as "the task master"
-      if (req.body.is_task_master)
-        global._task_meta.is_task_master = req.body.is_task_master;
+      if (req.body.is_file_master)
+        global._task_meta.is_file_master = req.body.is_file_master;
       res.send(global._task_meta);
     });
 
@@ -54,10 +55,10 @@ var API = {
     this.mountRoutes(app);
 
     pm2.connect(function() {
-      console.log('Connected to localPM2');
+      debug('Connected to local PM2');
 
       that.server = app.listen(opts.port, function (err) {
-        console.log('Master listening on port %d', opts.port);
+        debug('Master listening on port %d', opts.port);
         return cb ? cb(err) : false;
       });
     });

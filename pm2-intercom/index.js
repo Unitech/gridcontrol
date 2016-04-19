@@ -21,7 +21,7 @@ global._task_meta = {
   address        : address(),
   list           : {},
   port_offset    : 10001,
-  is_task_master : false
+  is_file_master : false
 };
 
 if (require.main === module) {

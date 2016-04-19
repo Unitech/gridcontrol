@@ -1,5 +1,5 @@
 
-var TaskManagement = require('../../tasks/task_management.js');
+var TaskManagement = require('../tasks/task_management.js');
 var should        = require('should');
 var path          = require('path');
 
@@ -13,7 +13,7 @@ describe('Task Manager', function() {
   });
 
   it('should getAllTaskFiles from folder', function(done) {
-    var fixtures = path.join(__dirname, '..', 'fixtures', 'app1', 'tasks');
+    var fixtures = path.join(__dirname, 'fixtures', 'app1', 'tasks');
 
     TaskManagement.getAllTasksInFolder(fixtures, function(err, files) {
       should(err).be.null;

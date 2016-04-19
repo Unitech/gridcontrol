@@ -39,7 +39,7 @@ Network.prototype.handle = function(sock) {
     }
   });
 
-  if (global._task_meta.is_task_master == true) {
+  if (global._task_meta.is_file_master == true) {
     // Send synchronize command
     Network.sendJson(sock, {
       cmd : 'sync',
@@ -63,7 +63,7 @@ Network.prototype.start = function(ns, cb) {
   });
 
   this.socket.on('listening', function() {
-    console.log('%s peer listening', that.peer_name);
+    debug('%s peer listening', that.peer_name);
     return cb ? cb() : false;
   });
 };
