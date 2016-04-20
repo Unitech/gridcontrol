@@ -93,7 +93,8 @@ Network.prototype.handle = function(sock) {
     }
   });
 
-  if (that.is_file_master == true) {
+  if (that.is_file_master == true &&
+      that.files_manager.is) {
     // Send synchronize command
     Network.sendJson(sock, {
       cmd : 'sync',

@@ -1,17 +1,20 @@
 
 process.env.DEBUG="api";
 
-var API    = require('../index.js').API;
-var should = require('should');
-var path = require('path');
+var API     = require('../api.js');
+var should  = require('should');
+var path    = require('path');
 var request = require('request');
 
 describe('API tests', function() {
+  var api;
+
   it('should start server', function(done) {
-    API.expose({
+    api = new API({
       port : 10000
     });
-    done();
+
+    api.start(done);
   });
 
   it('should webserver be started', function(done) {
@@ -20,26 +23,6 @@ describe('API tests', function() {
       should(res.statusCode).eql(200);
       done();
       body.should.eql('pong');
-    });
-  });
-
-  it('should conf as task initiator', function(done) {
-    request.post('http://localhost:10000/conf', {
-      is_file_master : true
-    }, function(err, res, body) {
-      body = JSON.parse(body);
-      body.is_file_master.should.be.true;
-      done();
-    });
-  });
-
-  it('should get conf', function(done) {
-    request.get('http://localhost:10000/conf', function(e, r, b) {
-      b = JSON.parse(b);
-      b.hostname.should.not.be.null;
-      b.address.should.not.be.null;
-      b.is_file_master.should.be.true;
-      done();
     });
   });
 
@@ -94,7 +77,7 @@ describe('API tests', function() {
   });
 
   it('should stop server', function(done) {
-    API.stop();
+    api.stop();
     done();
   });
 

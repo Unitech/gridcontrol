@@ -4,8 +4,25 @@ var pm2        = require('pm2');
 var async      = require('async');
 var p          = require('path');
 var debug      = require('debug')('task:management');
+var Controller = require('./controller.js');
 
-var TaskManagement = module.exports = {};
+var TaskManagement = function(opts) {
+  this.port_offset = opts.port_offset || 10001;
+  this.task_list   = {};
+
+  this.controller = Controller;
+};
+
+TaskManagement.prototype.getTasks = function() {
+  return this.task_list;
+};
+
+TaskManagement.prototype.addTask = function(task_id, task) {
+  if (!task.port)
+    console.error('Port is missing');
+
+  this.task_list[task_id] = task;
+};
 
 /**
  * Init a group of tasks
@@ -14,7 +31,7 @@ var TaskManagement = module.exports = {};
  * @param {string} opts.instances
  * @param {string} opts.json_conf
  */
-TaskManagement.initTaskGroup = function(opts, cb) {
+TaskManagement.prototype.initTaskGroup = function(opts, cb) {
   var that = this;
   // 0 for Max instances depending on CPUs
   opts.instances   = opts.instances || 0;
@@ -29,11 +46,12 @@ TaskManagement.initTaskGroup = function(opts, cb) {
   });
 };
 
-TaskManagement.startTasks = function(opts, tasks_files, cb) {
+TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
+  var that = this;
   var ret_procs = [];
 
   async.forEachLimit(tasks_files, 1, function(task_file, next) {
-    var task_port     = global._task_meta.port_offset++;
+    var task_port     = that.port_offset++;
     var task_path     = p.join(opts.task_folder, task_file);
     var task_id       = p.basename(task_file, '.js');
     var task_pm2_name = 'task:' + task_id;
@@ -53,24 +71,26 @@ TaskManagement.startTasks = function(opts, tasks_files, cb) {
       debug('Task id: %s, pm2_name: %s, exposed on port: %d',
             task_id, task_pm2_name, task_port);
 
-      global._task_meta.list[task_id] = {
+      that.addTask(task_id, {
         port     : task_port,
         task_id  : task_id,
         pm2_name : task_pm2_name,
         path     : task_path
-      };
+      });
 
       next();
     });
 
   }, function(e) {
     debug('%d tasks successfully started', tasks_files.length);
-    return cb(e, global._task_meta.list);
+    return cb(e, that.getTasks());
   });
 };
 
-TaskManagement.getAllTasksInFolder = function(tasks_fullpath, cb) {
+TaskManagement.prototype.getAllTasksInFolder = function(tasks_fullpath, cb) {
   fs.readdir(tasks_fullpath, function(err, task_files) {
     return cb(err, task_files);
   });
 };
+
+module.exports = TaskManagement;
