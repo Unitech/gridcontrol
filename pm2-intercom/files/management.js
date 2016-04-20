@@ -8,6 +8,7 @@ var exec      = require('child_process').exec;
 var FilesManagement = function(opts) {
   this.dest_file = opts.dest_file || defaults.TMP_FILE;
   this.dest_folder = opts.dest_folder || defaults.TMP_FOLDER;
+  this.has_file_to_sync = false;
 };
 
 /**
@@ -17,12 +18,15 @@ var FilesManagement = function(opts) {
 FilesManagement.prototype.synchronize = function(ip, port, cb) {
   var that = this;
 
-  var url = 'http://' + ip + ':' + port + '/files/currentsync';
+  var url = 'http://' + ip + ':' + port + '/files/get_current_sync';
 
   FilesManagement.retrieveFile(url, that.dest_file, function() {
     Compress.unpack(that.dest_file, that.dest_folder, function() {
-      // Then call TaskManagement.initTaskGroup
-      return cb();
+      // Then call something like TaskManagement.initTaskGroup
+      // to start apps
+      return cb(null, {
+        folder : that.dest_folder
+      });
     });
   });
 };
@@ -47,6 +51,18 @@ FilesManagement.retrieveFile = function(url, dest_file, cb) {
   var dest = fs.createWriteStream(dest_file);
   dest.on('close', cb);
   request.get(url).pipe(dest);
+};
+
+FilesManagement.prototype.prepareSync = function(base_folder, cb) {
+  var that = this;
+
+  Compress.pack(base_folder, defaults.SYNC_FILE, function(e) {
+    that.has_file_to_sync = true;
+    return cb(e, {
+      folder : base_folder,
+      target : defaults.SYNC_FILE
+    });
+  });
 };
 
 module.exports = FilesManagement;

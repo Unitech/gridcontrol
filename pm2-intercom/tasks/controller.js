@@ -42,6 +42,12 @@ Controller.init_task_group = function(req, res, next) {
     json_conf   : json_conf
   }, function(err, procs) {
     if (err) return next(err);
+
+    req.file_manager.prepareSync(base_folder, function(e, dt) {
+      console.log('Sync file generated for folder=%s target=%s', dt.folder, dt.target);
+      req.net_manager.askAllPeersToSync();
+    });
+
     return res.send(procs);
   });
 };

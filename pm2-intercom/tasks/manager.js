@@ -9,8 +9,21 @@ var Controller = require('./controller.js');
 var TaskManagement = function(opts) {
   this.port_offset = opts.port_offset || 10001;
   this.task_list   = {};
+  this.task_meta   = {
+    instances   : 0,
+    json_conf   : null,
+    task_folder : 'tasks'
+  };
 
   this.controller = Controller;
+};
+
+TaskManagement.prototype.getTaskMeta = function() {
+  return this.task_meta;
+};
+
+TaskManagement.prototype.setTaskMeta = function(task_meta) {
+  this.task_meta = task_meta;
 };
 
 TaskManagement.prototype.getTasks = function() {
@@ -33,10 +46,14 @@ TaskManagement.prototype.addTask = function(task_id, task) {
  */
 TaskManagement.prototype.initTaskGroup = function(opts, cb) {
   var that = this;
-  // 0 for Max instances depending on CPUs
-  opts.instances   = opts.instances || 0;
 
-  this.getAllTasksInFolder(opts.task_folder, function(e, tasks_files) {
+  that.task_meta.instances   = opts.instances || 0;
+  that.task_meta.json_conf   = opts.json_conf;
+  that.task_meta.task_folder = opts.task_folder;
+
+  var fullpath_task = p.join(opts.base_folder, opts.task_folder);
+
+  this.getAllTasksInFolder(fullpath_task, function(e, tasks_files) {
     if (e) return cb(e);
 
     that.startTasks(opts, tasks_files, function(err, procs) {
@@ -59,7 +76,7 @@ TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
     pm2.start({
       script    : './tasks/task_wrapper.js',
       name      : task_pm2_name,
-      instances : opts.instances,
+      instances : that.task_meta.instances,
       exec_mode : 'cluster',
       env : {
         TASK_PATH : task_path,

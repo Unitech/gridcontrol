@@ -6,6 +6,8 @@ var debug      = require('debug')('api');
 var API = function(opts) {
   this.port = opts.port || 10000;
   this.task_manager = opts.task_manager;
+  this.file_manager = opts.file_manager;
+  this.net_manager  = opts.net_manager;
 };
 
 API.prototype.start = function(cb) {
@@ -41,6 +43,8 @@ API.prototype.setMiddlewares = function() {
   // Attach task manager to request for child controllers
   this.app.use(function(req, res, next) {
     req.task_manager = that.task_manager;
+    req.file_manager = that.file_manager;
+    req.net_manager  = that.net_manager;
     next();
   });
 

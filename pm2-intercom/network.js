@@ -40,9 +40,9 @@ var Network = function(opts, cb) {
   var tmp_file   = opts.tmp_file || defaults.TMP_FILE;
   var tmp_folder = opts.tmp_folder || defaults.TMP_FOLDER;
 
-  this.files_manager = new FilesManagement({
-    dest_file  : tmp_file,
-    dest_foler : tmp_folder
+  this.file_manager = new FilesManagement({
+    dest_file   : tmp_file,
+    dest_folder : tmp_folder
   });
 
   this.task_manager = new TaskManager({
@@ -50,8 +50,10 @@ var Network = function(opts, cb) {
   });
 
   this.api = new API({
-    port : that.peer_api_port,
-    task_manager : that.task_manager
+    port         : that.peer_api_port,
+    task_manager : that.task_manager,
+    file_manager : that.file_manager,
+    net_manager  : this
   });
 
   // Start network discovery
@@ -61,8 +63,9 @@ var Network = function(opts, cb) {
   });
 };
 
-Network.prototype.close = function() {
+Network.prototype.close = function(cb) {
   this.api.stop();
+  this.file_manager.clear(cb);
 };
 
 Network.prototype.handle = function(sock) {
@@ -70,7 +73,9 @@ Network.prototype.handle = function(sock) {
 
   this.peers.push(sock);
 
-  debug('status=new peer from=%s total=%d', this.peer_name, this.peers.length);
+  debug('status=new peer from=%s total=%d',
+        this.peer_name,
+        this.peers.length);
 
   sock.on('data', function(packet) {
     try {
@@ -82,26 +87,31 @@ Network.prototype.handle = function(sock) {
     switch (packet.cmd) {
       // Task to synchronize this node
     case 'sync':
-      console.log('Synchronizing ip=%s port=%s', packet.data.ip, packet.data.port);
-      that.files_manager.synchronize(packet.data.ip, packet.data.port);
+      console.log('Incoming sync req from ip=%s port=%s', packet.data.ip, packet.data.port);
+
+      that.file_manager.synchronize(
+        packet.data.ip,
+        packet.data.port,
+        function(err, meta) {
+          // Synchronize Task meta (@todo env variable also?)
+          that.task_manager.setTaskMeta(packet.data.meta);
+          console.log('starting tasks!', meta.folder);
+        });
       break;
     case 'clear':
-      that.files_manager.clear();
+      that.file_manager.clear();
       break;
     default:
       console.error('Unknow CMD', packet.cmd, packet.data);
     }
   });
 
-  if (that.is_file_master == true) {
-    // Send synchronize command
-    Network.sendJson(sock, {
-      cmd : 'sync',
-      data : {
-        ip   : that.peer_address,
-        port : that.peer_api_port
-      }
-    });
+  /**
+   * When a new peer connect and req is received to master && is synced
+   * tell the new peer to synchronize with the current peer
+   */
+  if (that.is_file_master == true && that.file_manager.has_file_to_sync) {
+    that.askPeerToSync(sock);
   }
 
   sock.on('close', function() {
@@ -127,6 +137,27 @@ Network.prototype.start = function(ns, cb) {
 
 Network.prototype.getPeers = function() {
   return this.peers;
+};
+
+Network.prototype.askAllPeersToSync = function() {
+  var that = this;
+
+  this.peers.forEach(function(sock) {
+    that.askPeerToSync(sock);
+  });
+};
+
+Network.prototype.askPeerToSync = function(sock) {
+  var that = this;
+
+  Network.sendJson(sock, {
+    cmd : 'sync',
+    data : {
+      ip   : that.peer_address,
+      port : that.peer_api_port,
+      meta : that.task_manager.getTaskMeta()
+    }
+  });
 };
 
 Network.sendJson = function(sock, data) {
