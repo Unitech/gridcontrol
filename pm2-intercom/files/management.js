@@ -6,8 +6,9 @@ var defaults  = require('../constants.js');
 var exec      = require('child_process').exec;
 
 var FilesManagement = function(opts) {
-  this.dest_file = opts.dest_file || defaults.TMP_FILE;
-  this.dest_folder = opts.dest_folder || defaults.TMP_FOLDER;
+  this.dest_file        = opts.dest_file || defaults.TMP_FILE;
+  this.dest_folder      = opts.dest_folder || defaults.TMP_FOLDER;
+  this.is_file_master   = opts.is_file_master || false;
   this.has_file_to_sync = false;
 };
 
@@ -29,6 +30,18 @@ FilesManagement.prototype.synchronize = function(ip, port, cb) {
       });
     });
   });
+};
+
+FilesManagement.prototype.isFileMaster = function() {
+  return this.is_file_master;
+};
+
+FilesManagement.prototype.setFileMaster = function(bool) {
+  return this.is_file_master = bool;
+};
+
+FilesManagement.prototype.hasFileToSync = function() {
+  return this.has_file_to_sync;
 };
 
 /**

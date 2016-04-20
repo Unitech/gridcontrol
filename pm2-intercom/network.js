@@ -41,8 +41,9 @@ var Network = function(opts, cb) {
   var tmp_folder = opts.tmp_folder || defaults.TMP_FOLDER;
 
   this.file_manager = new FilesManagement({
-    dest_file   : tmp_file,
-    dest_folder : tmp_folder
+    dest_file      : tmp_file,
+    dest_folder    : tmp_folder,
+    is_file_master : that.is_file_master
   });
 
   this.task_manager = new TaskManager({
@@ -110,7 +111,7 @@ Network.prototype.handle = function(sock) {
    * When a new peer connect and req is received to master && is synced
    * tell the new peer to synchronize with the current peer
    */
-  if (that.is_file_master == true && that.file_manager.has_file_to_sync) {
+  if (that.file_manager.isFileMaster() && that.file_manager.hasFileToSync()) {
     that.askPeerToSync(sock);
   }
 

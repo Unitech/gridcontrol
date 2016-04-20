@@ -12,8 +12,7 @@ describe('Network', function() {
 
   it('should handle connections', function(done) {
     n1 = new network({
-      peer_api_port : 10000,
-      is_file_master: true
+      peer_api_port : 10000
     }, done);
   });
 
@@ -46,10 +45,24 @@ describe('Network', function() {
       });
     });
 
+
     it('should retrieve 0 tasks started', function(done) {
       request.get('http://localhost:10000/list_tasks', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
+        done();
+      });
+    });
+
+    it('should webserver be started', function(done) {
+      request.post('http://localhost:10000/conf', {
+        form : {
+          is_file_master : true
+        }
+      }, function(err, res, body) {
+        should(err).be.null;
+        should(res.statusCode).eql(200);
+        JSON.parse(body).file_manager.is_file_master.should.be.true;
         done();
       });
     });

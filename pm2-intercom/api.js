@@ -77,16 +77,23 @@ API.prototype.mountRoutes = function() {
     return res.send('pong');
   });
 
-  // app.get('/conf', function(req, res, next) {
-  //   return res.send(that._task_meta);
-  // });
+  app.get('/conf', function(req, res, next) {
+    res.send({
+      file_manager : req.file_manager,
+      task_manager : req.task_manager
+    });
+  });
 
-  // app.post('/conf', function(req, res, next) {
-  //   // Set current process as "the task master"
-  //   if (req.body.is_file_master)
-  //     that._task_meta.is_file_master = req.body.is_file_master;
-  //   res.send(that._task_meta);
-  // });
+  app.post('/conf', function(req, res, next) {
+    // Set current process as "the task master"
+    if (req.body.is_file_master) {
+      req.file_manager.setFileMaster(true);
+    }
+    res.send({
+      file_manager : req.file_manager,
+      task_manager : req.task_manager
+    });
+  });
 
 };
 

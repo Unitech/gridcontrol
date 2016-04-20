@@ -69,7 +69,7 @@ TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
 
   async.forEachLimit(tasks_files, 1, function(task_file, next) {
     var task_port     = that.port_offset++;
-    var task_path     = p.join(opts.task_folder, task_file);
+    var task_path     = p.join(opts.base_folder, opts.task_folder, task_file);
     var task_id       = p.basename(task_file, '.js');
     var task_pm2_name = 'task:' + task_id;
 
@@ -78,6 +78,7 @@ TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
       name      : task_pm2_name,
       instances : that.task_meta.instances,
       exec_mode : 'cluster',
+      watch     : true,
       env : {
         TASK_PATH : task_path,
         TASK_PORT : task_port
