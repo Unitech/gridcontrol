@@ -54,7 +54,7 @@ describe('Network', function() {
       });
     });
 
-    it('should webserver be started', function(done) {
+    it('should set peer n1 as a the file master', function(done) {
       request.post('http://localhost:10000/conf', {
         form : {
           is_file_master : true
@@ -63,6 +63,16 @@ describe('Network', function() {
         should(err).be.null;
         should(res.statusCode).eql(200);
         JSON.parse(body).file_manager.is_file_master.should.be.true;
+        done();
+      });
+    });
+
+    it('should get configuration', function(done) {
+      request.get('http://localhost:10000/conf', function(err, res, body) {
+        should(err).be.null;
+        should(res.statusCode).eql(200);
+        var conf = JSON.parse(body);
+        conf.should.have.properties(['file_manager', 'task_manager']);
         done();
       });
     });

@@ -128,6 +128,10 @@ Network.prototype.start = function(ns, cb) {
     that.handle(sock);
   });
 
+  this.socket.on('error', function(e) {
+    console.error(e.message);
+  });
+
   this.socket.on('listening', function() {
     debug('status=listening name=%s ip=%s',
           that.peer_name,
