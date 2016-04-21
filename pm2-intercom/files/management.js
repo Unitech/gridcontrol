@@ -71,6 +71,7 @@ FilesManagement.prototype.prepareSync = function(base_folder, cb) {
 
   Compress.pack(base_folder, defaults.SYNC_FILE, function(e) {
     that.has_file_to_sync = true;
+    that.is_file_master   = true;
     return cb(e, {
       folder : base_folder,
       target : defaults.SYNC_FILE
