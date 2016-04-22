@@ -2,11 +2,13 @@
 var pm2        = require('pm2');
 var request    = require('request');
 var debug      = require('debug')('task:controller');
+var pump       = require('pump');
 
 var Controller = {};
 
 Controller.list_tasks = function(req, res, next) {
-  return res.send(req.task_manager.getTasks());
+  var tasks = req.task_manager.getTasks();
+  return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
 };
 
 Controller.clear_all_tasks = function(req, res, next) {
@@ -18,13 +20,28 @@ Controller.clear_all_tasks = function(req, res, next) {
 Controller.trigger_task = function(req, res, next) {
   var task_id  = req.body.task_id;
 
+  /**
+   * Buffering system
+   */
+  if (!req.task_manager.getTasks()[task_id]) {
+    var inter = setInterval(function() {
+      if (req.task_manager.getTasks()[task_id]) {
+        clearInterval(inter);
+        Controller.trigger_task(req, res, next);
+      }
+    }, 1000);
+    return false;
+  }
+
   var url = 'http://localhost:' + req.task_manager.getTasks()[task_id].port;
 
-  // Proxy query to the right service
-  req.pipe(request({
+  var a = request({
     url : url,
     form: req.body
-  }), { end : false }).pipe(res);
+  });
+
+  // Proxy query to the right service
+  var b = req.pipe(a, { end : false }).pipe(res);
 };
 
 Controller.init_task_group = function(req, res, next) {

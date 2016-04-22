@@ -5,7 +5,7 @@ var debug      = require('debug')('api');
 var stringify  = require('./lib/safeclonedeep.js');
 
 var API = function(opts) {
-  this.port = opts.port || 10000;
+  this.port         = opts.port || 10000;
   this.task_manager = opts.task_manager;
   this.file_manager = opts.file_manager;
   this.net_manager  = opts.net_manager;

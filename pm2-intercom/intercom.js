@@ -6,7 +6,7 @@ var Moniker         = require('moniker');
 var networkAddress  = require('network-address');
 var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
-var TaskManager     = require('./tasks/task_manager.js');
+var TaskManager     = require('./tasks_manager/task_manager.js');
 var API             = require('./api.js');
 var EventEmitter    = require('events').EventEmitter;
 var util            = require('util');
@@ -69,7 +69,7 @@ Intercom.prototype.close = function(cb) {
   this.file_manager.clear(cb);
 };
 
-Intercom.prototype.handle = function(sock) {
+Intercom.prototype.onNewPeer = function(sock) {
   var that = this;
 
   this.peers.push(sock);
@@ -94,9 +94,11 @@ Intercom.prototype.handle = function(sock) {
         packet.data.ip,
         packet.data.port,
         function(err, meta) {
-          // Synchronize Task meta (@todo env variable also?)
           that.task_manager.setTaskMeta(packet.data.meta);
+          /****************************************/
+          /****** TASK START ON SLAVE NODE ********/
           console.log('starting tasks!', meta.folder);
+          /****************************************/
         });
       break;
     case 'clear':
@@ -124,9 +126,7 @@ Intercom.prototype.handle = function(sock) {
 Intercom.prototype.start = function(ns, cb) {
   var that = this;
 
-  this.socket = airswarm(ns, function(sock) {
-    that.handle(sock);
-  });
+  this.socket = airswarm(ns, this.onNewPeer.bind(this));
 
   this.socket.on('error', function(e) {
     console.error(e.message);

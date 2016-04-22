@@ -14,14 +14,12 @@
     "async" : "*",
     "pmx" : "*",
     "debug" : "*",
-
-    "bunyan"  : "*",
     "moniker" : "*",
-    "pump" : "*",
     "airswarm" : "*",
     "network-address" : "*",
     "chokidar" : "*",
-    "tar-fs" : "*"
+    "tar-fs" : "*",
+    "pump" : "*"
   },
   "devDependencies" : {
     "should" : "*",

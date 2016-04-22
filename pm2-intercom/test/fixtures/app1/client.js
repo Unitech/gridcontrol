@@ -27,7 +27,7 @@ Intercom.prototype.conf = function(opts, cb) {
     json : {
       task_folder : this.task_folder,
       instances   : this.instances,
-      base_folder : process.cwd(),
+      base_folder : __dirname,
       env         : this.env
     }
   }, function(err, res, body) {
@@ -63,43 +63,8 @@ Intercom.prototype.exec = function(task_name, data, cb) {
       ret = body;
     }
 
-    return cb(ret.err, ret.data);
+    return cb(null, ret);
   });
-};
-
-Intercom.prototype.listTasks = function(cb) {
-  request.get(this.base_url + '/list_tasks', function(e1, r, b) {
-    if (e1) return cb(e1);
-
-    try {
-      b = JSON.parse(b);
-    } catch(e) {
-      return cb(e);
-    }
-
-    return cb(null, b);
-  });
-};
-
-Intercom.prototype.listHosts = function(cb) {
-  request.get(this.base_url + '/hosts/list', function(e1, r, b) {
-    if (e1) return cb(e1);
-
-    try {
-      b = JSON.parse(b);
-    } catch(e) {
-      return cb(e);
-    }
-
-    return cb(null, b);
-  });
-};
-
-Intercom.prototype.stopTasks = function(cb) {
-  request.delete(this.base_url + '/clear_all_tasks',
-                 function(err, raw, body) {
-                   cb(err, body);
-                 });
 };
 
 Intercom.prototype.all = function(task_name, data, eventemitter) {

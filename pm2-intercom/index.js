@@ -1,4 +1,5 @@
 
+process.env.DEBUG="api,network";
 
 var Intercom = require('./intercom.js');
 
