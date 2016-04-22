@@ -5,6 +5,7 @@ var async      = require('async');
 var p          = require('path');
 var debug      = require('debug')('task:management');
 var Controller = require('./controller.js');
+var extend     = require('util')._extend;
 
 var TaskManagement = function(opts) {
   this.port_offset = opts.port_offset || 10001;
@@ -12,7 +13,8 @@ var TaskManagement = function(opts) {
   this.task_meta   = {
     instances   : 0,
     json_conf   : null,
-    task_folder : 'tasks'
+    task_folder : 'tasks',
+    env         : {}
   };
 
   this.controller = Controller;
@@ -50,6 +52,7 @@ TaskManagement.prototype.initTaskGroup = function(opts, cb) {
   that.task_meta.instances   = opts.instances || 0;
   that.task_meta.json_conf   = opts.json_conf;
   that.task_meta.task_folder = opts.task_folder;
+  that.task_meta.env         = opts.env || {};
 
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);
 
@@ -73,16 +76,19 @@ TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
     var task_id       = p.basename(task_file, '.js');
     var task_pm2_name = 'task:' + task_id;
 
+    // Merge extra env passed at initialization
+    var env = extend(opts.env, {
+      TASK_PATH : task_path,
+      TASK_PORT : task_port
+    });
+
     pm2.start({
       script    : './tasks/task_wrapper.js',
       name      : task_pm2_name,
       instances : that.task_meta.instances,
       exec_mode : 'cluster',
       watch     : true,
-      env : {
-        TASK_PATH : task_path,
-        TASK_PORT : task_port
-      }
+      env       : env
     }, function(err, procs) {
       if (err)
         console.error(err);

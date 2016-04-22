@@ -40,29 +40,25 @@ describe('Network', function() {
       request.get('http://localhost:10000/ping', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
-        done();
         body.should.eql('pong');
+        done();
       });
     });
 
+    it('should retrieve one host connected', function(done) {
+      request.get('http://localhost:10000/hosts/list', function(e, r, b) {
+        var dt = JSON.parse(b);
+        should(e).be.null;
+        should(r.statusCode).eql(200);
+        should(dt.length).eql(1);
+        done();
+      });
+    });
 
     it('should retrieve 0 tasks started', function(done) {
       request.get('http://localhost:10000/list_tasks', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
-        done();
-      });
-    });
-
-    it('should set peer n1 as a the file master', function(done) {
-      request.post('http://localhost:10000/conf', {
-        form : {
-          is_file_master : true
-        }
-      }, function(err, res, body) {
-        should(err).be.null;
-        should(res.statusCode).eql(200);
-        JSON.parse(body).file_manager.is_file_master.should.be.true;
         done();
       });
     });
@@ -86,7 +82,10 @@ describe('Network', function() {
         form : {
           base_folder : base_folder,
           task_folder : task_folder,
-          instances   : 1
+          instances   : 1,
+          env         : {
+            NODE_ENV : 'test'
+          }
         }
       }, function(err, res, body) {
         var ret = JSON.parse(body);
@@ -119,6 +118,19 @@ describe('Network', function() {
       });
     });
 
+    it('should trigger task with custom env', function(done) {
+      request.post('http://localhost:10000/trigger', {
+        form : {
+          task_id : 'env',
+          data : {}
+        }
+      }, function(err, raw, body) {
+        var res = JSON.parse(body);
+        res.data.env.should.eql('test');
+        done();
+      });
+    });
+
     it('should connect THIRD node', function(done) {
       n3 = new network({
         peer_api_port  : 12000,
@@ -129,10 +141,26 @@ describe('Network', function() {
       });
     });
 
+    it('should now retrieve two hosts connected', function(done) {
+      request.get('http://localhost:10000/hosts/list', function(e, r, b) {
+        var dt = JSON.parse(b);
+        should(e).be.null;
+        should(r.statusCode).eql(200);
+        should(dt.length).eql(2);
+        done();
+      });
+    });
+
     it('should N3 autosync because file already gen', function(done) {
       fs.lstatSync('/tmp/n3.tar.gz');
       fs.lstatSync('/tmp/n3/');
       done();
+    });
+
+    it('should clear all tasks', function(done) {
+      request.delete('http://localhost:10000/clear_all_tasks', function(err, raw, body) {
+        done();
+      });
     });
 
     it('should clear (file + api)', function(done) {
@@ -143,11 +171,6 @@ describe('Network', function() {
       });
     });
 
-    it.skip('should clear all tasks', function(done) {
-      request.delete('http://localhost:10000/clear_all_tasks', function(err, raw, body) {
-        done();
-      });
-    });
 
   });
 

@@ -9,16 +9,10 @@ var EventEmitter    = require('events').EventEmitter;
  * opts.env
  */
 var Intercom = function() {
-  console.log('instanciate', arguments);
-
-  var a,b, toto;
-
-  (a, b) => toto;
-
+  // Singleton
 };
 
-Intercom.prototype.conf = function(opts) {
-  // Call localhost conf
+Intercom.prototype.conf = function(opts, cb) {
   var that = this;
 
   EventEmitter.call(this);
@@ -33,17 +27,63 @@ Intercom.prototype.conf = function(opts) {
     json : {
       task_folder : this.task_folder,
       instances   : this.instances,
-      base_folder : __dirname
+      base_folder : __dirname,
+      env         : this.env
     }
   }, function(err, res, body) {
-    if (err)
-      return that.emit('error', err);
-    console.log('Localhost set as file master');
+    if (err) {
+      that.emit('error', err);
+      return cb ? cb(err) : false;
+    }
+    return cb ? cb(null, body) : false;
   });
   return this;
 };
 
+Intercom.prototype.exec = function(task_name, data, cb) {
+  var that = this;
+
+  request.post(this.base_url + '/trigger', {
+    form : {
+      task_id : task_name,
+      data    : data
+    }
+  }, function(err, raw, body) {
+    if (err) {
+      that.emit('error', err);
+      return cb(err);
+    }
+
+    var ret = null;
+
+    try {
+      ret = JSON.parse(body);
+    } catch(e) {
+      ret = body;
+    }
+
+    return cb(null, ret);
+  });
+};
+
 Intercom.prototype.all = function(task_name, data, eventemitter) {
+  var ee = new EventEmitter();
+
+  var a = request.post(this.base_url + '/all', data);
+
+  a.on('error', function(e) {
+    ee.emit('error', e);
+  });
+
+  a.on('data', function(data) {
+    ee.emit('task:progress', data);
+  });
+
+  a.on('end', function(data) {
+    ee.emit('end');
+  });
+
+  return ee;
 };
 
 util.inherits(Intercom, EventEmitter);

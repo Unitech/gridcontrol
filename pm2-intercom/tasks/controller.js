@@ -34,12 +34,14 @@ Controller.init_task_group = function(req, res, next) {
   var task_folder = req.body.task_folder;
   var instances   = req.body.instances;
   var json_conf   = req.body.json_conf;
+  var env         = req.body.env || {};
 
   req.task_manager.initTaskGroup({
     base_folder : base_folder,
     task_folder : task_folder,
     instances   : instances,
-    json_conf   : json_conf
+    json_conf   : json_conf,
+    env         : env
   }, function(err, procs) {
     if (err) return next(err);
 

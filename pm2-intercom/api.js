@@ -2,6 +2,7 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 var pm2        = require('pm2');
 var debug      = require('debug')('api');
+var stringify  = require('./lib/safeclonedeep.js');
 
 var API = function(opts) {
   this.port = opts.port || 10000;
@@ -75,6 +76,10 @@ API.prototype.mountRoutes = function() {
    */
   app.get('/ping', function(req, res, next) {
     return res.send('pong');
+  });
+
+  app.get('/hosts/list', function(req, res, next) {
+    return res.send(stringify(req.net_manager.peers));
   });
 
   app.get('/conf', function(req, res, next) {
