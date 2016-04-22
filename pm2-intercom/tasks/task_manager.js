@@ -4,12 +4,13 @@ var pm2        = require('pm2');
 var async      = require('async');
 var p          = require('path');
 var debug      = require('debug')('task:management');
-var Controller = require('./controller.js');
+var Controller = require('./task_controller.js');
 var extend     = require('util')._extend;
 
 var TaskManagement = function(opts) {
   this.port_offset = opts.port_offset || 10001;
   this.task_list   = {};
+  // Defaults values
   this.task_meta   = {
     instances   : 0,
     json_conf   : null,

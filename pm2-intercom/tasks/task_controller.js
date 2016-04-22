@@ -3,8 +3,6 @@ var pm2        = require('pm2');
 var request    = require('request');
 var debug      = require('debug')('task:controller');
 
-var TaskManager = require('./manager.js');
-
 var Controller = {};
 
 Controller.list_tasks = function(req, res, next) {

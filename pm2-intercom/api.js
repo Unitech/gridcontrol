@@ -56,12 +56,10 @@ API.prototype.mountRoutes = function() {
   var that = this;
   var app  = this.app;
 
-  var filesController = require('./files/controller.js');
-
   /**
    * Files endpoints
    */
-  app.get('/files/get_current_sync', filesController.get_current_sync);
+  app.get('/files/get_current_sync', this.file_manager.controller.get_current_sync);
 
   /**
    * Task endpoints
@@ -79,7 +77,7 @@ API.prototype.mountRoutes = function() {
   });
 
   app.get('/hosts/list', function(req, res, next) {
-    return res.send(stringify(req.net_manager.peers));
+    return res.send(stringify(req.net_manager.getPeers()));
   });
 
   app.get('/conf', function(req, res, next) {

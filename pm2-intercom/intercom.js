@@ -5,8 +5,8 @@ var debug           = require('debug')('network');
 var Moniker         = require('moniker');
 var networkAddress  = require('network-address');
 var defaults        = require('./constants.js');
-var FilesManagement = require('./files/management.js');
-var TaskManager     = require('./tasks/manager.js');
+var FilesManagement = require('./files/file_manager.js');
+var TaskManager     = require('./tasks/task_manager.js');
 var API             = require('./api.js');
 var EventEmitter    = require('events').EventEmitter;
 var util            = require('util');
@@ -21,7 +21,7 @@ var util            = require('util');
  * - opts.is_file_master (default false)
  * - opts.peer_address   (default network ip)
  */
-var Network = function(opts, cb) {
+var Intercom = function(opts, cb) {
   if (typeof(opts) == 'function') {
     cb = opts;
     opts = {};
@@ -64,12 +64,12 @@ var Network = function(opts, cb) {
   });
 };
 
-Network.prototype.close = function(cb) {
+Intercom.prototype.close = function(cb) {
   this.api.stop();
   this.file_manager.clear(cb);
 };
 
-Network.prototype.handle = function(sock) {
+Intercom.prototype.handle = function(sock) {
   var that = this;
 
   this.peers.push(sock);
@@ -121,7 +121,7 @@ Network.prototype.handle = function(sock) {
   });
 };
 
-Network.prototype.start = function(ns, cb) {
+Intercom.prototype.start = function(ns, cb) {
   var that = this;
 
   this.socket = airswarm(ns, function(sock) {
@@ -140,11 +140,11 @@ Network.prototype.start = function(ns, cb) {
   });
 };
 
-Network.prototype.getPeers = function() {
+Intercom.prototype.getPeers = function() {
   return this.peers;
 };
 
-Network.prototype.askAllPeersToSync = function() {
+Intercom.prototype.askAllPeersToSync = function() {
   var that = this;
 
   this.peers.forEach(function(sock) {
@@ -152,10 +152,10 @@ Network.prototype.askAllPeersToSync = function() {
   });
 };
 
-Network.prototype.askPeerToSync = function(sock) {
+Intercom.prototype.askPeerToSync = function(sock) {
   var that = this;
 
-  Network.sendJson(sock, {
+  Intercom.sendJson(sock, {
     cmd : 'sync',
     data : {
       ip   : that.peer_address,
@@ -165,10 +165,10 @@ Network.prototype.askPeerToSync = function(sock) {
   });
 };
 
-Network.sendJson = function(sock, data) {
+Intercom.sendJson = function(sock, data) {
   sock.write(JSON.stringify(data));
 };
 
-util.inherits(Network, EventEmitter);
+util.inherits(Intercom, EventEmitter);
 
-module.exports = Network;
+module.exports = Intercom;

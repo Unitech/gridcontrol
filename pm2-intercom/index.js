@@ -1,11 +1,11 @@
 
 
-var Network = require('./network.js');
+var Intercom = require('./intercom.js');
 
 if (require.main === module) {
-  new Network({
+  new Intercom({
     peer_api_port : 10000
   });
 }
 
-module.exports = Network;
+module.exports = Intercom;

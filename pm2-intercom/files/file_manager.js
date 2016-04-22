@@ -1,15 +1,17 @@
 
-var request   = require('request');
-var fs        = require('fs');
-var Compress  = require('./compress.js');
-var defaults  = require('../constants.js');
-var exec      = require('child_process').exec;
+var request         = require('request');
+var fs              = require('fs');
+var Compress        = require('./compress.js');
+var defaults        = require('../constants.js');
+var exec            = require('child_process').exec;
+var filesController = require('./file_controller.js');
 
 var FilesManagement = function(opts) {
   this.dest_file        = opts.dest_file || defaults.TMP_FILE;
   this.dest_folder      = opts.dest_folder || defaults.TMP_FOLDER;
   this.is_file_master   = opts.is_file_master || false;
   this.has_file_to_sync = false;
+  this.controller       = filesController;
 };
 
 /**
