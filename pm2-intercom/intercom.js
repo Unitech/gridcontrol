@@ -9,7 +9,6 @@ var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
 var API             = require('./api.js');
 var EventEmitter    = require('events').EventEmitter;
-var util            = require('util');
 
 /**
  * Main entry point of Intercom
@@ -27,8 +26,6 @@ var Intercom = function(opts, cb) {
     opts = {};
   }
   var that = this;
-
-  EventEmitter.call(this);
 
   this._ns            = opts.ns || 'pm2:fs';
   this.is_file_master = opts.is_file_master || false;
@@ -63,6 +60,8 @@ var Intercom = function(opts, cb) {
     that.api.start(cb);
   });
 };
+
+Intercom.prototype.__proto__ = EventEmitter.prototype;
 
 Intercom.prototype.close = function(cb) {
   this.api.stop();
@@ -169,6 +168,5 @@ Intercom.sendJson = function(sock, data) {
   sock.write(JSON.stringify(data));
 };
 
-util.inherits(Intercom, EventEmitter);
 
 module.exports = Intercom;

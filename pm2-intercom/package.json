@@ -17,7 +17,6 @@
     "moniker" : "*",
     "airswarm" : "*",
     "network-address" : "*",
-    "chokidar" : "*",
     "tar-fs" : "*",
     "pump" : "*"
   },
