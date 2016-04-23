@@ -38,6 +38,10 @@ FilesManagement.prototype.isFileMaster = function() {
   return this.is_file_master;
 };
 
+FilesManagement.prototype.getFilePath = function() {
+  return this.dest_folder;
+};
+
 FilesManagement.prototype.setFileMaster = function(bool) {
   return this.is_file_master = bool;
 };

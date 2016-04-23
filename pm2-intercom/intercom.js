@@ -93,10 +93,16 @@ Intercom.prototype.onNewPeer = function(sock) {
         packet.data.ip,
         packet.data.port,
         function(err, meta) {
-          that.task_manager.setTaskMeta(packet.data.meta);
+          //that.task_manager.setTaskMeta(packet.data.meta);
+
           /****************************************/
           /****** TASK START ON SLAVE NODE ********/
-          console.log('starting tasks!', meta.folder);
+
+          packet.data.meta.base_folder = that.file_manager.getFilePath();
+
+          that.task_manager.initTaskGroup(packet.data.meta, function() {
+            console.log('Files started!');
+          });
           /****************************************/
         });
       break;
@@ -117,7 +123,7 @@ Intercom.prototype.onNewPeer = function(sock) {
   }
 
   sock.on('close', function() {
-    debug('Sock on IP: %s disconnected', sock.remoteAddress);
+    debug('Sock disconnected');
     that.peers.splice(that.peers.indexOf(sock), 1);
   });
 };

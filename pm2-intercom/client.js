@@ -1,6 +1,5 @@
 
 var request         = require('request');
-var util            = require('util');
 var EventEmitter    = require('events').EventEmitter;
 
 /**
@@ -11,6 +10,8 @@ var EventEmitter    = require('events').EventEmitter;
 var Intercom = function() {
   // Singleton
 };
+
+Intercom.prototype.__proto__ = EventEmitter.prototype;
 
 Intercom.prototype.conf = function(opts, cb) {
   var that = this;
@@ -121,7 +122,5 @@ Intercom.prototype.all = function(task_name, data, eventemitter) {
 
   return ee;
 };
-
-util.inherits(Intercom, EventEmitter);
 
 module.exports = new Intercom;
