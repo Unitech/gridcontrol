@@ -79,8 +79,9 @@ Intercom.prototype.onNewPeer = function(sock) {
 
   sock.on('data', function(packet) {
     try {
-      packet = JSON.parse(packet);
+      packet = JSON.parse(packet.toString());
     } catch(e) {
+      console.error('Error while parsing incoming data via Socket');
       return console.error(e.message);
     }
 

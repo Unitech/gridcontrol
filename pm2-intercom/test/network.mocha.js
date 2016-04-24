@@ -104,6 +104,8 @@ describe('Network', function() {
     });
 
     it('should trigger task', function(done) {
+      this.timeout(200000);
+      //return false;
       request.post('http://localhost:10000/trigger', {
         form : {
           task_id : 'echo',
@@ -114,7 +116,7 @@ describe('Network', function() {
       }, function(err, raw, body) {
         var res = JSON.parse(body);
         res.data.hello.should.eql('yey');
-        done();
+        //done();
       });
     });
 
