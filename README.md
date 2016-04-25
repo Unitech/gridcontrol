@@ -1,18 +1,4 @@
 
-## Ideas
-
-- [ ] Allow external IP connections or via registry (secure)
-- [ ] Add TLS on HTTP
-
-
-- [ ] Fix issue port on script restart
-- [ ] Graphic documentation (refers to paper notes)
-- [ ] Round robin load balancer
-- [ ] Build CLI
-- [ ] Compatibility with Amazon lamda/apdex
-- [ ] Transpose client in Python, Java, Go
-___
-
 # PM2 CloudFunctions
 
 Execute functions in a cloud of PM2s.
@@ -21,20 +7,38 @@ This modules auto-link all PM2s in the same network and allows to execute functi
 
 The more *PM2* you add, the more calculation power you get.
 
-## Getting started
+## Quick start
+
+On multiple servers linked together (private network), install these two commands:
 
 ```bash
 $ npm install pm2 -g
 $ pm2 install cloud-functions
 ```
 
+This will connect each process manager together.
+
+*To display cloud functions logs do `$ pm2 logs cloud-functions`*
+
+Now we have to create a project with this kind of structure:
+
+```
+.
+├── index.js
+├── package.json
+└── tasks
+    ├── task_1.js
+    ├── task_2.js
+    └── request.js
+```
+
+Now let's add some orchestration code into the index.js:
+
 **./index.js**
 
 ```javascript
 var cloudfunctions = require('cloudfunctions').conf({
-  task_folder : 'tasks',
-  instances   : 2,
-  env         : process.env
+  task_folder : 'tasks'
 });
 
 cloudfunctions.on('ready', function() {
@@ -45,16 +49,19 @@ setInterval(function() {
 
   client.exec('request', {
     url : 'http://google.com/'
-  }, function(err, data) {
-    console.log(data);
+  }, function(err, response, server_meta) {
+    console.log('From server %s:%s', server.name, server.ip);
+    console.log('Got response %s', data);
   });
 
 }, 1000);
 ```
 
+Then create a folder called **tasks/** and add a first task into it:
+
 **./tasks/request.js**
 
-```
+```javascript
 var request = require('request');
 
 module.exports = function(data, cb) {
@@ -65,9 +72,16 @@ module.exports = function(data, cb) {
 };
 ```
 
+Now start the main application:
+
+```bash
+$ node index.js
 ```
-$ pm2 start index.js --watch
-$ pm2 logs
+
+You will see that in each server tasks are launched:
+
+```bash
+$ pm2 ls
 ```
 
 
