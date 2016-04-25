@@ -11,7 +11,7 @@ The more *PM2* you add, the more calculation power you get.
 
 ### Interconnect process manager
 
-On multiple servers linked together (private network), type these two commands:
+On multiple servers in the same private network (RPN, wifi...), type these two commands:
 
 ```bash
 $ npm install pm2 -g
