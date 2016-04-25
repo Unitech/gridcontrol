@@ -18,10 +18,13 @@ var https      = require('https');
  * @param opts {object} options
  * @param opts.port Port to listen on
  * @param opts.task_manager Task manager object
+ * @param opts.file_manager File manager object
+ * @param opts.file_manager Network manager (cloudfunctions.js) object
+ * @param opts.tls TLS keys
  */
 var API = function(opts) {
   this.port         = opts.port || 10000;
-  this.auth         = opts.auth;
+  this.tls          = opts.tls;
   this.task_manager = opts.task_manager;
   this.file_manager = opts.file_manager;
   this.net_manager  = opts.net_manager;

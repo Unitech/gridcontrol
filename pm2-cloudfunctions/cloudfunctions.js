@@ -41,7 +41,7 @@ var CloudFunction = function(opts, cb) {
   this.peer_api_port  = opts.peer_api_port || 10000;
   this.peers          = [];
 
-  this.auth = {
+  this.tls = {
     key : fs.readFileSync(path.join(__dirname, opts.private_key || 'misc/private.key')),
     cert : fs.readFileSync(path.join(__dirname, opts.public_key || 'misc/public.crt'))
   };
@@ -64,7 +64,7 @@ var CloudFunction = function(opts, cb) {
     task_manager : that.task_manager,
     file_manager : that.file_manager,
     net_manager  : this,
-    auth         : that.auth
+    tls         : that.tls
   });
 
   // Start network discovery
@@ -88,21 +88,20 @@ CloudFunction.prototype.start = function(ns, cb) {
   /**
    * Start network discovery
    */
-  this.socket = forum({
+  this.forum = forum({
     namespace  : ns,
     port_range : [1025, 9999],
-    secure     : true,
-    tcp_opts   : that.auth
+    tls        : that.tls
   });
 
-  this.socket.on('peer', this.onNewPeer.bind(this));
+  this.forum.on('peer', this.onNewPeer.bind(this));
 
-  this.socket.on('error', function(e) {
+  this.forum.on('error', function(e) {
     console.error('Forum got error');
     console.error(e.message);
   });
 
-  this.socket.on('listening', function() {
+  this.forum.on('listening', function() {
     debug('status=listening name=%s ip=%s',
           that.peer_name,
           that.peer_address);
@@ -111,11 +110,12 @@ CloudFunction.prototype.start = function(ns, cb) {
 };
 
 /**
- * Close All
+ * Stop API + Network discovery + clear files
  * @public
  */
 CloudFunction.prototype.close = function(cb) {
   this.api.stop();
+  this.forum.close();
   this.file_manager.clear(cb);
 };
 
@@ -135,7 +135,7 @@ CloudFunction.prototype.onNewPeer = function(sock) {
 
   sock.on('data', function(packet) {
     try {
-      packet = JSON.parse(packet);
+      packet = JSON.parse(packet.toString());
     } catch(e) {
       return console.error(e.message);
     }

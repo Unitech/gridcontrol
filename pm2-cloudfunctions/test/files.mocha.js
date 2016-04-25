@@ -3,7 +3,7 @@ var should          = require('should');
 var path            = require('path');
 var request         = require('request');
 var constants       = require('../constants.js');
-var FilesManagement = require('../files/management.js');
+var FilesManagement = require('../files/file_manager.js');
 var Compress        = require('../files/compress.js');
 var fs              = require('fs');
 var Helper          = require('./helpers.js');
@@ -22,6 +22,7 @@ function sampleServer(cb) {
   });
 
   app.listen(10000, function() {
+    console.log('Compressing to %s', dst_gzip);
     Compress.pack(src_folder, dst_gzip, cb);
   });
 }
@@ -32,7 +33,8 @@ describe('Files', function() {
   before(function(done) {
     f_management = new FilesManagement({
       dest_file   : '/tmp/nene.tar.gz',
-      dest_folder : '/tmp/glouglou'
+      dest_folder : '/tmp/glouglou',
+      is_file_master : true
     });
 
     sampleServer(done);
@@ -63,7 +65,7 @@ describe('Files', function() {
   });
 
   it('should clear all tmp files/folder', function(done) {
-    f_management.clear(done);
+    //f_management.clear(done);
   });
 
 });

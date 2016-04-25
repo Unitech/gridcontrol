@@ -10,7 +10,7 @@ module.exports = function forum(opts, fn) {
 
   var net = null;
 
-  if (opts.secure === true || opts.tcp_opts.key || opts.tcp_opts.cert) {
+  if (opts.tls && (opts.tls.key || opts.tls.cert)) {
     debug('Secure TLS Connections');
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     net = require('tls');
@@ -18,14 +18,13 @@ module.exports = function forum(opts, fn) {
   else
     net = require('net');
 
-
   var namespace = opts.namespace || 'multicast';
   var limit = opts.limit || Infinity;
   var mdns = multicastdns();
   var connections = {};
-  var tcp_opts = opts.tcp_opts || {};
+  var tls_cert = opts.tls || {};
 
-  var server = net.createServer(tcp_opts, function (sock) {
+  var server = net.createServer(tls_cert, function (sock) {
     sock.on('error', function (err) {
       sock.destroy(err);
     });
@@ -60,7 +59,7 @@ module.exports = function forum(opts, fn) {
       for (var i = 0; i < r.answers.length; i++) {
         var a = r.answers[i];
         if (a.name === namespace && a.type === 'SRV')
-          connect(a.data.target, a.data.port, tcp_opts || {});
+          connect(a.data.target, a.data.port);
       }
     });
 
@@ -95,7 +94,7 @@ module.exports = function forum(opts, fn) {
       if (connections[remoteId]) return;
       if (remoteId < id) return respond();
 
-      var sock = connections[remoteId] = net.connect(port, host, opts.tcp_opts || {});
+      var sock = connections[remoteId] = net.connect(port, host, tls_cert);
 
       sock.on('error', function () {
         sock.destroy();
