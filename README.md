@@ -9,7 +9,7 @@ The more *PM2* you add, the more calculation power you get.
 
 ## Quick start
 
-### Interconnect process manager
+### Inter connect process managers
 
 On multiple servers in the same private network (RPN, wifi...), type these two commands:
 
