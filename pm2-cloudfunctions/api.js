@@ -8,6 +8,8 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 var debug      = require('debug')('api');
 var stringify  = require('./lib/safeclonedeep.js');
+var http       = require('http');
+var https      = require('https');
 
 /**
  * Set API default values
@@ -19,6 +21,7 @@ var stringify  = require('./lib/safeclonedeep.js');
  */
 var API = function(opts) {
   this.port         = opts.port || 10000;
+  this.auth         = opts.auth;
   this.task_manager = opts.task_manager;
   this.file_manager = opts.file_manager;
   this.net_manager  = opts.net_manager;
@@ -33,10 +36,18 @@ API.prototype.start = function(cb) {
 
   this.app  = express();
 
+  this.server = null;
+
+  //if (this.auth)
+  //this.server = https.createServer(that.auth, that.app);
+  //else
+
+  this.server = http.createServer(that.app);
+
   this.setMiddlewares();
   this.mountRoutes();
 
-  that.server = that.app.listen(that.port, function (err) {
+  that.server.listen(that.port, function (err) {
     debug('API listening on port %d', that.port);
     return cb ? cb(err) : false;
   });

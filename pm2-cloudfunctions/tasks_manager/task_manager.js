@@ -7,7 +7,13 @@ var debug      = require('debug')('task:management');
 var Controller = require('./task_controller.js');
 var extend     = require('util')._extend;
 
-var TaskManagement = function(opts) {
+/**
+ * The Task Manager manage all tasks
+ * @constructor
+ * @param opts {object} options
+ * @param opts.port_offset {Integer} Port to start on
+ */
+var TaskManager = function(opts) {
   this.port_offset = opts.port_offset || 10001;
   this.task_list   = {};
   // Defaults values
@@ -25,29 +31,28 @@ var TaskManagement = function(opts) {
   this.controller = Controller;
 };
 
-TaskManagement.prototype.terminate = function() {
+TaskManager.prototype.terminate = function() {
   pm2.disconnect();
 };
 
-TaskManagement.prototype.getTaskMeta = function() {
+TaskManager.prototype.getTaskMeta = function() {
   return this.task_meta;
 };
 
 /**
  * Set Task default meta
  * @param task_meta Object
-
  */
-TaskManagement.prototype.setTaskMeta = function(task_meta) {
+TaskManager.prototype.setTaskMeta = function(task_meta) {
   this.task_meta = task_meta;
 };
 
 
-TaskManagement.prototype.getTasks = function() {
+TaskManager.prototype.getTasks = function() {
   return this.task_list;
 };
 
-TaskManagement.prototype.addTask = function(task_id, task) {
+TaskManager.prototype.addTask = function(task_id, task) {
   if (!task.port)
     console.error('Port is missing');
 
@@ -55,13 +60,14 @@ TaskManagement.prototype.addTask = function(task_id, task) {
 };
 
 /**
- * Init a group of tasks
+ * List all tasks and .startTasks each of them
+ * @param {object} opts options
  * @param {string} opts.base_folder absolute project path
  * @param {string} opts.task_folder absolute task folder path
- * @param {string} opts.instances
- * @param {string} opts.json_conf
+ * @param {string} opts.instances number of instances of each script
+ * @param {string} opts.json_conf NIY
  */
-TaskManagement.prototype.initTaskGroup = function(opts, cb) {
+TaskManager.prototype.initTaskGroup = function(opts, cb) {
   var that = this;
 
   that.task_meta.instances   = opts.instances || 0;
@@ -81,7 +87,17 @@ TaskManagement.prototype.initTaskGroup = function(opts, cb) {
   });
 };
 
-TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
+/**
+ * Start a list of task_files
+ * @param {object} opts options
+ * @param {string} opts.base_folder absolute project path
+ * @param {string} opts.task_folder absolute task folder path
+ * @param {string} opts.instances number of instances of each script
+ * @param {string} opts.json_conf NIY
+ * @param {array} tasks_files array of files (tasks)
+ * @param {function} cb callback triggered once application started
+ */
+TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
   var that = this;
   var ret_procs = [];
 
@@ -126,10 +142,15 @@ TaskManagement.prototype.startTasks = function(opts, tasks_files, cb) {
   });
 };
 
-TaskManagement.prototype.getAllTasksInFolder = function(tasks_fullpath, cb) {
+/**
+ * Get files in target folder
+ * @param {string} tasks_fullpath Absolute path to list files
+ * @param {function} cb callback called once files are listed
+ */
+TaskManager.prototype.getAllTasksInFolder = function(tasks_fullpath, cb) {
   fs.readdir(tasks_fullpath, function(err, task_files) {
     return cb(err, task_files);
   });
 };
 
-module.exports = TaskManagement;
+module.exports = TaskManager;

@@ -3,8 +3,16 @@ var pm2        = require('pm2');
 var request    = require('request');
 var debug      = require('debug')('task:controller');
 
+/**
+ * @namespace TaskController
+ */
 var Controller = {};
 
+/**
+ * res.send(array_of_tasks)
+ * @memberof TaskController
+ * @method list_tasks
+ */
 Controller.list_tasks = function(req, res, next) {
   var tasks = req.task_manager.getTasks();
   return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
@@ -39,8 +47,16 @@ Controller.trigger_task = function(req, res, next) {
     form: req.body
   });
 
+  function onErr() {
+    console.error('Error while pipping data');
+    res.end();
+  }
   // Proxy query to the right service
-  var b = req.pipe(a, { end : false }).pipe(res);
+  req
+    .pipe(a, { end : false })
+    .on('error', onErr)
+    .pipe(res)
+    .on('error', onErr);
 };
 
 Controller.init_task_group = function(req, res, next) {

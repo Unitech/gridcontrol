@@ -16,7 +16,7 @@
     "pmx" : "*",
     "debug" : "*",
     "moniker" : "*",
-    "airswarm" : "*",
+    "multicast-dns": "*",
     "network-address" : "*",
     "tar-fs" : "*"
   },

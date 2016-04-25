@@ -1,13 +1,15 @@
-var airswarm        = require('airswarm');
 var fs              = require('fs');
-var debug           = require('debug')('network');
+var path            = require('path');
+var EventEmitter    = require('events').EventEmitter;
 var Moniker         = require('moniker');
+var debug           = require('debug')('network');
 var networkAddress  = require('network-address');
+
 var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
+var forum           = require('./forum/index.js');
 var API             = require('./api.js');
-var EventEmitter    = require('events').EventEmitter;
 
 /**
  * Main entry point of CloudFunction
@@ -20,6 +22,8 @@ var EventEmitter    = require('events').EventEmitter;
  * @param opts.ns {string} (default pm2:fs)
  * @param opts.is_file_master {boolean} (default false)
  * @param opts.peer_address {string}  (default network ip)
+ * @param opts.private_key {string} Private key passed to TCP and HTTP
+ * @param opts.public_key {string} Public key passed to TCP and HTTP
  * @param cb {function} callback
  */
 var CloudFunction = function(opts, cb) {
@@ -27,6 +31,7 @@ var CloudFunction = function(opts, cb) {
     cb = opts;
     opts = {};
   }
+
   var that = this;
 
   this._ns            = opts.ns || 'pm2:fs';
@@ -35,6 +40,11 @@ var CloudFunction = function(opts, cb) {
   this.peer_address   = opts.peer_address || networkAddress();
   this.peer_api_port  = opts.peer_api_port || 10000;
   this.peers          = [];
+
+  this.auth = {
+    key : fs.readFileSync(path.join(__dirname, opts.private_key || 'misc/private.key')),
+    cert : fs.readFileSync(path.join(__dirname, opts.public_key || 'misc/public.crt'))
+  };
 
   var tmp_file   = opts.tmp_file || defaults.TMP_FILE;
   var tmp_folder = opts.tmp_folder || defaults.TMP_FOLDER;
@@ -53,7 +63,8 @@ var CloudFunction = function(opts, cb) {
     port         : that.peer_api_port,
     task_manager : that.task_manager,
     file_manager : that.file_manager,
-    net_manager  : this
+    net_manager  : this,
+    auth         : that.auth
   });
 
   // Start network discovery
@@ -64,6 +75,40 @@ var CloudFunction = function(opts, cb) {
 };
 
 CloudFunction.prototype.__proto__ = EventEmitter.prototype;
+
+
+/**
+ * Start network discovery
+ * @param sock {object} socket object
+ * @public
+ */
+CloudFunction.prototype.start = function(ns, cb) {
+  var that = this;
+
+  /**
+   * Start network discovery
+   */
+  this.socket = forum({
+    namespace  : ns,
+    port_range : [1025, 9999],
+    secure     : true,
+    tcp_opts   : that.auth
+  });
+
+  this.socket.on('peer', this.onNewPeer.bind(this));
+
+  this.socket.on('error', function(e) {
+    console.error('Forum got error');
+    console.error(e.message);
+  });
+
+  this.socket.on('listening', function() {
+    debug('status=listening name=%s ip=%s',
+          that.peer_name,
+          that.peer_address);
+    return cb ? cb() : false;
+  });
+};
 
 /**
  * Close All
@@ -131,35 +176,14 @@ CloudFunction.prototype.onNewPeer = function(sock) {
    * When a new peer connect and req is received to master && is synced
    * tell the new peer to synchronize with the current peer
    */
-  if (that.file_manager.isFileMaster() && that.file_manager.hasFileToSync()) {
+  if (that.file_manager.isFileMaster() &&
+      that.file_manager.hasFileToSync()) {
     that.askPeerToSync(sock);
   }
 
   sock.on('close', function() {
     debug('Sock disconnected');
     that.peers.splice(that.peers.indexOf(sock), 1);
-  });
-};
-
-/**
- * Start network discovery
- * @param sock {object} socket object
- * @public
- */
-CloudFunction.prototype.start = function(ns, cb) {
-  var that = this;
-
-  this.socket = airswarm(ns, this.onNewPeer.bind(this));
-
-  this.socket.on('error', function(e) {
-    console.error(e.message);
-  });
-
-  this.socket.on('listening', function() {
-    debug('status=listening name=%s ip=%s',
-          that.peer_name,
-          that.peer_address);
-    return cb ? cb() : false;
   });
 };
 

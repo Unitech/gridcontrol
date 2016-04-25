@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>PM2 CloudFunctions Class: API</title>
+	<title>PM2 CloudFunctions Namespace: TaskController</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -70,13 +70,13 @@
 		<div id="main">
 			
 
-	<h1 class="page-title">Class: API</h1>
+	<h1 class="page-title">Namespace: TaskController</h1>
 <section>
 
 <header>
     
         <h2>
-        API
+        TaskController
         </h2>
         
     
@@ -87,143 +87,8 @@
     <div class="container-overview">
     
         
-<hr>
-<dt>
-    <h4 class="name" id="API"><span class="type-signature"></span>new API(opts)</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Set API default values
-    </div>
-    
-
-    
-
-    
-
-    
-        <h5>This:</h5>
-        <ul><li>{<a href="API.html">API</a>}</li></ul>
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
 
         
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>opts</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">options
-                <h6 class="method-params-label method-subparams-label">Properties</h6>
-                
-
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>port</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Port to listen on</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>task_manager</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Task manager object</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-    
-
-    
 <dl class="details">
     
 
@@ -263,21 +128,7 @@
 </dl>
 
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
+        
     
     </div>
 
@@ -300,7 +151,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="mountRoutes"><span class="type-signature"></span>mountRoutes()</h4>
+    <h4 class="name" id=".list_tasks"><span class="type-signature">&lt;static> </span>list_tasks()</h4>
     
     
 </dt>
@@ -308,241 +159,7 @@
 
     
     <div class="description">
-        Mount API routes
-    </div>
-    
-
-    
-
-    
-
-    
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="setMiddlewares"><span class="type-signature"></span>setMiddlewares()</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Set Express middlewares (JSON parsing, Attach class to req)
-    </div>
-    
-
-    
-
-    
-
-    
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="start"><span class="type-signature"></span>start()</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Start API and listen to port
-    </div>
-    
-
-    
-
-    
-
-    
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="stop"><span class="type-signature"></span>stop()</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Stop API + Terminate Task manager
+        res.send(array_of_tasks)
     </div>
     
 

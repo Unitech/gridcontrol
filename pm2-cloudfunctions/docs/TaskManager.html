@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>PM2 CloudFunctions Class: CloudFunction</title>
+	<title>PM2 CloudFunctions Class: TaskManager</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -70,13 +70,13 @@
 		<div id="main">
 			
 
-	<h1 class="page-title">Class: CloudFunction</h1>
+	<h1 class="page-title">Class: TaskManager</h1>
 <section>
 
 <header>
     
         <h2>
-        CloudFunction
+        TaskManager
         </h2>
         
     
@@ -89,7 +89,7 @@
         
 <hr>
 <dt>
-    <h4 class="name" id="CloudFunction"><span class="type-signature"></span>new CloudFunction(opts, cb)</h4>
+    <h4 class="name" id="TaskManager"><span class="type-signature"></span>new TaskManager(opts)</h4>
     
     
 </dt>
@@ -97,7 +97,7 @@
 
     
     <div class="description">
-        Main entry point of CloudFunction
+        The Task Manager manage all tasks
     </div>
     
 
@@ -105,9 +105,6 @@
 
     
 
-    
-        <h5>This:</h5>
-        <ul><li>{<a href="CloudFunction.html">CloudFunction</a>}</li></ul>
     
     
         <h5>Parameters:</h5>
@@ -178,13 +175,13 @@
 
         <tr>
             
-                <td class="name"><code>tmp_file</code></td>
+                <td class="name"><code>port_offset</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Integer</span>
 
 
 
@@ -195,127 +192,7 @@
 
             
 
-            <td class="description last">default location of sync data</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>tmp_folder</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">default location of folder uncomp</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>peer_api_port</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">integer</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">API port (then task p+1++)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>ns</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">(default pm2:fs)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>is_file_master</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">(default false)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>peer_address</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">(default network ip)</td>
+            <td class="description last">Port to start on</td>
         </tr>
 
     
@@ -323,30 +200,6 @@
 </table>
 
             </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>cb</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">callback</td>
         </tr>
 
     
@@ -432,7 +285,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id=".sendJson"><span class="type-signature">&lt;static> </span>sendJson(sock, data)</h4>
+    <h4 class="name" id="getAllTasksInFolder"><span class="type-signature"></span>getAllTasksInFolder(tasks_fullpath, cb)</h4>
     
     
 </dt>
@@ -440,7 +293,7 @@
 
     
     <div class="description">
-        Transform JSON data to string and write to socket
+        Get files in target folder
     </div>
     
 
@@ -475,13 +328,13 @@
 
         <tr>
             
-                <td class="name"><code>sock</code></td>
+                <td class="name"><code>tasks_fullpath</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type">string</span>
 
 
 
@@ -492,20 +345,20 @@
 
             
 
-            <td class="description last">socket obj</td>
+            <td class="description last">Absolute path to list files</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>data</code></td>
+                <td class="name"><code>cb</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type">function</span>
 
 
 
@@ -516,213 +369,7 @@
 
             
 
-            <td class="description last">json object</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="askAllPeersToSync"><span class="type-signature"></span>askAllPeersToSync()</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Send command to all peers to synchronize
-    </div>
-    
-
-    
-
-    
-
-    
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="askPeerToSync"><span class="type-signature"></span>askPeerToSync(sock)</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Send synchronize command to target sock
-    </div>
-    
-
-    
-
-    
-
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>sock</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">socket obj</td>
+            <td class="description last">callback called once files are listed</td>
         </tr>
 
     
@@ -790,7 +437,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="close"><span class="type-signature"></span>close()</h4>
+    <h4 class="name" id="initTaskGroup"><span class="type-signature"></span>initTaskGroup(opts)</h4>
     
     
 </dt>
@@ -798,163 +445,7 @@
 
     
     <div class="description">
-        Close All
-    </div>
-    
-
-    
-
-    
-
-    
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="getPeers"><span class="type-signature"></span>getPeers()</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Return peers connected
-    </div>
-    
-
-    
-
-    
-
-    
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
-    <h4 class="name" id="onNewPeer"><span class="type-signature"></span>onNewPeer(sock)</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Handle peer when connected
+        List all tasks and .startTasks each of them
     </div>
     
 
@@ -989,7 +480,7 @@
 
         <tr>
             
-                <td class="name"><code>sock</code></td>
+                <td class="name"><code>opts</code></td>
             
 
             <td class="type">
@@ -1006,7 +497,129 @@
 
             
 
-            <td class="description last">socket object</td>
+            <td class="description last">options
+                <h6 class="method-params-label method-subparams-label">Properties</h6>
+                
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>base_folder</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">absolute project path</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>task_folder</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">absolute task folder path</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>instances</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">number of instances of each script</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>json_conf</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">NIY</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -1074,7 +687,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="start"><span class="type-signature"></span>start(sock)</h4>
+    <h4 class="name" id="setTaskMeta"><span class="type-signature"></span>setTaskMeta(task_meta)</h4>
     
     
 </dt>
@@ -1082,7 +695,7 @@
 
     
     <div class="description">
-        Start network discovery
+        Set Task default meta
     </div>
     
 
@@ -1117,7 +730,129 @@
 
         <tr>
             
-                <td class="name"><code>sock</code></td>
+                <td class="name"><code>task_meta</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Object</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="startTasks"><span class="type-signature"></span>startTasks(opts, tasks_files, cb)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Start a list of task_files
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
             
 
             <td class="type">
@@ -1134,7 +869,177 @@
 
             
 
-            <td class="description last">socket object</td>
+            <td class="description last">options
+                <h6 class="method-params-label method-subparams-label">Properties</h6>
+                
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>base_folder</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">absolute project path</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>task_folder</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">absolute task folder path</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>instances</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">number of instances of each script</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>json_conf</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">NIY</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tasks_files</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">array of files (tasks)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">callback triggered once application started</td>
         </tr>
 
     

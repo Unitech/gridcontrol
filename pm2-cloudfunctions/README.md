@@ -1,13 +1,15 @@
 
-# *pm2-intercom*
+# PM2 CloudFunctions
 
-This module allows to execute *lambdas* in any language accross a private network without any configuration needed (automatic discovery and data replication).
+Execute functions in a cloud of PM2s.
 
-The more *pm2-intercom* you add, the more calculation power you get.
+This modules auto-link all PM2s in the same network and allows to execute functions in any of them, in any languages.
 
-## Lambdas
+The more *PM2* you add, the more calculation power you get.
 
-A lambda is a simple script that will be executed over the network and will return a result to the calling script.
+## Cloud Function
+
+A cloud function is a simple script that will be executed over the network and will return a result to the calling script.
 
 Example:
 
