@@ -1,4 +1,18 @@
 
+## Ideas
+
+- [ ] Allow external IP connections or via registry (secure)
+- [ ] Add TLS on HTTP
+
+
+- [ ] Fix issue port on script restart
+- [ ] Graphic documentation (refers to paper notes)
+- [ ] Round robin load balancer
+- [ ] Build CLI
+- [ ] Compatibility with Amazon lamda/apdex
+- [ ] Transpose client in Python, Java, Go
+___
+
 # PM2 CloudFunctions
 
 Execute functions in a cloud of PM2s.
@@ -6,6 +20,56 @@ Execute functions in a cloud of PM2s.
 This modules auto-link all PM2s in the same network and allows to execute functions in any of them, in any languages.
 
 The more *PM2* you add, the more calculation power you get.
+
+## Getting started
+
+```bash
+$ npm install pm2 -g
+$ pm2 install cloud-functions
+```
+
+**./index.js**
+
+```javascript
+var cloudfunctions = require('cloudfunctions').conf({
+  task_folder : 'tasks',
+  instances   : 2,
+  env         : process.env
+});
+
+cloudfunctions.on('ready', function() {
+  console.log('Cloud function is ready');
+});
+
+setInterval(function() {
+
+  client.exec('request', {
+    url : 'http://google.com/'
+  }, function(err, data) {
+    console.log(data);
+  });
+
+}, 1000);
+```
+
+**./tasks/request.js**
+
+```
+var request = require('request');
+
+module.exports = function(data, cb) {
+  request.get(data.url, function(err, res, body) {
+    if (err) return cb(err);
+    cb(null, { response : body });
+  });
+};
+```
+
+```
+$ pm2 start index.js --watch
+$ pm2 logs
+```
+
 
 ## Cloud Function
 
@@ -44,7 +108,7 @@ To write a lambda in another language, you just need to create a HTTP server lis
 
 Python:
 
-```
+```python
 #!/usr/bin/python
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import os
@@ -63,3 +127,13 @@ class myHandler(BaseHTTPRequestHandler):
 server = HTTPServer(('', PORT_NUMBER), myHandler)
 server.serve_forever()
 ```
+
+## API Doc
+
+```bash
+$ google-chrome docs/index.html
+```
+
+# License
+
+Apache V2 (see LICENSE.txt)
