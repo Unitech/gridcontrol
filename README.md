@@ -20,7 +20,7 @@ This will connect each process manager together.
 
 *To display cloud functions logs do `$ pm2 logs cloud-functions`*
 
-Now we have to create a project with this kind of structure:
+Now we have to create a project with this structure:
 
 ```
 .
