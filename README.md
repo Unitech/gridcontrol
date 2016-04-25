@@ -9,7 +9,7 @@ The more *PM2* you add, the more calculation power you get.
 
 ## Quick start
 
-On multiple servers linked together (private network), install these two commands:
+On multiple servers linked together (private network), type these two commands:
 
 ```bash
 $ npm install pm2 -g
