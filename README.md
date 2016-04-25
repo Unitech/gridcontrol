@@ -9,6 +9,8 @@ The more *PM2* you add, the more calculation power you get.
 
 ## Quick start
 
+### Interconnect process manager
+
 On multiple servers linked together (private network), type these two commands:
 
 ```bash
@@ -19,6 +21,8 @@ $ pm2 install cloud-functions
 This will connect each process manager together.
 
 *To display cloud functions logs do `$ pm2 logs cloud-functions`*
+
+### Create a base app
 
 Now we have to create a project with this structure:
 
