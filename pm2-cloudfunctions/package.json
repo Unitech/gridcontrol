@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test/*.mocha.js",
-    "docs" : "rm -rf docs; ./node_modules/.bin/jsdoc -c jsconf.json -t ./node_modules/ink-docstrap/template -R README.md -d docs -r ."
+    "docs" : "rm -rf docs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d docs -r ."
   },
   "dependencies" : {
     "request" : "*",

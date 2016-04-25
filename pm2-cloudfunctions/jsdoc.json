@@ -15,6 +15,9 @@
   "plugins": [],
   "templates": {
     "cleverLinks": false,
-    "monospaceLinks": false
+    "monospaceLinks": false,
+    "systemName" : "PM2 CloudFunctions",
+    "copyright" : "Alexandre Strzelewicz",
+    "theme" : "simplex"
   }
 }
