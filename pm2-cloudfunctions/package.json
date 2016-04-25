@@ -1,7 +1,7 @@
 {
-  "name": "webtask",
+  "name": "cloudfunctions",
   "version": "1.0.0",
-  "description": "",
+  "description": "Execute functions in a cloud of PM2",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/*.mocha.js",
@@ -18,8 +18,7 @@
     "moniker" : "*",
     "airswarm" : "*",
     "network-address" : "*",
-    "tar-fs" : "*",
-    "pump" : "*"
+    "tar-fs" : "*"
   },
   "devDependencies" : {
     "should" : "*",
@@ -28,5 +27,5 @@
     "ink-docstrap" : "*"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ApacheV2"
 }

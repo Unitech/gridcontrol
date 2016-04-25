@@ -1,3 +1,9 @@
+/**
+ * @file Expose API to CloudFunctions
+ * @author Alexandre Strzelewicz
+ * @project PM2 CloudFunctions
+ */
+
 var express    = require('express');
 var bodyParser = require('body-parser');
 var debug      = require('debug')('api');

@@ -2,7 +2,6 @@
 var pm2        = require('pm2');
 var request    = require('request');
 var debug      = require('debug')('task:controller');
-var pump       = require('pump');
 
 var Controller = {};
 
