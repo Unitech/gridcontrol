@@ -18,16 +18,30 @@ var TaskManagement = function(opts) {
     env         : {}
   };
 
+  pm2.connect(function() {
+    debug('Connected to local PM2');
+  });
+
   this.controller = Controller;
+};
+
+TaskManagement.prototype.terminate = function() {
+  pm2.disconnect();
 };
 
 TaskManagement.prototype.getTaskMeta = function() {
   return this.task_meta;
 };
 
+/**
+ * Set Task default meta
+ * @param task_meta Object
+
+ */
 TaskManagement.prototype.setTaskMeta = function(task_meta) {
   this.task_meta = task_meta;
 };
+
 
 TaskManagement.prototype.getTasks = function() {
   return this.task_list;

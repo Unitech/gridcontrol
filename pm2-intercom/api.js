@@ -1,9 +1,16 @@
 var express    = require('express');
 var bodyParser = require('body-parser');
-var pm2        = require('pm2');
 var debug      = require('debug')('api');
 var stringify  = require('./lib/safeclonedeep.js');
 
+/**
+ * Set API default values
+ * @constructor
+ * @this {API}
+ * @param opts {object} options
+ * @param opts.port Port to listen on
+ * @param opts.task_manager Task manager object
+ */
 var API = function(opts) {
   this.port         = opts.port || 10000;
   this.task_manager = opts.task_manager;
@@ -11,6 +18,10 @@ var API = function(opts) {
   this.net_manager  = opts.net_manager;
 };
 
+/**
+ * Start API and listen to port
+ * @public
+ */
 API.prototype.start = function(cb) {
   var that = this;
 
@@ -19,21 +30,25 @@ API.prototype.start = function(cb) {
   this.setMiddlewares();
   this.mountRoutes();
 
-  pm2.connect(function() {
-    debug('Connected to local PM2');
-
-    that.server = that.app.listen(that.port, function (err) {
-      debug('API listening on port %d', that.port);
-      return cb ? cb(err) : false;
-    });
+  that.server = that.app.listen(that.port, function (err) {
+    debug('API listening on port %d', that.port);
+    return cb ? cb(err) : false;
   });
 };
 
+/**
+ * Stop API + Terminate Task manager
+ * @public
+ */
 API.prototype.stop = function() {
-  pm2.disconnect();
   this.server.close();
+  this.task_manager.terminate();
 };
 
+/**
+ * Set Express middlewares (JSON parsing, Attach class to req)
+ * @public
+ */
 API.prototype.setMiddlewares = function() {
   var that = this;
 
@@ -52,6 +67,10 @@ API.prototype.setMiddlewares = function() {
   this.app.use(bodyParser.json());
 };
 
+/**
+ * Mount API routes
+ * @public
+ */
 API.prototype.mountRoutes = function() {
   var that = this;
   var app  = this.app;

@@ -1,4 +1,3 @@
-
 var airswarm        = require('airswarm');
 var fs              = require('fs');
 var debug           = require('debug')('network');
@@ -11,16 +10,19 @@ var API             = require('./api.js');
 var EventEmitter    = require('events').EventEmitter;
 
 /**
- * Main entry point of Intercom
- * @param {object} opts options
- * - opts.tmp_file       filemanager: default location of sync data
- * - opts.tmp_folder     filemanager: default location of folder uncomp
- * - opts.peer_api_port  api: start port for API (then task p+1++)
- * - opts.ns             (default pm2:fs)
- * - opts.is_file_master (default false)
- * - opts.peer_address   (default network ip)
+ * Main entry point of CloudFunction
+ * @constructor
+ * @this {CloudFunction}
+ * @param opts {object} options
+ * @param opts.tmp_file {string} default location of sync data
+ * @param opts.tmp_folder {string} default location of folder uncomp
+ * @param opts.peer_api_port {integer} API port (then task p+1++)
+ * @param opts.ns {string} (default pm2:fs)
+ * @param opts.is_file_master {boolean} (default false)
+ * @param opts.peer_address {string}  (default network ip)
+ * @param cb {function} callback
  */
-var Intercom = function(opts, cb) {
+var CloudFunction = function(opts, cb) {
   if (typeof(opts) == 'function') {
     cb = opts;
     opts = {};
@@ -61,14 +63,23 @@ var Intercom = function(opts, cb) {
   });
 };
 
-Intercom.prototype.__proto__ = EventEmitter.prototype;
+CloudFunction.prototype.__proto__ = EventEmitter.prototype;
 
-Intercom.prototype.close = function(cb) {
+/**
+ * Close All
+ * @public
+ */
+CloudFunction.prototype.close = function(cb) {
   this.api.stop();
   this.file_manager.clear(cb);
 };
 
-Intercom.prototype.onNewPeer = function(sock) {
+/**
+ * Handle peer when connected
+ * @param sock {object} socket object
+ * @public
+ */
+CloudFunction.prototype.onNewPeer = function(sock) {
   var that = this;
 
   this.peers.push(sock);
@@ -100,6 +111,8 @@ Intercom.prototype.onNewPeer = function(sock) {
 
           packet.data.meta.base_folder = that.file_manager.getFilePath();
 
+          if (process.env.NODE_ENV == 'test') return false;
+
           that.task_manager.initTaskGroup(packet.data.meta, function() {
             console.log('Files started!');
           });
@@ -128,7 +141,12 @@ Intercom.prototype.onNewPeer = function(sock) {
   });
 };
 
-Intercom.prototype.start = function(ns, cb) {
+/**
+ * Start network discovery
+ * @param sock {object} socket object
+ * @public
+ */
+CloudFunction.prototype.start = function(ns, cb) {
   var that = this;
 
   this.socket = airswarm(ns, this.onNewPeer.bind(this));
@@ -145,11 +163,19 @@ Intercom.prototype.start = function(ns, cb) {
   });
 };
 
-Intercom.prototype.getPeers = function() {
+/**
+ * Return peers connected
+ * @public
+ */
+CloudFunction.prototype.getPeers = function() {
   return this.peers;
 };
 
-Intercom.prototype.askAllPeersToSync = function() {
+/**
+ * Send command to all peers to synchronize
+ * @public
+ */
+CloudFunction.prototype.askAllPeersToSync = function() {
   var that = this;
 
   this.peers.forEach(function(sock) {
@@ -157,10 +183,15 @@ Intercom.prototype.askAllPeersToSync = function() {
   });
 };
 
-Intercom.prototype.askPeerToSync = function(sock) {
+/**
+ * Send synchronize command to target sock
+ * @param sock {object} socket obj
+ * @public
+ */
+CloudFunction.prototype.askPeerToSync = function(sock) {
   var that = this;
 
-  Intercom.sendJson(sock, {
+  CloudFunction.sendJson(sock, {
     cmd : 'sync',
     data : {
       ip   : that.peer_address,
@@ -170,9 +201,14 @@ Intercom.prototype.askPeerToSync = function(sock) {
   });
 };
 
-Intercom.sendJson = function(sock, data) {
+/**
+ * Transform JSON data to string and write to socket
+ * @param sock {object} socket obj
+ * @param data {object} json object
+ * @static sendJSON
+ */
+CloudFunction.sendJson = function(sock, data) {
   sock.write(JSON.stringify(data));
 };
 
-
-module.exports = Intercom;
+module.exports = CloudFunction;

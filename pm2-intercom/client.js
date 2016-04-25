@@ -3,17 +3,20 @@ var request         = require('request');
 var EventEmitter    = require('events').EventEmitter;
 
 /**
- * opts.task_folder
- * opts.instances
- * opts.env
+ * Client constructor
+ * @constructor
+ * @this {Client}
+ * @param opts.task_folder
+ * @param opts.instances
+ * @param opts.env
  */
-var Intercom = function() {
+var Client = function() {
   // Singleton
 };
 
-Intercom.prototype.__proto__ = EventEmitter.prototype;
+Client.prototype.__proto__ = EventEmitter.prototype;
 
-Intercom.prototype.conf = function(opts, cb) {
+Client.prototype.conf = function(opts, cb) {
   var that = this;
 
   EventEmitter.call(this);
@@ -42,7 +45,7 @@ Intercom.prototype.conf = function(opts, cb) {
   return this;
 };
 
-Intercom.prototype.exec = function(task_name, data, cb) {
+Client.prototype.exec = function(task_name, data, cb) {
   var that = this;
 
   request.post(this.base_url + '/trigger', {
@@ -68,7 +71,7 @@ Intercom.prototype.exec = function(task_name, data, cb) {
   });
 };
 
-Intercom.prototype.listTasks = function(cb) {
+Client.prototype.listTasks = function(cb) {
   request.get(this.base_url + '/list_tasks', function(e1, r, b) {
     if (e1) return cb(e1);
 
@@ -82,7 +85,7 @@ Intercom.prototype.listTasks = function(cb) {
   });
 };
 
-Intercom.prototype.listHosts = function(cb) {
+Client.prototype.listHosts = function(cb) {
   request.get(this.base_url + '/hosts/list', function(e1, r, b) {
     if (e1) return cb(e1);
 
@@ -96,14 +99,14 @@ Intercom.prototype.listHosts = function(cb) {
   });
 };
 
-Intercom.prototype.stopTasks = function(cb) {
+Client.prototype.stopTasks = function(cb) {
   request.delete(this.base_url + '/clear_all_tasks',
                  function(err, raw, body) {
                    cb(err, body);
                  });
 };
 
-Intercom.prototype.all = function(task_name, data, eventemitter) {
+Client.prototype.all = function(task_name, data, eventemitter) {
   var ee = new EventEmitter();
 
   var a = request.post(this.base_url + '/all', data);
@@ -123,4 +126,4 @@ Intercom.prototype.all = function(task_name, data, eventemitter) {
   return ee;
 };
 
-module.exports = new Intercom;
+module.exports = new Client;

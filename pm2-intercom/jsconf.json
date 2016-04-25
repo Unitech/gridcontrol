@@ -1,0 +1,20 @@
+{
+  "tags": {
+    "allowUnknownTags": true
+  },
+  "source": {
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(^|\\/|\\\\)_",
+    "exclude": [
+      "node_modules",
+      "plugins",
+      "test",
+      "docs"
+    ]
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false
+  }
+}
