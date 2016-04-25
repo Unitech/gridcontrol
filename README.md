@@ -47,7 +47,11 @@ cloudfunctions.on('ready', function() {
 
 setInterval(function() {
 
-  client.exec('request', {
+  /**
+   * This will invoke the function <filename> (here request)
+   * in each server connected in a round robin way
+   */
+  client.invoke('request', {
     url : 'http://google.com/'
   }, function(err, response, server_meta) {
     console.log('From server %s:%s', server.name, server.ip);
@@ -84,6 +88,30 @@ You will see that in each server tasks are launched:
 $ pm2 ls
 ```
 
+## Commands
+
+List tasks currently managed:
+
+```
+$ pm2 ls
+```
+
+Monitor tasks memory/cpu consumption:
+
+```
+$ pm2 monit
+```
+
+Display logs:
+
+```
+$ pm2 logs <task-name>
+```
+
+
+#
+# Overview (old doc)
+#
 
 ## Cloud Function
 
