@@ -1,0 +1,78 @@
+{
+  "_args": [
+    [
+      "airswarm@*",
+      "/home/cdam/bouygues/webtask/pm2-intercom"
+    ]
+  ],
+  "_from": "airswarm@*",
+  "_id": "airswarm@1.1.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/airswarm",
+  "_nodeVersion": "4.1.1",
+  "_npmUser": {
+    "email": "mathiasbuus@gmail.com",
+    "name": "mafintosh"
+  },
+  "_npmVersion": "2.14.4",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "airswarm",
+    "raw": "airswarm@*",
+    "rawSpec": "*",
+    "scope": null,
+    "spec": "*",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/airswarm/-/airswarm-1.1.0.tgz",
+  "_shasum": "a70bbc03073fb551cb0135860be9b34c1ddb04e1",
+  "_shrinkwrap": null,
+  "_spec": "airswarm@*",
+  "_where": "/home/cdam/bouygues/webtask/pm2-intercom",
+  "author": {
+    "name": "Mathias Buus",
+    "url": "@mafintosh"
+  },
+  "bugs": {
+    "url": "https://github.com/mafintosh/airswarm/issues"
+  },
+  "dependencies": {
+    "multicast-dns": "^3.0.0",
+    "network-address": "^1.0.0"
+  },
+  "description": "Network swarm that automagically discovers other peers on the network using multicast dns",
+  "devDependencies": {
+    "standard": "^5.2.1",
+    "tape": "^4.2.0"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "a70bbc03073fb551cb0135860be9b34c1ddb04e1",
+    "tarball": "https://registry.npmjs.org/airswarm/-/airswarm-1.1.0.tgz"
+  },
+  "gitHead": "3a9acb5017f9a413fb4c14ddaeaf98707b9852d4",
+  "homepage": "https://github.com/mafintosh/airswarm",
+  "license": "MIT",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "email": "mathiasbuus@gmail.com",
+      "name": "mafintosh"
+    }
+  ],
+  "name": "airswarm",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mafintosh/airswarm.git"
+  },
+  "scripts": {
+    "test": "standard && tape test.js"
+  },
+  "version": "1.1.0"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "cloudfunctions",
+  "version": "1.0.0",
+  "description": "Execute functions in a cloud of PM2",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/*.mocha.js",
+    "docs" : "rm -rf docs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d docs -r ."
+  },
+  "dependencies" : {
+    "request" : "*",
+    "pm2" : "*",
+    "express" : "*",
+    "body-parser" : "*",
+    "async" : "*",
+    "pmx" : "*",
+    "debug" : "*",
+    "moniker" : "*",
+    "multicast-dns": "*",
+    "network-address" : "*",
+    "tar-fs" : "*"
+  },
+  "devDependencies" : {
+    "should" : "*",
+    "mocha"  : "*",
+    "jsdoc" : "*",
+    "ink-docstrap" : "*"
+  },
+  "author": "",
+  "license": "ApacheV2"
+}
