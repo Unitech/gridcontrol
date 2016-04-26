@@ -18,7 +18,8 @@
     "moniker" : "*",
     "multicast-dns": "*",
     "network-address" : "*",
-    "tar-fs" : "*"
+    "tar-fs" : "*",
+    "discovery-swarm" : "*"
   },
   "devDependencies" : {
     "should" : "*",
