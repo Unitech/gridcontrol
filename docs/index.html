@@ -40,7 +40,14 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="API.html">API</a></li><li><a href="Client.html">Client</a></li><li><a href="CloudFunction.html">CloudFunction</a></li><li><a href="TaskManager.html">TaskManager</a></li>
+					<li><a href="API.html">API</a></li><li><a href="Client.html">Client</a></li><li><a href="CloseEvent.html">CloseEvent</a></li><li><a href="CloudFunction.html">CloudFunction</a></li><li><a href="FilesManagement.html">FilesManagement</a></li><li><a href="MessageEvent.html">MessageEvent</a></li><li><a href="OpenEvent.html">OpenEvent</a></li><li><a href="TaskManager.html">TaskManager</a></li><li><a href="WebSocket.html">WebSocket</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="global.html#ArraySet">ArraySet</a></li><li><a href="global.html#BasicSourceMapConsumer">BasicSourceMapConsumer</a></li><li><a href="global.html#bufferIndex">bufferIndex</a></li><li><a href="global.html#cleanUpNodesAfterPrune">cleanUpNodesAfterPrune</a></li><li><a href="global.html#compareByGeneratedPositionsDeflated">compareByGeneratedPositionsDeflated</a></li><li><a href="global.html#compareByGeneratedPositionsInflated">compareByGeneratedPositionsInflated</a></li><li><a href="global.html#compareByOriginalPositions">compareByOriginalPositions</a></li><li><a href="global.html#decode">decode</a></li><li><a href="global.html#doQuickSort">doQuickSort</a></li><li><a href="global.html#EMPTY">EMPTY</a></li><li><a href="global.html#encode">encode</a></li><li><a href="global.html#extend">extend</a></li><li><a href="global.html#format">format</a></li><li><a href="global.html#fromString">fromString</a></li><li><a href="global.html#fromUInt64">fromUInt64</a></li><li><a href="global.html#fromVLQSigned">fromVLQSigned</a></li><li><a href="global.html#generatedPositionAfter">generatedPositionAfter</a></li><li><a href="global.html#get">get</a></li><li><a href="global.html#getArg">getArg</a></li><li><a href="global.html#handleHybiUpgrade">handleHybiUpgrade</a></li><li><a href="global.html#HTTPTracker">HTTPTracker</a></li><li><a href="global.html#IndexedSourceMapConsumer">IndexedSourceMapConsumer</a></li><li><a href="global.html#initAsServerClient">initAsServerClient</a></li><li><a href="global.html#join">join</a></li><li><a href="global.html#Mapping">Mapping</a></li><li><a href="global.html#MappingList">MappingList</a></li><li><a href="global.html#normalize">normalize</a></li><li><a href="global.html#opcodes">opcodes</a></li><li><a href="global.html#parse">parse</a></li><li><a href="global.html#PerMessageDeflate">PerMessageDeflate</a></li><li><a href="global.html#protocolVersion">protocolVersion</a></li><li><a href="global.html#querystring">querystring</a></li><li><a href="global.html#querystringParse">querystringParse</a></li><li><a href="global.html#querystringStringify">querystringStringify</a></li><li><a href="global.html#quickSort">quickSort</a></li><li><a href="global.html#randomIntInRange">randomIntInRange</a></li><li><a href="global.html#readUInt16BE">readUInt16BE</a></li><li><a href="global.html#Receiver">Receiver</a></li><li><a href="global.html#recursiveSearch">recursiveSearch</a></li><li><a href="global.html#relative">relative</a></li><li><a href="global.html#search">search</a></li><li><a href="global.html#Sender">Sender</a></li><li><a href="global.html#set">set</a></li><li><a href="global.html#SourceMapGenerator">SourceMapGenerator</a></li><li><a href="global.html#SourceNode">SourceNode</a></li><li><a href="global.html#swap">swap</a></li><li><a href="global.html#toSetString">toSetString</a></li><li><a href="global.html#toVLQSigned">toVLQSigned</a></li><li><a href="global.html#UDPTracker">UDPTracker</a></li><li><a href="global.html#WebSocketServer">WebSocketServer</a></li>
 				</ul>
 			</li>
 			
@@ -91,9 +98,61 @@
 
 
     <section class="readme-section">
-        <article><h1><em>pm2-intercom</em></h1><p>This module allows to execute <em>lambdas</em> in any language accross a private network without any configuration needed (automatic discovery and data replication).</p>
-<p>The more <em>pm2-intercom</em> you add, the more calculation power you get.</p>
-<h2>Lambdas</h2><p>A lambda is a simple script that will be executed over the network and will return a result to the calling script.</p>
+        <article><h1>PM2 CloudFunctions</h1><p>Execute functions in a cloud of PM2s.</p>
+<p>This modules auto-link all PM2s in the same network and allows to execute functions in any of them, in any languages.</p>
+<p>The more <em>PM2</em> you add, the more calculation power you get.</p>
+<h2>Quick start</h2><h3>Inter connect process managers</h3><p>On multiple servers in the same private network (RPN, wifi...), type these two commands:</p>
+<pre class="prettyprint source lang-bash"><code>$ npm install pm2 -g
+$ pm2 install cloud-functions</code></pre><p>This will connect each process manager together.</p>
+<p><em>To display cloud functions logs do <code>$ pm2 logs cloud-functions</code></em></p>
+<h3>Create a base app</h3><p>Now we have to create a project with this structure:</p>
+<pre class="prettyprint source"><code>.
+├── index.js
+├── package.json
+└── tasks
+    ├── task_1.js
+    ├── task_2.js
+    └── request.js</code></pre><p>Now let's add some orchestration code into the index.js:</p>
+<p><strong>./index.js</strong></p>
+<pre class="prettyprint source lang-javascript"><code>var cloudfunctions = require('cloudfunctions').conf({
+  task_folder : 'tasks'
+});
+
+cloudfunctions.on('ready', function() {
+  console.log('Cloud function is ready');
+});
+
+setInterval(function() {
+
+  /**
+   * This will invoke the function &lt;filename> (here request)
+   * in each server connected in a round robin way
+   */
+  client.invoke('request', {
+    url : 'http://google.com/'
+  }, function(err, response, server_meta) {
+    console.log('From server %s:%s', server.name, server.ip);
+    console.log('Got response %s', data);
+  });
+
+}, 1000);</code></pre><p>Then create a folder called <strong>tasks/</strong> and add a first task into it:</p>
+<p><strong>./tasks/request.js</strong></p>
+<pre class="prettyprint source lang-javascript"><code>var request = require('request');
+
+module.exports = function(data, cb) {
+  request.get(data.url, function(err, res, body) {
+    if (err) return cb(err);
+    cb(null, { response : body });
+  });
+};</code></pre><p>Now start the main application:</p>
+<pre class="prettyprint source lang-bash"><code>$ node index.js</code></pre><p>You will see that in each server tasks are launched:</p>
+<pre class="prettyprint source lang-bash"><code>$ pm2 ls</code></pre><h2>Commands</h2><p>List tasks currently managed:</p>
+<pre class="prettyprint source"><code>$ pm2 ls</code></pre><p>Monitor tasks memory/cpu consumption:</p>
+<pre class="prettyprint source"><code>$ pm2 monit</code></pre><p>Display logs:</p>
+<pre class="prettyprint source"><code>$ pm2 logs &lt;task-name></code></pre><h2>tests</h2><pre class="prettyprint source lang-bash"><code>$ npm test</code></pre><h2>API Doc</h2><pre class="prettyprint source lang-bash"><code>$ google-chrome docs/index.html</code></pre><h2>License</h2><p>Apache V2 (see LICENSE.txt)</p>
+<p>#</p>
+<h1>Overview (old doc)</h1><p>#</p>
+<h2>Cloud Function</h2><p>A cloud function is a simple script that will be executed over the network and will return a result to the calling script.</p>
 <p>Example:</p>
 <pre class="prettyprint source lang-javascript"><code>module.exports = function(context, cb) {
   request(context.data.url, function (err, res, body) {
@@ -108,7 +167,7 @@ One PM2 is the &quot;file master&quot; and all other peers will synchronize with
 <h2>Lambda management</h2><p>PM2 is behind the scene to manage and cluster (if JS apps) tasks.</p>
 <h2>Lambda in another language</h2><p>To write a lambda in another language, you just need to create a HTTP server listening on port TASK_PORT on route / and returning the value needed:</p>
 <p>Python:</p>
-<pre class="prettyprint source"><code>#!/usr/bin/python
+<pre class="prettyprint source lang-python"><code>#!/usr/bin/python
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import os
 
@@ -139,7 +198,7 @@ server.serve_forever()</code></pre></article>
 <header>
     
         <h2>
-        api.js
+        lib/api.js
         </h2>
         
     
@@ -267,7 +326,7 @@ server.serve_forever()</code></pre></article>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on 2016-04-25T17:09:51+02:00
+		on 2016-04-26T16:04:55+02:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

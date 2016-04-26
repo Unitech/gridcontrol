@@ -1,5 +1,5 @@
 
-var Compress = require('../files/compress.js');
+var Compress = require('../lib/files/compress.js');
 var path     = require('path');
 var fs       = require('fs');
 

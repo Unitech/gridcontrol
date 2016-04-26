@@ -112,6 +112,23 @@ Display logs:
 $ pm2 logs <task-name>
 ```
 
+## tests
+
+```bash
+$ npm test
+```
+
+## API Doc
+
+```bash
+$ google-chrome docs/index.html
+```
+
+## License
+
+Apache V2 (see LICENSE.txt)
+
+
 
 #
 # Overview (old doc)
@@ -173,13 +190,3 @@ class myHandler(BaseHTTPRequestHandler):
 server = HTTPServer(('', PORT_NUMBER), myHandler)
 server.serve_forever()
 ```
-
-## API Doc
-
-```bash
-$ google-chrome docs/index.html
-```
-
-# License
-
-Apache V2 (see LICENSE.txt)

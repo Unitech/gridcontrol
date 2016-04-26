@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>PM2 CloudFunctions Classes</title>
+	<title>PM2 CloudFunctions Class: FilesManagement</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -77,13 +77,13 @@
 		<div id="main">
 			
 
-	<h1 class="page-title">Classes</h1>
+	<h1 class="page-title">Class: FilesManagement</h1>
 <section>
 
 <header>
     
         <h2>
-        
+        FilesManagement
         </h2>
         
     
@@ -94,8 +94,128 @@
     <div class="container-overview">
     
         
+<hr>
+<dt>
+    <h4 class="name" id="FilesManagement"><span class="type-signature"></span>new FilesManagement(opts)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        File manager, takes care of sync files
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
 
         
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">options
+                <h6 class="method-params-label method-subparams-label">Properties</h6>
+                
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>dest_file</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Port to start on</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
 <dl class="details">
     
 
@@ -135,7 +255,21 @@
 </dl>
 
 
-        
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
     
     </div>
 
@@ -144,51 +278,252 @@
     
 
     
-        <h3 class="subsection-title">Classes</h3>
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
 
         <dl>
-            <dt><a href="API.html">API</a></dt>
-            <dd></dd>
+            
+<hr>
+<dt>
+    <h4 class="name" id=".retrieveFile"><span class="type-signature">&lt;static> </span>retrieveFile()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Get route and pipe file to dest_file
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
         
-            <dt><a href="Client.html">Client</a></dt>
-            <dd></dd>
+            
+<hr>
+<dt>
+    <h4 class="name" id="clear"><span class="type-signature"></span>clear()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Clear all temporary folder/files
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
         
-            <dt><a href="CloseEvent.html">CloseEvent</a></dt>
-            <dd></dd>
-        
-            <dt><a href="CloudFunction.html">CloudFunction</a></dt>
-            <dd></dd>
-        
-            <dt><a href="FilesManagement.html">FilesManagement</a></dt>
-            <dd></dd>
-        
-            <dt><a href="MessageEvent.html">MessageEvent</a></dt>
-            <dd></dd>
-        
-            <dt><a href="OpenEvent.html">OpenEvent</a></dt>
-            <dd></dd>
-        
-            <dt><a href="TaskManager.html">TaskManager</a></dt>
-            <dd></dd>
-        
-            <dt><a href="WebSocket.html">WebSocket</a></dt>
-            <dd></dd>
+            
+<hr>
+<dt>
+    <h4 class="name" id="synchronize"><span class="type-signature"></span>synchronize()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Download + Unzip tarball from target_ip / port
+(for slave to synchronize with file master)
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
         </dl>
-    
-
-    
-
-    
-        <h3 class="subsection-title">Namespaces</h3>
-
-        <dl>
-            <dt><a href="namespaces.html#TaskController"><a href="TaskController.html">TaskController</a></a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
     
 
     

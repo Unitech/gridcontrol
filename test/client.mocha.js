@@ -3,7 +3,7 @@ process.env.DEBUG='network,api';
 
 var should  = require('should');
 var Plan    = require('./plan.js');
-var network = require('../index.js');
+var network = require('../lib/index.js');
 
 describe('Client test', function() {
   var client, n1;
@@ -11,9 +11,9 @@ describe('Client test', function() {
   it('should get the right object', function(done) {
     var plan = new Plan(3, done);
 
-    client = require('../client.js');
-    var client2 = require('../client.js');
-    var client3 = require('../client.js');
+    client = require('../lib/client.js');
+    var client2 = require('../lib/client.js');
+    var client3 = require('../lib/client.js');
     var client5 = require('./other.js');
 
     var client4 = client.conf({
@@ -90,6 +90,22 @@ describe('Client test', function() {
 
   it('should stop all tasks', function(done) {
     client.stopTasks(done);
+  });
+
+  it('should close network', function(done) {
+    n1.close(function() { done() });
+  });
+
+  it.skip('should kill pm2', function(done) {
+    var pm2 = require('pm2');
+
+    n1.close(function() {
+      pm2.connect(function() {
+        pm2.kill(function() {
+          setTimeout(done, 1000);
+        });
+      });
+    });
   });
 
 });

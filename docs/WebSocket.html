@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>PM2 CloudFunctions Class: API</title>
+	<title>PM2 CloudFunctions Class: WebSocket</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -77,13 +77,13 @@
 		<div id="main">
 			
 
-	<h1 class="page-title">Class: API</h1>
+	<h1 class="page-title">Class: WebSocket</h1>
 <section>
 
 <header>
     
         <h2>
-        API
+        WebSocket
         </h2>
         
     
@@ -96,7 +96,7 @@
         
 <hr>
 <dt>
-    <h4 class="name" id="API"><span class="type-signature"></span>new API(opts)</h4>
+    <h4 class="name" id="WebSocket"><span class="type-signature"></span>new WebSocket(address, protocols, options)</h4>
     
     
 </dt>
@@ -104,7 +104,7 @@
 
     
     <div class="description">
-        Set API default values
+        WebSocket implementation
     </div>
     
 
@@ -112,9 +112,6 @@
 
     
 
-    
-        <h5>This:</h5>
-        <ul><li>{<a href="API.html">API</a>}</li></ul>
     
     
         <h5>Parameters:</h5>
@@ -142,13 +139,13 @@
 
         <tr>
             
-                <td class="name"><code>opts</code></td>
+                <td class="name"><code>address</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type">String</span>
 
 
 
@@ -159,36 +156,26 @@
 
             
 
-            <td class="description last">options
-                <h6 class="method-params-label method-subparams-label">Properties</h6>
+            <td class="description last">Connection address.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>protocols</code></td>
+            
+
+            <td class="type">
+            
                 
+<span class="param-type">String</span>
+|
 
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
+<span class="param-type">Array</span>
 
-        <th>Type</th>
 
-        
 
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>port</code></td>
-            
-
-            <td class="type">
             
             </td>
 
@@ -196,35 +183,23 @@
 
             
 
-            <td class="description last">Port to listen on</td>
+            <td class="description last">WebSocket protocols.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>task_manager</code></td>
+                <td class="name"><code>options</code></td>
             
 
             <td class="type">
             
-            </td>
+                
+<span class="param-type">Object</span>
 
-            
 
-            
 
-            <td class="description last">Task manager object</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>file_manager</code></td>
-            
-
-            <td class="type">
             
             </td>
 
@@ -232,50 +207,7 @@
 
             
 
-            <td class="description last">File manager object</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>file_manager</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Network manager (cloudfunctions.js) object</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>tls</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">TLS keys</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-            </td>
+            <td class="description last">Additional connection options.</td>
         </tr>
 
     
@@ -361,7 +293,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="mountRoutes"><span class="type-signature"></span>mountRoutes()</h4>
+    <h4 class="name" id="addEventListener"><span class="type-signature"></span>addEventListener()</h4>
     
     
 </dt>
@@ -369,7 +301,222 @@
 
     
     <div class="description">
-        Mount API routes
+        Emulates the W3C Browser based WebSocket interface using addEventListener.
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+	<dt class="tag-see method-doc-label method-doc-details-label">See:</dt>
+	<dd class="tag-see">
+		<ul>
+			<li><a href="https://developer.mozilla.org/en/DOM/element.addEventListener">https://developer.mozilla.org/en/DOM/element.addEventListener</a></li>
+			
+			<li><a href="http://dev.w3.org/html5/websockets/#the-websocket-interface">http://dev.w3.org/html5/websockets/#the-websocket-interface</a></li>
+			</ul>
+	</dd>
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="close"><span class="type-signature"></span>close(data)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Gracefully closes the connection, after sending a description message to the server
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">to be sent to the server</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="pause"><span class="type-signature"></span>pause()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Pause the client stream
     </div>
     
 
@@ -439,7 +586,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="setMiddlewares"><span class="type-signature"></span>setMiddlewares()</h4>
+    <h4 class="name" id="ping"><span class="type-signature"></span>ping(data, Members, dontFailWhenClosed)</h4>
     
     
 </dt>
@@ -447,7 +594,359 @@
 
     
     <div class="description">
-        Set Express middlewares (JSON parsing, Attach class to req)
+        Sends a ping
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">to be sent to the server</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>Members</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">mask: boolean, binary: boolean</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dontFailWhenClosed</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">indicates whether or not to throw if the connection isnt open</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="pong"><span class="type-signature"></span>pong(data, Members, dontFailWhenClosed)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Sends a pong
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">to be sent to the server</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>Members</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">mask: boolean, binary: boolean</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dontFailWhenClosed</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">indicates whether or not to throw if the connection isnt open</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="resume"><span class="type-signature"></span>resume()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Resume the client stream
     </div>
     
 
@@ -517,7 +1016,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="start"><span class="type-signature"></span>start()</h4>
+    <h4 class="name" id="send"><span class="type-signature"></span>send(data, Members, Optional)</h4>
     
     
 </dt>
@@ -525,7 +1024,7 @@
 
     
     <div class="description">
-        Start API and listen to port
+        Sends a piece of data
     </div>
     
 
@@ -534,6 +1033,104 @@
     
 
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">to be sent to the server</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>Members</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">mask: boolean, binary: boolean, compress: boolean</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>Optional</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">callback which is executed after the send completes</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
     
 
     
@@ -595,7 +1192,7 @@
             
 <hr>
 <dt>
-    <h4 class="name" id="stop"><span class="type-signature"></span>stop()</h4>
+    <h4 class="name" id="stream"><span class="type-signature"></span>stream(Members, 'function)</h4>
     
     
 </dt>
@@ -603,7 +1200,159 @@
 
     
     <div class="description">
-        Stop API + Terminate Task manager
+        Streams data through calls to a user supplied function
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>Members</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">mask: boolean, binary: boolean, compress: boolean</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>'function</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">(error, send)' which is executed on successive ticks of which send is 'function (data, final)'.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="terminate"><span class="type-signature"></span>terminate()</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Immediately shuts down the connection
     </div>
     
 
