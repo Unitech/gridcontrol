@@ -93,9 +93,34 @@ describe('Network', function() {
         ret['echo'].task_id.should.eql('echo');
         ret['echo'].pm2_name.should.eql('task:echo');
         ret['ping'].task_id.should.eql('ping');
+
+        n1.task_manager.getTasks().echo.port.should.eql(10001);
+
         // Wait 2 seconds before starting to process msg
         setTimeout(done, 1000);
       });
+    });
+
+    it('should RESTART all fixtures tasks', function(done) {
+      this.timeout(5000);
+      var base_folder = path.join(__dirname, 'fixtures', 'app1');
+
+      request.post('http://localhost:10000/init_task_group', {
+        form : {
+          base_folder : base_folder,
+          task_folder : 'tasks',
+          instances   : 1,
+          env         : {
+            NODE_ENV : 'test'
+          }
+        }
+      }, function(err, res, body) {
+        setTimeout(done, 1000);
+      });
+    });
+
+    it('should port of echo not incremented (stay 10001)', function() {
+      n1.task_manager.getTasks().echo.port.should.eql(10001);
     });
 
     it('should n1 peers synchronized', function(done) {
