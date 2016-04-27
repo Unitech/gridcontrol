@@ -1,11 +1,16 @@
 
 ## Ideas
 
-- [ ] Allow external IP connections or via registry (secure)
-- [ ] Add TLS on HTTP
-- [x] Fix issue port on script restart
+- [ ] Use discovery-swarm and patch with TLS
+- [ ] Add AUTH via env variable (NS and AUTH/PASS)
+
+- [X] Fix issue port on script restart
+- [X] Report error when task has been retried more than 8 times (8 seconds)
+- [X] call client.invoke instead of exec (alias)
 - [ ] Objectify Peer (keep array of Peer object instead of raw socket obj)
+
 - [ ] Graphic documentation (refers to paper notes)
+- [ ] Add TLS on HTTP
 - [ ] Round robin load balancer
 - [ ] Build CLI (+ list connected host via identity)
 - [ ] Compatibility with Amazon lamda/apdex
@@ -13,9 +18,9 @@
 ___
 
 - [ ] Keep track of current processing tasks
-- ? Instead of HTTP /trigger, socket?
-- ? Start the main applications on slave node
-- ? call client.invoke instead of exec
+- X Instead of HTTP /trigger, socket? = add new route /forward or /exec to force local balancing
+- ? Start the main applications on slave node in other peers
+
 - LB implement broadcast strategy
 - configuration of tasks (JSON conf (ecosystem)? max memory/timeout?)
 - keep counter of invokations, errors
