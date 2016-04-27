@@ -8,7 +8,7 @@ var os = require('os');
 
 console.log('Registering to namespace %s', process.argv[2]);
 
-sw.listen(process.argv[3] || 10000)
+sw.listen(10000)
 sw.join(process.argv[2]) // can be any id/name/hash
 
 sw.on('connection', function (connection) {

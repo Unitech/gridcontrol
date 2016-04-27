@@ -15,10 +15,10 @@ On multiple servers in the same private network (RPN, wifi...), type these two c
 
 ```bash
 $ npm install pm2 -g
-$ pm2 install cloud-functions
+$ NS=namespace PASS=pass pm2 install cloud-functions
 ```
 
-This will connect each process manager together.
+This will connect each process manager together as long they have internet, through DNS multicast and DHT Bittorent.
 
 *To display cloud functions logs do `$ pm2 logs cloud-functions`*
 
@@ -43,10 +43,6 @@ Now let's add some orchestration code into the index.js:
 ```javascript
 var cloudfunctions = require('cloudfunctions').conf({
   task_folder : 'tasks'
-});
-
-cloudfunctions.on('ready', function() {
-  console.log('Cloud function is ready');
 });
 
 setInterval(function() {
@@ -123,6 +119,15 @@ $ npm test
 ```bash
 $ google-chrome docs/index.html
 ```
+
+## Discovery expanations
+
+```
+$ NS=namespace PASS=access_password pm2 restart cloud-discovery
+```
+
+If **NS** is set it will activate the DNS Multicast discovery.
+If **NS** and **PASS** is set, the DNS Multicast and DHT Bittorent discovery will be enabled.
 
 ## License
 
