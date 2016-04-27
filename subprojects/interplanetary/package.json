@@ -1,0 +1,93 @@
+{
+  "_args": [
+    [
+      "discovery-swarm@*",
+      "/home/shant/keymetrics/cloud-functions"
+    ]
+  ],
+  "_from": "discovery-swarm@*",
+  "_id": "discovery-swarm@3.1.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/discovery-swarm",
+  "_nodeVersion": "4.3.1",
+  "_npmOperationalInternal": {
+    "host": "packages-13-west.internal.npmjs.com",
+    "tmp": "tmp/discovery-swarm-3.1.2.tgz_1456953540572_0.33378056273795664"
+  },
+  "_npmUser": {
+    "email": "mathiasbuus@gmail.com",
+    "name": "mafintosh"
+  },
+  "_npmVersion": "2.14.12",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "discovery-swarm",
+    "raw": "discovery-swarm@*",
+    "rawSpec": "*",
+    "scope": null,
+    "spec": "*",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/discovery-swarm/-/discovery-swarm-3.1.2.tgz",
+  "_shasum": "2ca5e6c15745dca5e48d600d6de6014d33d90a01",
+  "_shrinkwrap": null,
+  "_spec": "discovery-swarm@*",
+  "_where": "/home/shant/keymetrics/cloud-functions",
+  "author": {
+    "name": "Mathias Buus",
+    "url": "@mafintosh"
+  },
+  "bugs": {
+    "url": "https://github.com/mafintosh/discovery-swarm/issues"
+  },
+  "dependencies": {
+    "buffer-equals": "^1.0.3",
+    "connections": "^1.4.2",
+    "discovery-channel": "^5.0.0",
+    "length-prefixed-message": "^3.0.3",
+    "pump": "^1.0.1",
+    "to-buffer": "^1.0.1",
+    "utp-native": "^1.2.2"
+  },
+  "description": "A network swarm that uses discovery-channel to find peers",
+  "devDependencies": {
+    "standard": "^6.0.7",
+    "tape": "^4.4.0"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "2ca5e6c15745dca5e48d600d6de6014d33d90a01",
+    "tarball": "https://registry.npmjs.org/discovery-swarm/-/discovery-swarm-3.1.2.tgz"
+  },
+  "gitHead": "3b43f28e4d42cc8dd1b1de8c84d43d5a599a036d",
+  "homepage": "https://github.com/mafintosh/discovery-swarm",
+  "license": "MIT",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "email": "krmckelv@gmail.com",
+      "name": "karissa"
+    },
+    {
+      "email": "mathiasbuus@gmail.com",
+      "name": "mafintosh"
+    }
+  ],
+  "name": "discovery-swarm",
+  "optionalDependencies": {
+    "utp-native": "^1.2.2"
+  },
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mafintosh/discovery-swarm.git"
+  },
+  "scripts": {
+    "test": "standard && tape test.js"
+  },
+  "version": "3.1.2"
+}

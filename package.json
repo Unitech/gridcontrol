@@ -19,7 +19,8 @@
     "multicast-dns": "*",
     "network-address" : "*",
     "tar-fs" : "*",
-    "discovery-swarm" : "*"
+    "discovery-swarm" : "*",
+    "node-rsa" : "*"
   },
   "devDependencies" : {
     "should" : "*",

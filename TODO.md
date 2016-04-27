@@ -1,8 +1,10 @@
 
 ## Ideas
 
-- [ ] Use discovery-swarm and patch with TLS
-- [ ] Add AUTH via env variable (NS and AUTH/PASS)
+- [X] Use discovery-swarm
+- [ ] patch discovery-swam with TLS
+- [ ] Fix issue, tests some time fail
+- [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
 
 - [X] Fix issue port on script restart
 - [X] Report error when task has been retried more than 8 times (8 seconds)

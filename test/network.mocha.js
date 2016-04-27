@@ -1,6 +1,7 @@
 
 process.env.NODE_ENV='test';
 process.env.DEBUG='network,api';
+process.env.NS='test:namespace';
 
 var fs      = require('fs');
 var network = require('../index.js');
@@ -15,6 +16,11 @@ describe('Network', function() {
     n1 = new network({
       peer_api_port : 10000
     }, done);
+  });
+
+  it('should have the rigth namespace (via process.env.NS)', function(done) {
+    should(n1._ns).eql('test:namespace');
+    done();
   });
 
   it('should connect second client', function(done) {
