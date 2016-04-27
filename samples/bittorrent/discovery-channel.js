@@ -1,7 +1,7 @@
 var swarm = require('discovery-swarm')
 
 var sw = swarm({
-  dns : false
+  dns : true
 })
 
 sw.listen(10001)

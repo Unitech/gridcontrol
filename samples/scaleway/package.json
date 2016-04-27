@@ -1,0 +1,19 @@
+{
+  "name": "scaleway",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "scw": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies" : {
+    "request" : "*",
+    "commander" : "*",
+    "cli-table2" : "*"
+  },
+  "author": "",
+  "license": "ISC"
+}
