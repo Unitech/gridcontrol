@@ -14,7 +14,7 @@ var Scaleway = function(token) {
     }
   });
 
-  this.base_url = 'http://api.scaleway.com';
+  this.base_url = 'https://api.scaleway.com';
 
   this.doGet = function(path, cb) {
     var url = this.base_url + path;
@@ -28,8 +28,10 @@ var Scaleway = function(token) {
   this.doPost = function(path, data, cb) {
     var url = this.base_url + path;
 
-    console.log(url);
-    this.request.post(url, { form : data }, function(err, res, body) {
+    this.request.post({
+      url : url,
+      json : data
+    }, function(err, res, body) {
       if (err) return cb(err);
       return cb(null, body);
     });
@@ -57,12 +59,12 @@ Scaleway.prototype.listActions = function(hostname, cb) {
   });
 };
 
-Scaleway.prototype.stopServer = function(hostname, cb) {
+Scaleway.prototype.actionServer = function(hostname, action, cb) {
   var that = this;
 
   this.getServerMetaFromHostname(hostname, function(err, server) {
     that.doPost('/servers/' + server.id + '/action', {
-      action : ''
+      action : action
     }, cb);
   });
 };

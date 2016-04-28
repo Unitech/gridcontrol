@@ -30,9 +30,7 @@ program
   .alias('ls')
   .action(function() {
     scaleway.listServers(function(err, data) {
-      listServers(data.servers, function() {
-        console.log(arguments);
-      });
+      listServers(data.servers);
     });
   })
 
@@ -40,8 +38,17 @@ program
   .command('stop <hostname>')
   .description('stop hostname')
   .action(function(hostname) {
-    scaleway.stopServer(hostname, function(err, data) {
-      console.log(data);
+    scaleway.actionServer(hostname, 'poweroff', function(err, data) {
+      listServers();
+    });
+  })
+
+program
+  .command('start <hostname>')
+  .description('stop hostname')
+  .action(function(hostname) {
+    scaleway.actionServer(hostname, 'poweron', function(err, data) {
+      listServers();
     });
   })
 
@@ -81,6 +88,9 @@ function listSnap(servers) {
 }
 
 function listServers(servers) {
+  if (!servers)
+    servers = scaleway.server_list;
+
   var Table = require('cli-table2');
 
   // instantiate
@@ -100,4 +110,5 @@ function listServers(servers) {
   })
 
   console.log(table.toString());
+  process.exit(0);
 }
