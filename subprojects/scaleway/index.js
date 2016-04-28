@@ -48,7 +48,7 @@ Scaleway.prototype.init= function(fn) {
 };
 
 Scaleway.prototype.listServers = function(cb) {
-  this.doGet('/servers', cb);
+  return cb(null, this.server_list);
 };
 
 Scaleway.prototype.listActions = function(hostname, cb) {

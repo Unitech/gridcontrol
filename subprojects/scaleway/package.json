@@ -1,6 +1,6 @@
 {
-  "name": "scaleway-cmd",
-  "version": "1.0.1",
+  "name": "scaleway-commander",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -12,7 +12,12 @@
   "dependencies" : {
     "request" : "*",
     "commander" : "*",
-    "cli-table2" : "*"
+    "cli-table2" : "*",
+    "inquirer" : "*",
+    "chalk" : "*",
+    "ssh-exec" : "*",
+    "ora" : "*",
+    "clear" :"*"
   },
   "author": "",
   "license": "ISC"
