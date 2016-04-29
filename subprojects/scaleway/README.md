@@ -1,13 +1,23 @@
 
 # scaleway-commander
 
+![Presentation commands](https://raw.githubusercontent.com/Unitech/scaleway-commander/master/pres.png)
+
+## Install
+
 ```
-$ scw -h
+$ npm install scaleway-commander -g
 ```
 
 ## Configure
 
-Put access token into ~/.scaleway (https://cloud.scaleway.com/#/credentials)
+Put access token into **~/.scaleway** (https://cloud.scaleway.com/#/credentials)
+
+## Use
+
+```
+$ scw -h
+```
 
 ## Commands
 

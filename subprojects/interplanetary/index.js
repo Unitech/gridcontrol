@@ -1,21 +1,25 @@
-var discovery = require('discovery-channel')
-var pump = require('pump')
-var events = require('events')
-var util = require('util')
-var net = require('net')
-var equals = require('buffer-equals')
-var toBuffer = require('to-buffer')
-var crypto = require('crypto')
-var lpmessage = require('length-prefixed-message')
-var connections = require('connections')
+var discovery   = require('discovery-channel');
+var pump        = require('pump');
+var events      = require('events');
+var util        = require('util');
+var tls         = require('tls');
+var equals      = require('buffer-equals');
+var toBuffer    = require('to-buffer');
+var crypto      = require('crypto');
+var lpmessage   = require('length-prefixed-message');
+var connections = require('connections');
 
 try {
-  var utp = require('utp-native')
+  // Deactivate UTP connection
+  // Because we cannot pass certificates
+  // var utp = require('utp-native')
 } catch (err) {
   // do nothing
 }
 
-//var utp = null;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+var utp = null;
 
 var PEER_SEEN = 1
 var PEER_BANNED = 2
@@ -25,36 +29,60 @@ var CONNECTION_TIMEOUT = 3000
 var RECONNECT_WAIT = [1000, 1000, 5000, 15000]
 // var DEFAULT_SIZE = 100 // TODO enable max connections
 
-module.exports = Swarm
+module.exports = InterPlanetary;
 
-function Swarm (opts) {
-  if (!(this instanceof Swarm)) return new Swarm(opts)
-  if (!opts) opts = {}
-  events.EventEmitter.call(this)
+/**
+ * Interplanetary is a powerful discovery system
+ * based on discovery-swarm
+ * It link machines together in the same subnetwork via DNS multicast
+ * And over the internet via the Bittorrent Distributed Hash Table (DHT)
+ *
+ * @constructor
+ * @param opts           {object} options
+ * @param opts.maxConnections
+ * @param opts.id        {string} unique id for host
+ * @param opts.stream ??
+ * @param opts.discovery {boolean} default:true activate/deactivate discovery
+ * @param opts.tcp       {boolean} default:true activate/deactivate TCP connection
+ * @param opts.utp       {boolean} (deprecated) activate/deactivate UTP connection
+ * @param opts.dns       {boolean} default:true activate/deactivate DNS discovery
+ * @param opts.dht       {boolean} default:true activate/deactivate DHT discovery
+ * @param opts.crt       {object}
+ * @param opts.crt.key   {string} readable private key
+ * @param opts.crt.cert  {string} readable public key
+ */
+function InterPlanetary (opts) {
+  if (!(this instanceof InterPlanetary))
+    return new InterPlanetary(opts);
+  if (!opts)
+    opts = {};
+  events.EventEmitter.call(this);
 
-  var self = this
+  var self = this;
 
-  this.maxConnections = opts.maxConnections || 0
-  this.totalConnections = 0
+  this._opts = opts || {};
 
-  this.connections = []
-  this.id = opts.id || crypto.randomBytes(32)
-  this.destroyed = false
+  this.maxConnections = this._opts.maxConnections || 0;
+  this.totalConnections = 0;
 
-  this._stream = opts.stream
-  this._options = opts || {}
-  this._discovery = null
-  this._tcp = opts.tcp === false ? null : net.createServer().on('connection', onconnection)
-  this._utp = opts.utp === false || !utp ? null : utp().on('connection', onconnection)
-  this._tcpConnections = this._tcp && connections(this._tcp)
-  this._adding = null
-  this._listening = false
+  this.connections = [];
+  this.id = this._opts.id || crypto.randomBytes(32);
+  this.destroyed = false;
 
-  this._peersIds = {}
-  this._peersSeen = {}
-  this._peersQueued = []
+  this._stream = this._opts.stream;
+  this._discovery = null;
+  this._tcp = this._opts.tcp === false ? null : tls.createServer().on('connection', onconnection);
+  this._utp = this._opts.utp === false || !utp ? null : utp().on('connection', onconnection);
+  this._tcpConnections = this._tcp && connections(this._tcp);
+  this._adding = null;
+  this._listening = false;
 
-  if (this._options.discovery !== false) this.on('listening', this._ondiscover)
+  this._peersIds = {};
+  this._peersSeen = {};
+  this._peersQueued = [];
+
+  if (this._opts.discovery !== false)
+    this.on('listening', this._ondiscover);
 
   function onconnection (connection) {
     var type = this === this._tcp ? 'tcp' : 'utp'
@@ -63,10 +91,10 @@ function Swarm (opts) {
   }
 }
 
-util.inherits(Swarm, events.EventEmitter)
+util.inherits(InterPlanetary, events.EventEmitter)
 
-Swarm.prototype.close =
-Swarm.prototype.destroy = function (onclose) {
+InterPlanetary.prototype.close =
+InterPlanetary.prototype.destroy = function (onclose) {
   if (this.destroyed) return process.nextTick(onclose || noop)
   if (onclose) this.once('close', onclose)
   if (this._listening && this._adding) return this.once('listening', this.destroy)
@@ -99,19 +127,19 @@ Swarm.prototype.destroy = function (onclose) {
   }
 }
 
-Swarm.prototype.__defineGetter__('queued', function () {
+InterPlanetary.prototype.__defineGetter__('queued', function () {
   return this._peersQueued.length
 })
 
-Swarm.prototype.__defineGetter__('connecting', function () {
+InterPlanetary.prototype.__defineGetter__('connecting', function () {
   return this.totalConnections - this.connections.length
 })
 
-Swarm.prototype.__defineGetter__('connected', function () {
+InterPlanetary.prototype.__defineGetter__('connected', function () {
   return this.connections.length
 })
 
-Swarm.prototype.join = function (name) {
+InterPlanetary.prototype.join = function (name) {
   name = toBuffer(name)
 
   if (!this._listening && !this._adding) this._listenNext()
@@ -123,7 +151,7 @@ Swarm.prototype.join = function (name) {
   }
 }
 
-Swarm.prototype.leave = function (name) {
+InterPlanetary.prototype.leave = function (name) {
   name = toBuffer(name)
 
   if (this._adding) {
@@ -138,7 +166,7 @@ Swarm.prototype.leave = function (name) {
   }
 }
 
-Swarm.prototype.addPeer = function (peer) {
+InterPlanetary.prototype.addPeer = function (peer) {
   peer = peerify(peer)
   if (this._peersSeen[peer.id]) return
   this._peersSeen[peer.id] = PEER_SEEN
@@ -147,31 +175,31 @@ Swarm.prototype.addPeer = function (peer) {
   this._kick()
 }
 
-Swarm.prototype.removePeer = function (peer) {
+InterPlanetary.prototype.removePeer = function (peer) {
   peer = peerify(peer)
   this._peersSeen[peer.id] = PEER_BANNED
   // delete this._peersSeen[peer.id]
 }
 
-Swarm.prototype.address = function () {
+InterPlanetary.prototype.address = function () {
   return this._tcp ? this._tcp.address() : this._utp.address()
 }
 
-Swarm.prototype._ondiscover = function () {
+InterPlanetary.prototype._ondiscover = function () {
   var self = this
   var names = this._adding
 
-  if (this._options.dns !== false) {
-    if (!this._options.dns || this._options.dns === true) this._options.dns = {}
-    this._options.dns.socket = this._utp
+  if (this._opts.dns !== false) {
+    if (!this._opts.dns || this._opts.dns === true) this._opts.dns = {}
+    this._opts.dns.socket = this._utp
   }
 
-  if (this._options.dht !== false) {
-    if (!this._options.dht || this._options.dht === true) this._options.dht = {}
-    this._options.dht.socket = this._utp
+  if (this._opts.dht !== false) {
+    if (!this._opts.dht || this._opts.dht === true) this._opts.dht = {}
+    this._opts.dht.socket = this._utp
   }
 
-  this._discovery = discovery(this._options)
+  this._discovery = discovery(this._opts)
   this._discovery.on('peer', onpeer)
   this._discovery.on('whoami', onwhoami)
   this._adding = null
@@ -193,7 +221,7 @@ Swarm.prototype._ondiscover = function () {
   }
 }
 
-Swarm.prototype._kick = function () {
+InterPlanetary.prototype._kick = function () {
   if (this.maxConnections && this.totalConnections >= this.maxConnections) return
   if (this.destroyed) return
 
@@ -216,7 +244,7 @@ Swarm.prototype._kick = function () {
 
   if (this._tcp) {
     tcpClosed = false
-    tcpSocket = net.connect(next.port, next.host)
+    tcpSocket = tls.connect(next.port, next.host)
     tcpSocket.on('connect', onconnect)
     tcpSocket.on('error', onerror)
     tcpSocket.on('close', onclose)
@@ -264,7 +292,7 @@ Swarm.prototype._kick = function () {
   }
 }
 
-Swarm.prototype._requeue = function (peer) {
+InterPlanetary.prototype._requeue = function (peer) {
   if (this.destroyed) return
 
   var self = this
@@ -278,7 +306,7 @@ Swarm.prototype._requeue = function (peer) {
   }
 }
 
-Swarm.prototype._onconnection = function (connection, type, peer) {
+InterPlanetary.prototype._onconnection = function (connection, type, peer) {
   var self = this
   var idHex = this.id.toString('hex')
   var remoteIdHex
@@ -348,7 +376,7 @@ Swarm.prototype._onconnection = function (connection, type, peer) {
   }
 }
 
-Swarm.prototype._listenNext = function () {
+InterPlanetary.prototype._listenNext = function () {
   var self = this
   if (!this._adding) this._adding = []
   process.nextTick(function () {
@@ -356,7 +384,7 @@ Swarm.prototype._listenNext = function () {
   })
 }
 
-Swarm.prototype.listen = function (port, onlistening) {
+InterPlanetary.prototype.listen = function (port, onlistening) {
   if (this._tcp && this._utp) return this._listenBoth(port, onlistening)
   if (!port) port = 0
   if (onlistening) this.once('listening', onlistening)
@@ -382,7 +410,7 @@ Swarm.prototype.listen = function (port, onlistening) {
   }
 }
 
-Swarm.prototype._listenBoth = function (port, onlistening) {
+InterPlanetary.prototype._listenBoth = function (port, onlistening) {
   if (typeof port === 'function') return this.listen(0, port)
   if (!port) port = 0
   if (onlistening) this.once('listening', onlistening)
