@@ -47,9 +47,9 @@ module.exports = InterPlanetary;
  * @param opts.utp       {boolean} (deprecated) activate/deactivate UTP connection
  * @param opts.dns       {boolean} default:true activate/deactivate DNS discovery
  * @param opts.dht       {boolean} default:true activate/deactivate DHT discovery
- * @param opts.crt       {object}
- * @param opts.crt.key   {string} readable private key
- * @param opts.crt.cert  {string} readable public key
+ * @param opts.tls       {object}
+ * @param opts.tls.key   {string} readable private key
+ * @param opts.tls.cert  {string} readable public key
  */
 function InterPlanetary (opts) {
   if (!(this instanceof InterPlanetary))
@@ -62,6 +62,10 @@ function InterPlanetary (opts) {
 
   this._opts = opts || {};
 
+  if (!this.opts.tls) {
+    throw new Error('No certificates!');
+  }
+
   this.maxConnections = this._opts.maxConnections || 0;
   this.totalConnections = 0;
 
@@ -71,7 +75,7 @@ function InterPlanetary (opts) {
 
   this._stream = this._opts.stream;
   this._discovery = null;
-  this._tcp = this._opts.tcp === false ? null : tls.createServer().on('connection', onconnection);
+  this._tcp = this._opts.tcp === false ? null : tls.createServer(this._opts.tls).on('connection', onconnection);
   this._utp = this._opts.utp === false || !utp ? null : utp().on('connection', onconnection);
   this._tcpConnections = this._tcp && connections(this._tcp);
   this._adding = null;
@@ -243,20 +247,20 @@ InterPlanetary.prototype._kick = function () {
   var utpClosed = true
 
   if (this._tcp) {
-    tcpClosed = false
-    tcpSocket = tls.connect(next.port, next.host)
-    tcpSocket.on('connect', onconnect)
-    tcpSocket.on('error', onerror)
-    tcpSocket.on('close', onclose)
-    this._tcpConnections.add(tcpSocket)
+    tcpClosed = false;
+    tcpSocket = tls.connect(next.port, next.host, this._opts.tls);
+    tcpSocket.on('connect', onconnect);
+    tcpSocket.on('error', onerror);
+    tcpSocket.on('close', onclose);
+    this._tcpConnections.add(tcpSocket);
   }
 
   if (this._utp) {
     utpClosed = false
-    utpSocket = this._utp.connect(next.port, next.host)
-    utpSocket.on('connect', onconnect)
-    utpSocket.on('error', onerror)
-    utpSocket.on('close', onclose)
+    utpSocket = this._utp.connect(next.port, next.host);
+    utpSocket.on('connect', onconnect);
+    utpSocket.on('error', onerror);
+    utpSocket.on('close', onclose);
   }
 
   var timeout = setTimeoutUnref(ontimeout, CONNECTION_TIMEOUT)
