@@ -20,7 +20,8 @@
     "network-address" : "*",
     "tar-fs" : "*",
     "discovery-swarm" : "*",
-    "node-rsa" : "*"
+    "node-rsa" : "*",
+    "chalk" : "*"
   },
   "devDependencies" : {
     "should" : "*",
