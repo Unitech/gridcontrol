@@ -5,7 +5,7 @@ var Intercom = require('./lib/cloudfunctions.js');
 
 if (require.main === module) {
   new Intercom({
-    peer_api_port : 10000
+    peer_api_port : process.argv[2] || 10000
   });
 }
 

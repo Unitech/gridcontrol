@@ -2,31 +2,23 @@ var discovery   = require('discovery-channel');
 var pump        = require('pump');
 var events      = require('events');
 var util        = require('util');
-var tls         = require('tls');
+var tls         = require('net');
 var equals      = require('buffer-equals');
 var toBuffer    = require('to-buffer');
 var crypto      = require('crypto');
 var lpmessage   = require('length-prefixed-message');
 var connections = require('connections');
 
-try {
-  // Deactivate UTP connection
-  // Because we cannot pass certificates
-  // var utp = require('utp-native')
-} catch (err) {
-  // do nothing
-}
-
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-var utp = null;
+var utp = false;
 
-var PEER_SEEN = 1
-var PEER_BANNED = 2
+var PEER_SEEN = 1;
+var PEER_BANNED = 2;
 
-var HANDSHAKE_TIMEOUT = 5000
-var CONNECTION_TIMEOUT = 3000
-var RECONNECT_WAIT = [1000, 1000, 5000, 15000]
+var HANDSHAKE_TIMEOUT = 5000;
+var CONNECTION_TIMEOUT = 3000;
+var RECONNECT_WAIT = [1000, 1000, 5000, 15000];
 // var DEFAULT_SIZE = 100 // TODO enable max connections
 
 module.exports = InterPlanetary;
@@ -40,16 +32,24 @@ module.exports = InterPlanetary;
  * @constructor
  * @param opts           {object} options
  * @param opts.maxConnections
- * @param opts.id        {string} unique id for host
+ * @param opts.id        {string} default:autogenerate unique id for host
  * @param opts.stream ??
  * @param opts.discovery {boolean} default:true activate/deactivate discovery
  * @param opts.tcp       {boolean} default:true activate/deactivate TCP connection
- * @param opts.utp       {boolean} (deprecated) activate/deactivate UTP connection
+ * @param opts.utp       {boolean} (disabled) activate/deactivate UTP connection
  * @param opts.dns       {boolean} default:true activate/deactivate DNS discovery
  * @param opts.dht       {boolean} default:true activate/deactivate DHT discovery
  * @param opts.tls       {object}
  * @param opts.tls.key   {string} readable private key
  * @param opts.tls.cert  {string} readable public key
+ *
+ * @event Interplanetary#close on server close
+ * @event Interplanetary#peer on new peer connected
+ * @event Interplanetary#connecting on peer connecting
+ * @event Interplanetary#drop
+ * @event Interplanetary#connection
+ * @event Interplanetary#error
+ * @event Interplanetary#listening
  */
 function InterPlanetary (opts) {
   if (!(this instanceof InterPlanetary))
@@ -62,7 +62,7 @@ function InterPlanetary (opts) {
 
   this._opts = opts || {};
 
-  if (!this.opts.tls) {
+  if (!this._opts.tls) {
     throw new Error('No certificates!');
   }
 
@@ -130,6 +130,16 @@ InterPlanetary.prototype.destroy = function (onclose) {
     if (!--missing) self.emit('close')
   }
 }
+
+InterPlanetary.prototype.getPeers = function() {
+  var peers = [];
+  var that = this;
+  Object.keys(this._peersIds).forEach(function(key) {
+    peers.push(that._peersIds[key]);
+  });
+  //console.log(peers);
+  return peers;
+};
 
 InterPlanetary.prototype.__defineGetter__('queued', function () {
   return this._peersQueued.length
