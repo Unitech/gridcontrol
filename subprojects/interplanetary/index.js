@@ -11,7 +11,12 @@ var connections = require('connections');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-var utp = false;
+try {
+    var utp = require('utp-native')
+} catch (err) {
+    // do nothing
+}
+//var utp = false;
 
 var PEER_SEEN = 1;
 var PEER_BANNED = 2;

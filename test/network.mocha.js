@@ -11,6 +11,7 @@ var request = require('request');
 
 describe('Network', function() {
   var n1, n2, n3;
+  var sync_file_size;
 
   it('should create a first client', function(done) {
     n1 = new network({
@@ -130,7 +131,8 @@ describe('Network', function() {
     });
 
     it('should n1 peers synchronized', function(done) {
-      fs.lstatSync('/tmp/n2.tar.gz');
+      sync_file_size = fs.lstatSync('/tmp/n2.tar.gz').size;
+      console.log('Compressed file size: %d', sync_file_size);
       fs.lstatSync('/tmp/n2/');
       done();
     });
@@ -164,16 +166,23 @@ describe('Network', function() {
     });
 
     it('should connect THIRD node', function(done) {
+      this.timeout(10000);
       n3 = new network({
         peer_api_port  : 12000,
         tmp_file       : '/tmp/n3.tar.gz',
         tmp_folder     : '/tmp/n3'
       }, function() {
-        setTimeout(done, 1000);
+        // Wait some time that the new node synchronize
+      });
+
+      n3.on('synchronized', function(data) {
+        console.log('Files synchronized');
+        data.file.should.eql(n3.file_manager.getFilePath());
+        setTimeout(done, 500);
       });
     });
 
-    it('should now retrieve two hosts connected', function(done) {
+    it('should now N1 retrieve two hosts connected', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
         should(e).be.null;
@@ -183,8 +192,29 @@ describe('Network', function() {
       });
     });
 
+    it('should now N2 retrieve two hosts connected', function(done) {
+      request.get('http://localhost:11000/hosts/list', function(e, r, b) {
+        var dt = JSON.parse(b);
+        should(e).be.null;
+        should(r.statusCode).eql(200);
+        should(dt.length).eql(2);
+        done();
+      });
+    });
+
+    it('should now N3 retrieve two hosts connected', function(done) {
+      request.get('http://localhost:12000/hosts/list', function(e, r, b) {
+        var dt = JSON.parse(b);
+        should(e).be.null;
+        should(r.statusCode).eql(200);
+        should(dt.length).eql(2);
+        done();
+      });
+    });
+
     it('should N3 autosync because file already gen', function(done) {
-      fs.lstatSync('/tmp/n3.tar.gz');
+      var stats = fs.lstatSync('/tmp/n3.tar.gz');
+      stats.size.should.eql(sync_file_size);
       fs.lstatSync('/tmp/n3/');
       done();
     });
