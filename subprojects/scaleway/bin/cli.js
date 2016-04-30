@@ -11,6 +11,7 @@ var sshexec  = require('ssh-exec');
 var Icli     = require('../interactive-cli.js');
 var chalk    = require('chalk');
 var cliSpinners = require('cli-spinners');
+var async = require('async');
 
 var conf_file = path.join(process.env.HOME, '.scaleway');
 var token     = '';
@@ -98,13 +99,32 @@ program
   });
 
 program
-  .command('sshall <cmd>')
+  .command('sshall <cmd> [parallel]')
   .description('ssh to each online host and execute <cmd>')
-  .action(function(cmd) {
+  .action(function(cmd, parallel) {
 
-    scaleway.server_list.forEach(function(server) {
-      if (server.state == 'running')
-        sshexec(cmd, 'root@' + server.public_ip.address).pipe(process.stdout);
+    async.forEachLimit(scaleway.server_list, parallel || 1, function(server, next) {
+      if (server.state == 'running') {
+        console.log('Execting command "%s" on server [%s]', cmd, server.hostname);
+        var stream = sshexec("PS1='$ ' source ~/.bashrc;" + cmd, 'root@' + server.public_ip.address);
+
+        stream.on('data', function(dt) {
+          console.log(dt.toString());
+        });
+
+        stream.on('error', function(e) {
+          console.log('Got error', e.message || e);
+        });
+
+        stream.on('exit', function() {
+          next();
+        });
+      }
+      else next();
+
+    }, function() {
+      console.log(chalk.green.bold('Done.'));
+      process.exit(0);
     });
   });
 
