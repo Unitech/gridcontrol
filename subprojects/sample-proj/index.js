@@ -3,7 +3,9 @@
 var client = require('../client').conf({
   task_folder : 'tasks',
   instances   : 2,
-  env         : process.env
+  env         : {
+    NODE_ENV : 'development'
+  }
 });
 
 client.on('ready', function() {
@@ -22,5 +24,5 @@ setInterval(function() {
 client.invoke('request-test', {
   url : 'https://keymetrics.io/'
 }, function(err, data) {
-  console.log(data);
+  //console.log(data);
 });

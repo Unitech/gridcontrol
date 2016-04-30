@@ -15,9 +15,6 @@
     "standard": "^6.0.7",
     "tape": "^4.4.0"
   },
-    "optionalDependencies": {
-	"utp-native": "^1.2.2"
-    },
   "scripts": {
     "test": "standard && tape test.js"
   },
