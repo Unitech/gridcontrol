@@ -4,6 +4,8 @@
 
 - [ ] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
 - [ ] Fix returned synchronized flag when listing
+- [ ] At initialization check that http connection can be made
+- [ ] restart master strategies (leveldb for persistence?)
 
 - [X] Build smart LB
 - [ ] Build CLI (+ list connected host via identity)
