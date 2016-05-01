@@ -1,9 +1,9 @@
 
 var path            = require('path');
 var request         = require('request');
-var constants       = require('../lib/constants.js');
-var FilesManagement = require('../lib/files/file_manager.js');
-var Compress        = require('../lib/files/compress.js');
+var constants       = require('../src/constants.js');
+var FilesManagement = require('../src/files/file_manager.js');
+var Compress        = require('../src/files/compress.js');
 var fs              = require('fs');
 var Helper          = require('./helpers.js');
 var should          = require('should');
@@ -84,6 +84,26 @@ describe('Files', function() {
 
   it('should clear all tmp files/folder', function(done) {
     file_manager_slave.clear(done);
+  });
+
+  describe('master file manager', function() {
+    it('should prepare sync of fixture app', function(done) {
+      var base_folder = path.join(__dirname, 'fixtures', 'app1');
+      file_manager_slave.prepareSync(base_folder, function(e) {
+        done(e);
+      });
+    });
+
+    it('should have master flags', function(done) {
+      file_manager_slave.hasFileToSync().should.be.true;
+      file_manager_slave.isFileMaster().should.be.true;
+      done();
+    });
+
+    it('should have generated MD5', function(done) {
+      file_manager_slave.getCurrentMD5().should.not.be.null;
+      done();
+    });
   });
 
 });

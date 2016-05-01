@@ -225,7 +225,7 @@ InterPlanetary.prototype._ondiscover = function () {
     self._peersSeen[me.host + ':' + me.port] = PEER_BANNED
   }
 
-  function onpeer (channel, peer) {
+  function onpeer (channel, peer, connection_type) {
     var id = peer.host + ':' + peer.port
     if (self._peersSeen[id]) return
     self._peersSeen[id] = PEER_SEEN

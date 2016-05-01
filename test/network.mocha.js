@@ -59,6 +59,8 @@ describe('Network', function() {
         should(e).be.null;
         should(r.statusCode).eql(200);
         should(dt.length).eql(1);
+        dt[0].identity.should.have.properties(['ip', 'api_port', 'name', 'hostname', 'synchronized']);
+        dt[0].identity.synchronized.should.be.true;
         done();
       });
     });
@@ -67,6 +69,8 @@ describe('Network', function() {
       request.get('http://localhost:10000/list_tasks', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
+        var tasks = JSON.parse(body);
+        should(tasks.length).eql(0);
         done();
       });
     });
@@ -126,16 +130,34 @@ describe('Network', function() {
       });
     });
 
+    it('should retrieve 4 tasks started', function(done) {
+      request.get('http://localhost:10000/list_tasks', function(err, res, body) {
+        should(err).be.null;
+        should(res.statusCode).eql(200);
+        var tasks = JSON.parse(body);
+        should(tasks.length).eql(4);
+        done();
+      });
+    });
+
     it('should port of echo not incremented (stay 10001)', function() {
       n1.task_manager.getTasks().echo.port.should.eql(10001);
     });
 
     it('should n1 peers synchronized', function(done) {
       sync_file_size = fs.lstatSync('/tmp/n2.tar.gz').size;
-      console.log('Compressed file size: %d', sync_file_size);
       fs.lstatSync('/tmp/n2/');
       done();
     });
+
+    it('should master see n2 has synchronized', function(done) {
+      request.get('http://localhost:10000/hosts/list', function(e, r, b) {
+        var dt = JSON.parse(b);
+        dt[0].identity.synchronized.should.be.true;
+        done();
+      });
+    });
+
 
     it('should trigger task', function(done) {
       request.post('http://localhost:10000/trigger', {

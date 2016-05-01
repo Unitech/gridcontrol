@@ -1,20 +1,21 @@
 
 ## Ideas
 
+- [ ] Build smart LB
+- [ ] Build CLI (+ list connected host via identity)
+
 - [X] Use discovery-swarm
-- [ ] patch discovery-swam with TLS
-- [ ] Fix issue, tests some time fail
+- [X] patch discovery-swam with TLS
+- [X] Fix issue, tests some time fail
 - [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
 
 - [X] Fix issue port on script restart
 - [X] Report error when task has been retried more than 8 times (8 seconds)
 - [X] call client.invoke instead of exec (alias)
-- [ ] Objectify Peer (keep array of Peer object instead of raw socket obj)
+- [NOK] Objectify Peer (keep array of Peer object instead of raw socket obj)
 
 - [ ] Graphic documentation (refers to paper notes)
 - [ ] Add TLS on HTTP
-- [ ] Round robin load balancer
-- [ ] Build CLI (+ list connected host via identity)
 - [ ] Compatibility with Amazon lamda/apdex
 - [ ] Transpose client in Python, Java, Go
 ___

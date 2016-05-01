@@ -3,7 +3,7 @@ process.env.DEBUG = 'network';
 
 var fs     = require('fs');
 var path   = require('path');
-var forum  = require('../lib/forum/index.js');
+var forum  = require('../subprojects/forum/index.js');
 var should = require('should');
 
 describe('Forum tests', function() {

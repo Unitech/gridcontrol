@@ -120,7 +120,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
     });
 
     pm2.start({
-      script    : './lib/tasks_manager/task_wrapper.js',
+      script    : './src/tasks_manager/task_wrapper.js',
       name      : task_pm2_name,
       instances : that.task_meta.instances,
       exec_mode : 'cluster',

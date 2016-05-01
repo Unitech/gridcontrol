@@ -1,5 +1,5 @@
 
-var TaskManager = require('../lib/tasks_manager/task_manager.js');
+var TaskManager   = require('../src/tasks_manager/task_manager.js');
 var should        = require('should');
 var path          = require('path');
 

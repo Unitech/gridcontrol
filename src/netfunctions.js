@@ -6,7 +6,7 @@ var debug           = require('debug')('network');
 var networkAddress  = require('network-address');
 var os              = require('os');
 var chalk           = require('chalk');
-
+var fmt             = require('fmt');
 var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
@@ -15,9 +15,9 @@ var API             = require('./api.js');
 var stringify       = require('./safeclonedeep.js');
 
 /**
- * Main entry point of CloudFunction
+ * Main entry point of NetFunctions
  * @constructor
- * @this {CloudFunction}
+ * @this {NetFunctions}
  * @param opts                {object} options
  * @param opts.tmp_file       {string} default location of sync data
  * @param opts.tmp_folder     {string} default location of folder uncomp
@@ -29,9 +29,9 @@ var stringify       = require('./safeclonedeep.js');
  * @param opts.public_key     {string} Public key passed to TCP and HTTP
  * @param cb                  {function} callback
  */
-var CloudFunction = function(opts, cb) {
-  if (!(this instanceof CloudFunction))
-    return new CloudFunction(opts, cb);
+var NetFunctions = function(opts, cb) {
+  if (!(this instanceof NetFunctions))
+    return new NetFunctions(opts, cb);
 
   if (typeof(opts) == 'function') {
     cb = opts;
@@ -80,14 +80,14 @@ var CloudFunction = function(opts, cb) {
   });
 };
 
-CloudFunction.prototype.__proto__ = EventEmitter.prototype;
+NetFunctions.prototype.__proto__ = EventEmitter.prototype;
 
 /**
  * Start network discovery
  * @param sock {object} socket object
  * @public
  */
-CloudFunction.prototype.startDiscovery = function(ns, cb) {
+NetFunctions.prototype.startDiscovery = function(ns, cb) {
   var that = this;
 
   this.Interplanetary = Interplanetary({
@@ -103,9 +103,14 @@ CloudFunction.prototype.startDiscovery = function(ns, cb) {
   });
 
   this.Interplanetary.on('listening', function() {
-    debug('status=listening name=%s ip=%s',
-          that.peer_name,
-          that.peer_address);
+
+    // Form
+    fmt.title('Peer ready');
+    fmt.field('Name', that.peer_name);
+    fmt.field('Network address', that.peer_address);
+    fmt.field('HTTP API access', 'http://localhost:' + that.peer_api_port + '/conf');
+    fmt.sep();
+
     return cb ? cb() : false;
   });
 
@@ -120,7 +125,7 @@ CloudFunction.prototype.startDiscovery = function(ns, cb) {
  * Stop API + Network discovery + clear files
  * @public
  */
-CloudFunction.prototype.close = function(cb) {
+NetFunctions.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
   this.api.stop();
   this.Interplanetary.close();
@@ -132,7 +137,7 @@ CloudFunction.prototype.close = function(cb) {
  * @param sock {object} socket object
  * @public
  */
-CloudFunction.prototype.onNewPeer = function(sock, remoteId) {
+NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
   var that = this;
 
   var remote_id = remoteId.toString('hex');
@@ -148,10 +153,6 @@ CloudFunction.prototype.onNewPeer = function(sock, remoteId) {
     console.error(e);
   });
 
-  // debug('status=new peer from=%s total=%d',
-  //       this.peer_name,
-  //       this.Interplanetary.getPeers().length);
-
   sock.on('data', function(packet) {
     try {
       packet = JSON.parse(packet.toString());
@@ -161,51 +162,75 @@ CloudFunction.prototype.onNewPeer = function(sock, remoteId) {
     }
 
     switch (packet.cmd) {
+
     case 'identity':
       // Receive meta information about peer
-      debug('status=handshake meta info from=%s on=%s',
+      debug('status=handshake meta info from=%s[%s] on=%s',
             packet.data.name,
+            packet.data.ip,
             that.peer_name);
       sock.identity = packet.data;
+      // Set peer flag as not synchronized
+      sock.identity.synchronized = false;
       break;
-      /**
-       * Slave command zone
-       */
+
+    case 'sync:done':
+      if (packet.data.synced_md5 == that.file_manager.getCurrentMD5()) {
+        debug('Peer [%s] successfully synchronized with up-to-date sync file',
+              sock.identity.name);
+        sock.identity.synchronized = true;
+      }
+      break;
+
     case 'sync':
       // Task to synchronize this node
-      console.log('[%s] Incoming sync req from ip=%s port=%s', that.peer_name, packet.data.ip, packet.data.port);
+      console.log('[%s] Incoming sync req from ip=%s port=%s for MD5 [%s]',
+                  that.peer_name,
+                  packet.data.ip,
+                  packet.data.port,
+                  packet.data.curr_md5);
 
-      that.file_manager.synchronize(
-        packet.data.ip,
-        packet.data.port,
-        function(err, meta) {
-          if (err) {
-            console.error('Got an error while retrieving app to synchronize from %s',
-                          packet.data.ip);
-            return console.error(err);
-          };
-          packet.data.meta.base_folder = that.file_manager.getFilePath();
-          that.task_manager.setTaskMeta(packet.data.meta);
+      that.file_manager.synchronize(packet.data.ip, packet.data.port, function(err, meta) {
+        if (err) {
+          console.error('Got an error while retrieving app to synchronize from %s',
+                        packet.data.ip);
+          return console.error(err);
+        };
+        packet.data.meta.base_folder = that.file_manager.getFilePath();
+        that.task_manager.setTaskMeta(packet.data.meta);
 
-          /****************************************/
-          /****** TASK START ON SLAVE NODE ********/
+        if (that.file_manager.getDestFileMD5(that.file_manager.dest_file) !=
+            packet.data.curr_md5) {
+          console.error('=========== Wrong MD5 ===========');
+          //@todo launch retry retrieve
+          return false;
+        }
 
-          that.emit('synchronized', {
-            ip : packet.data.ip,
-            file : that.file_manager.getFilePath(),
-            meta : packet.data.meta
-          });
+        /****************************************/
+        /****** TASK START ON SLAVE NODE ********/
 
-          if (process.env.NODE_ENV == 'test') {
-            debug(chalk.blue.bold('[SYNC]') + ' File synchronized on %s', that.peer_name);
-            return false;
-          }
-
-          that.task_manager.initTaskGroup(packet.data.meta, function() {
-            console.log('Files started!');
-          });
-          /****************************************/
+        that.emit('synchronized', {
+          ip : packet.data.ip,
+          file : that.file_manager.getFilePath(),
+          meta : packet.data.meta
         });
+
+        if (process.env.NODE_ENV == 'test') {
+          debug(chalk.blue.bold('[SYNC]') + ' File synchronized on %s', that.peer_name);
+
+          that.broadcast('sync:done', {
+            synced_md5 : packet.data.curr_md5
+          });
+          return false;
+        }
+
+        that.task_manager.initTaskGroup(packet.data.meta, function() {
+          that.broadcast('sync:done', {
+            synced_md5 : packet.data.curr_md5
+          });
+        });
+        /****************************************/
+      });
       break;
     case 'clear':
       that.file_manager.clear();
@@ -236,7 +261,7 @@ CloudFunction.prototype.onNewPeer = function(sock, remoteId) {
  * Return peers connected
  * @public
  */
-CloudFunction.prototype.getPeers = function() {
+NetFunctions.prototype.getPeers = function() {
   return this.Interplanetary.getPeers();
 };
 
@@ -245,10 +270,10 @@ CloudFunction.prototype.getPeers = function() {
  * @param sock {object} socket obj
  * @public
  */
-CloudFunction.prototype.sendIdentity = function(sock) {
+NetFunctions.prototype.sendIdentity = function(sock) {
   var that = this;
 
-  CloudFunction.sendJson(sock, {
+  NetFunctions.sendJson(sock, {
     cmd : 'identity',
     data : {
       ip       : that.peer_address,
@@ -260,18 +285,44 @@ CloudFunction.prototype.sendIdentity = function(sock) {
   });
 };
 
-CloudFunction.prototype.sendHealthStatus = function(sock) {
+NetFunctions.prototype.getLocalIdentity = function() {
+  var that = this;
+
+  return {
+    ip           : '127.0.0.1',
+    api_port     : that.peer_api_port,
+    name         : that.peer_name,
+    hostname     : os.hostname(),
+    platform     : os.platform(),
+    synchronized : true
+  };
+};
+
+NetFunctions.prototype.sendHealthStatus = function(sock) {
   // Send health stats at a regular interval (for LB intelligence)
+};
+
+NetFunctions.prototype.broadcast = function(cmd, data) {
+  var that = this;
+
+  this.Interplanetary.getPeers().forEach(function(sock) {
+    NetFunctions.sendJson(sock, {
+      cmd  : cmd,
+      data : data
+    });
+  });
 };
 
 /**
  * Send command to all peers to synchronize
  * @public
  */
-CloudFunction.prototype.askAllPeersToSync = function() {
+NetFunctions.prototype.askAllPeersToSync = function() {
   var that = this;
 
+  // @todo: check if different md5 than previous deployment
   this.Interplanetary.getPeers().forEach(function(sock) {
+    sock.identity.synchronized = false;
     that.askPeerToSync(sock);
   });
 };
@@ -281,15 +332,16 @@ CloudFunction.prototype.askAllPeersToSync = function() {
  * @param sock {object} socket obj
  * @public
  */
-CloudFunction.prototype.askPeerToSync = function(sock) {
+NetFunctions.prototype.askPeerToSync = function(sock) {
   var that = this;
 
-  CloudFunction.sendJson(sock, {
+  NetFunctions.sendJson(sock, {
     cmd : 'sync',
     data : {
       ip   : that.peer_address,
       port : that.peer_api_port,
-      meta : that.task_manager.getTaskMeta()
+      meta : that.task_manager.getTaskMeta(),
+      curr_md5 : that.file_manager.getCurrentMD5()
     }
   });
 };
@@ -300,7 +352,7 @@ CloudFunction.prototype.askPeerToSync = function(sock) {
  * @param data {object} json object
  * @static sendJSON
  */
-CloudFunction.sendJson = function(sock, data) {
+NetFunctions.sendJson = function(sock, data) {
   try {
     sock.write(JSON.stringify(data));
   } catch(e) {
@@ -308,4 +360,4 @@ CloudFunction.sendJson = function(sock, data) {
   }
 };
 
-module.exports = CloudFunction;
+module.exports = NetFunctions;

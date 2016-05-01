@@ -20,8 +20,8 @@
     "network-address" : "*",
     "tar-fs" : "*",
     "discovery-swarm" : "*",
-    "node-rsa" : "*",
-    "chalk" : "*"
+    "chalk" : "*",
+    "fmt" : "*"
   },
   "devDependencies" : {
     "should" : "*",
@@ -29,6 +29,13 @@
     "jsdoc" : "*",
     "ink-docstrap" : "*"
   },
+  "apps": [
+    {
+      "name": "net-function",
+      "script": "app.js",
+      "max_memory_restart": "150M"
+    }
+  ],
   "author": "",
   "license": "ApacheV2"
 }

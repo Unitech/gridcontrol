@@ -26,7 +26,7 @@ Controller.clear_all_tasks = function(req, res, next) {
 
 Controller.trigger_task = function(req, res, next) {
   var task_id  = req.body.task_id;
-  var retry_count = 0
+  var retry_count = 0;
 
   /**
    * Buffering system
@@ -43,12 +43,11 @@ Controller.trigger_task = function(req, res, next) {
         clearInterval(inter);
         return next(new Error('Task [' + task_id + '] not found'));
       }
-
     }, 1000);
     return false;
   }
 
-  var url = 'http://localhost:' + req.task_manager.getTasks()[task_id].port;
+  var url = 'http://localhost:' + req.task_manager.getTasks()[task_id].port + '/';
 
   var a = request({
     url : url,
@@ -84,6 +83,10 @@ Controller.init_task_group = function(req, res, next) {
     if (err) return next(err);
 
     req.file_manager.prepareSync(base_folder, function(e, dt) {
+      if (e) {
+        console.error('Got error while generating Syncro package. Please retry init.');
+        return console.error(e);
+      }
       console.log('Sync file generated for folder=%s target=%s', dt.folder, dt.target);
       req.net_manager.askAllPeersToSync();
     });
