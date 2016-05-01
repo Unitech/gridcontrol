@@ -1,6 +1,6 @@
-
-var request    = require('request');
-var crypto     = require('crypto');
+var request = require('request');
+var crypto  = require('crypto');
+var debug   = require('debug')('lb');
 
 /**
  * Load balancer
@@ -11,47 +11,47 @@ var crypto     = require('crypto');
  * @param opts.local_loop {boolean} should the LB proxy query to local?
  */
 var LoadBalancer = function(opts) {
-  this.local_loop        = opts.local_loop || true;
-
-  this.stats_tasks = {};
+  this.local_loop       = opts.local_loop || true;
+  this.stats_tasks      = {};
   this.processing_tasks = {};
+
   // Round robin index
-  this.rri = 0;
+  this._rri = 0;
 };
 
 LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
-  var that   = this;
-  var retry  = 0;
+  var that  = this;
+  var retry = 0;
 
   //@todo take monitoring data into account
   function genPeerHash() {
-    var remote_peers  = req.net_manager.getPeers();
     var all_peers     = [];
 
-    remote_peers.forEach(function(peer) {
-      all_peers.push(peer.indentity);
-    });
+    all_peers.push(req.net_manager.getLocalIdentity());
 
-    if (that.local_loop)
-      all_peers.push(req.net_manager.getLocalIdentity());
+    if (process.env.ONLY_LOCAL)
+      return all_peers;
+
+    var remote_peers  = req.net_manager.getPeers();
+
+    remote_peers.forEach(function(peer) {
+      all_peers.push(peer.identity);
+    });
 
     return all_peers;
   };
-
 
   (function rec() {
     if (retry++ > 15)
       console.error('Trying too many time to route request!');
 
     var peers  = genPeerHash();
-    var target = peers[that.rri++ % peers.length];
-    if (target.synchronized == false)
-      setTimeout(rec, 100);
-    else return cb(null, target);
-  })();
-}
+    var target = peers[that._rri++ % peers.length];
 
-LoadBalancer.prototype.broadcast = function(req, res, next) {
+    if (target.synchronized == false)
+      return setTimeout(rec, 100);
+    return cb(null, target);
+  })();
 };
 
 LoadBalancer.prototype.route = function(req, res, next) {
@@ -61,11 +61,12 @@ LoadBalancer.prototype.route = function(req, res, next) {
   var task_exec_id = crypto.randomBytes(32).toString('hex');
 
   // Avoid integer overflow
-  if (Number.isSafeInteger(that.rri) === false)
-    that.rri = 0;
+  if (Number.isSafeInteger(that._rri) === false)
+    that._rri = 0;
 
-  this.findSuitablePeer(function(err, peer) {
-    var url = 'http://' + peer.identity.ip + ':' + peer.identity.api_port + '/';
+  this.findSuitablePeer(req, function(err, peer) {
+    console.log('Re routing query to %s:%s', peer.ip, peer.api_port);
+    var url = 'http://' + peer.ip + ':' + peer.api_port + '/trigger_local';
 
     var a = request({
       url : url,
@@ -79,14 +80,14 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
     that.processing_tasks[task_exec_id] = {
       started_at : new Date(),
-      peer_info  : peer.identity,
+      peer_info  : peer,
       task_id    : task_id,
       rout_url   : url
     };
 
     function onErr() {
       delete that.processing_tasks[task_exec_id];
-      console.error('Error while pipping data');
+      console.error('Error while proxying task request');
       res.end();
     }
 
@@ -102,6 +103,9 @@ LoadBalancer.prototype.route = function(req, res, next) {
       .pipe(res)
       .on('error', onErr);
   });
+};
+
+LoadBalancer.prototype.broadcast = function(req, res, next) {
 };
 
 module.exports = LoadBalancer;

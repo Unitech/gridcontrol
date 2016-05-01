@@ -6,10 +6,11 @@
 
 var express    = require('express');
 var bodyParser = require('body-parser');
-var debug      = require('debug')('api');
-var stringify  = require('./safeclonedeep.js');
 var http       = require('http');
 var https      = require('https');
+var fmt        = require('fmt');
+var debug      = require('debug')('api');
+var stringify  = require('./safeclonedeep.js');
 
 /**
  * Set API default values
@@ -23,11 +24,12 @@ var https      = require('https');
  * @param opts.tls TLS keys
  */
 var API = function(opts) {
-  this.port         = opts.port || 10000;
-  this.tls          = opts.tls;
-  this.task_manager = opts.task_manager;
-  this.file_manager = opts.file_manager;
-  this.net_manager  = opts.net_manager;
+  this.load_balancer = opts.load_balancer;
+  this.task_manager  = opts.task_manager;
+  this.file_manager  = opts.file_manager;
+  this.net_manager   = opts.net_manager;
+  this.port          = opts.port || 10000;
+  this.tls           = opts.tls;
 };
 
 /**
@@ -49,6 +51,7 @@ API.prototype.start = function(cb) {
 
   this.setMiddlewares();
   this.mountRoutes();
+  this.endMiddleware();
 
   that.server.listen(that.port, function (err) {
     debug('API listening on port %d', that.port);
@@ -72,19 +75,55 @@ API.prototype.stop = function() {
 API.prototype.setMiddlewares = function() {
   var that = this;
 
+  var createDomain = require('domain').create;
+
   this.app.use(bodyParser.urlencoded({
     extended : true
   }));
 
   // Attach task manager to request for child controllers
   this.app.use(function(req, res, next) {
-    req.task_manager = that.task_manager;
-    req.file_manager = that.file_manager;
-    req.net_manager  = that.net_manager;
-    next();
+    var domain = createDomain();
+
+    req.load_balancer = that.load_balancer;
+    req.task_manager  = that.task_manager;
+    req.file_manager  = that.file_manager;
+    req.net_manager   = that.net_manager;
+
+    domain.add(req);
+    domain.add(res);
+    domain.run(next);
+    domain.on('error', next);
   });
 
   this.app.use(bodyParser.json());
+};
+
+// Error middleware + error formating
+API.prototype.endMiddleware = function() {
+  this.app.use(function(err, req, res, next) {
+    fmt.sep();
+    fmt.title('Error catched in express error middleware');
+    if (err.stack)
+      fmt.li(err.stack);
+    if (err.type)
+      fmt.li(err.type);
+    if (err.msg)
+      fmt.li(err.msg);
+    if (err)
+      fmt.dump(err);
+
+    fmt.sep();
+    fmt.title('Body params');
+    fmt.dump(req.body);
+    fmt.title('Query params');
+    fmt.dump(req.params);
+    fmt.sep();
+    res.status(500).send({
+      msg : err.message || err.msg,
+      success : false
+    });
+  });
 };
 
 /**
@@ -104,7 +143,10 @@ API.prototype.mountRoutes = function() {
    * Task endpoints
    */
   app.get('/list_tasks', this.task_manager.controller.list_tasks);
-  app.post('/trigger', this.task_manager.controller.trigger_task);
+  app.post('/trigger_local', this.task_manager.controller.trigger_task);
+  app.post('/trigger', function(req, res, next) {
+    return req.load_balancer.route(req, res, next);
+  });
   app.post('/init_task_group', this.task_manager.controller.init_task_group);
   app.delete('/clear_all_tasks', this.task_manager.controller.clear_all_tasks);
 

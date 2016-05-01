@@ -11,6 +11,7 @@ var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
 var Interplanetary  = require('./../subprojects/interplanetary/index.js');
+var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
 var stringify       = require('./safeclonedeep.js');
 
@@ -45,7 +46,6 @@ var NetFunctions = function(opts, cb) {
   this.peer_name      = opts.peer_name      || Moniker.choose();
   this.peer_address   = opts.peer_address   || networkAddress();
   this.peer_api_port  = opts.peer_api_port  || 10000;
-  //this.peers          = {};
 
   this.tls = {
     key  : fs.readFileSync(path.join(__dirname, opts.private_key || '../misc/private.key')),
@@ -65,12 +65,17 @@ var NetFunctions = function(opts, cb) {
     port_offset : that.peer_api_port + 1
   });
 
+  this.load_balancer = new LoadBalancer({
+    local_loop  : true
+  });
+
   this.api = new API({
-    port         : that.peer_api_port,
+    load_balancer: that.load_balancer,
     task_manager : that.task_manager,
     file_manager : that.file_manager,
     net_manager  : this,
-    tls         : that.tls
+    port         : that.peer_api_port,
+    tls          : that.tls
   });
 
   // Start network discovery
@@ -107,8 +112,10 @@ NetFunctions.prototype.startDiscovery = function(ns, cb) {
     // Form
     fmt.title('Peer ready');
     fmt.field('Name', that.peer_name);
-    fmt.field('Network address', that.peer_address);
-    fmt.field('HTTP API access', 'http://localhost:' + that.peer_api_port + '/conf');
+    fmt.field('Local address', that.peer_address);
+    fmt.field('API port', that.peer_api_port);
+    fmt.field('Joined Namespace', that._ns);
+    fmt.field('Created at', new Date());
     fmt.sep();
 
     return cb ? cb() : false;
@@ -147,10 +154,8 @@ NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
   });
 
   sock.on('error', function(e) {
-    console.error('[%s] Peer Socket error on peer [%s]',
-                  that.peer_name,
-                  sock.identity.name);
-    console.error(e);
+    console.error('[%s] Peer Socket error on peer', that.peer_name);
+    console.error(e.message);
   });
 
   sock.on('data', function(packet) {
@@ -164,7 +169,9 @@ NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
     switch (packet.cmd) {
 
     case 'identity':
-      // Receive meta information about peer
+      /**
+       * Receive meta information about peer
+       */
       debug('status=handshake meta info from=%s[%s] on=%s',
             packet.data.name,
             packet.data.ip,
@@ -175,6 +182,9 @@ NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
       break;
 
     case 'sync:done':
+      /**
+       * Received by master once the peer has been synchronized
+       */
       if (packet.data.synced_md5 == that.file_manager.getCurrentMD5()) {
         debug('Peer [%s] successfully synchronized with up-to-date sync file',
               sock.identity.name);
@@ -183,7 +193,9 @@ NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
       break;
 
     case 'sync':
-      // Task to synchronize this node
+      /**
+       * Task to synchronize this node
+       */
       console.log('[%s] Incoming sync req from ip=%s port=%s for MD5 [%s]',
                   that.peer_name,
                   packet.data.ip,

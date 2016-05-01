@@ -1,6 +1,7 @@
 
 process.env.NODE_ENV='test';
-process.env.DEBUG='network,api';
+process.env.DEBUG='network,api,lb';
+process.env.ONLY_LOCAL=true;
 process.env.NS='test:namespace';
 
 var fs      = require('fs');
@@ -130,8 +131,19 @@ describe('Network', function() {
       });
     });
 
-    it('should retrieve 4 tasks started', function(done) {
+    it('should NS1 retrieve 4 tasks started', function(done) {
       request.get('http://localhost:10000/list_tasks', function(err, res, body) {
+        should(err).be.null;
+        should(res.statusCode).eql(200);
+        var tasks = JSON.parse(body);
+        should(tasks.length).eql(4);
+        done();
+      });
+    });
+
+    // PM2 is not dameonized by NS2
+    it.skip('should NS2 retrieve 4 tasks started', function(done) {
+      request.get('http://localhost:11000/list_tasks', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
@@ -168,6 +180,7 @@ describe('Network', function() {
           }
         }
       }, function(err, raw, body) {
+        console.log(body);
         var res = JSON.parse(body);
         res.data.hello.should.eql('yey');
         done();
