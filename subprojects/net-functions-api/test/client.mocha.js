@@ -1,9 +1,10 @@
 
+process.env.NS='test:namespace:two';
 process.env.DEBUG='network,api';
 
 var should  = require('should');
 var Plan    = require('./plan.js');
-var network = require('../lib/index.js');
+var NetFunctions = require('net-functions-pm2');
 
 describe('Client test', function() {
   var client, n1;
@@ -11,9 +12,9 @@ describe('Client test', function() {
   it('should get the right object', function(done) {
     var plan = new Plan(3, done);
 
-    client = require('../lib/client.js');
-    var client2 = require('../lib/client.js');
-    var client3 = require('../lib/client.js');
+    client = require('..');
+    var client2 = require('..');
+    var client3 = require('..');
     var client5 = require('./other.js');
 
     var client4 = client.conf({
@@ -44,7 +45,7 @@ describe('Client test', function() {
   });
 
   it('should start a node', function(done) {
-    n1 = new network({
+    n1 = new NetFunctions({
       peer_api_port : 10000
     }, done);
   });
@@ -72,18 +73,18 @@ describe('Client test', function() {
     });
   });
 
-  it('should list 0 networked hosts', function(done) {
+  it('should list 1 networked hosts', function(done) {
     client.listHosts(function(e, hosts) {
       should(e).be.null;
-      should(hosts.length).eql(0);
+      should(hosts.length).eql(1);
       done();
     });
   });
 
-  it('should list 4 tasks', function(done) {
+  it('should list 5 tasks', function(done) {
     client.listTasks(function(e, tasks) {
       should(e).be.null;
-      should(tasks.length).eql(4);
+      should(tasks.length).eql(5);
       done();
     });
   });

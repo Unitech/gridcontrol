@@ -66,7 +66,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
   this.findSuitablePeer(req, function(err, peer) {
     console.log('Re routing query to %s:%s', peer.ip, peer.api_port);
-    var url = 'http://' + peer.ip + ':' + peer.api_port + '/trigger_local';
+    var url = 'http://' + peer.ip + ':' + peer.api_port + '/tasks/trigger_local';
 
     var a = request({
       url : url,

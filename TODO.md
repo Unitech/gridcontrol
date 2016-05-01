@@ -1,7 +1,8 @@
 
 ## Ideas
 
-- [ ] Build smart LB
+- [ ] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
+- [X] Build smart LB
 - [ ] Build CLI (+ list connected host via identity)
 
 - [X] Use discovery-swarm

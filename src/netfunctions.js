@@ -10,7 +10,7 @@ var fmt             = require('fmt');
 var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
-var Interplanetary  = require('./../subprojects/interplanetary/index.js');
+var Interplanetary  = require('./interplanetary/index.js');
 var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
 var stringify       = require('./safeclonedeep.js');
@@ -292,7 +292,8 @@ NetFunctions.prototype.sendIdentity = function(sock) {
       api_port : that.peer_api_port,
       name     : that.peer_name,
       hostname : os.hostname(),
-      platform : os.platform()
+      platform : os.platform(),
+      user     : process.env.USER || null
     }
   });
 };
@@ -306,7 +307,9 @@ NetFunctions.prototype.getLocalIdentity = function() {
     name         : that.peer_name,
     hostname     : os.hostname(),
     platform     : os.platform(),
-    synchronized : true
+    synchronized : true,
+    files_master : this.file_manager.isFileMaster(),
+    user         : process.env.USER
   };
 };
 

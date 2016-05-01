@@ -9,13 +9,19 @@ The more *PM2* you add, the more calculation power you get.
 
 ## Quick start
 
+### Softwares
+
+- net-functions-pm2: Allow interconnection of PM2s
+- net-functions-api: Library in your app to communicate with net-functions-pm2 process
+- net-functions-cli: CLI utility to simplify provisioning of Peers
+
 ### Inter connect process managers
 
 On multiple servers in the same private network (RPN, wifi...), type these two commands:
 
 ```bash
 $ npm install pm2 -g
-$ NS=namespace PASS=pass pm2 install cloud-functions
+$ NS=namespace PASS=pass pm2 install pm2-cloud-functions
 ```
 
 This will connect each process manager together as long they have internet, through DNS multicast and DHT Bittorent.

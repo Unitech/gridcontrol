@@ -1,11 +1,18 @@
 {
-  "name": "cloudfunctions",
-  "version": "1.0.0",
+  "name": "net-functions-pm2",
+  "version": "0.0.6",
   "description": "Execute functions in a cloud of PM2",
   "main": "index.js",
   "scripts": {
     "test": "bash test/test.sh",
     "docs" : "rm -rf docs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d docs -r ."
+  },
+  "bundledDependencies" : ["request", "pm2", "express", "body-parser", "async", "pmx", "debug", "moniker", "network-address", "tar-fs", "chalk", "fmt", "buffer-equals", "connections", "discovery-channel", "length-prefixed-message", "pump", "to-buffer"],
+  "devDependencies" : {
+    "should" : "*",
+    "mocha"  : "*",
+    "jsdoc" : "*",
+    "ink-docstrap" : "*"
   },
   "dependencies" : {
     "request" : "*",
@@ -19,15 +26,14 @@
     "multicast-dns": "*",
     "network-address" : "*",
     "tar-fs" : "*",
-    "discovery-swarm" : "*",
     "chalk" : "*",
-    "fmt" : "*"
-  },
-  "devDependencies" : {
-    "should" : "*",
-    "mocha"  : "*",
-    "jsdoc" : "*",
-    "ink-docstrap" : "*"
+    "fmt" : "*",
+    "buffer-equals": "^1.0.3",
+    "connections": "^1.4.2",
+    "discovery-channel": "^5.0.0",
+    "length-prefixed-message": "^3.0.3",
+    "pump": "^1.0.1",
+    "to-buffer": "^1.0.1"
   },
   "apps": [
     {

@@ -54,20 +54,20 @@ describe('Network', function() {
       });
     });
 
-    it('should retrieve one host connected', function(done) {
+    it('should retrieve two host connected', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
         should(e).be.null;
         should(r.statusCode).eql(200);
-        should(dt.length).eql(1);
-        dt[0].identity.should.have.properties(['ip', 'api_port', 'name', 'hostname', 'synchronized']);
-        dt[0].identity.synchronized.should.be.true;
+        should(dt.length).eql(2);
+        dt[0].should.have.properties(['ip', 'api_port', 'name', 'hostname', 'synchronized']);
+        dt[0].synchronized.should.be.true;
         done();
       });
     });
 
     it('should retrieve 0 tasks started', function(done) {
-      request.get('http://localhost:10000/list_tasks', function(err, res, body) {
+      request.get('http://localhost:10000/tasks/list', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
@@ -75,6 +75,8 @@ describe('Network', function() {
         done();
       });
     });
+
+
 
     it('should get configuration', function(done) {
       request.get('http://localhost:10000/conf', function(err, res, body) {
@@ -91,7 +93,7 @@ describe('Network', function() {
       var base_folder = path.join(__dirname, 'fixtures', 'app1');
       var task_folder = 'tasks';
 
-      request.post('http://localhost:10000/init_task_group', {
+      request.post('http://localhost:10000/tasks/init', {
         form : {
           base_folder : base_folder,
           task_folder : task_folder,
@@ -117,7 +119,7 @@ describe('Network', function() {
       this.timeout(5000);
       var base_folder = path.join(__dirname, 'fixtures', 'app1');
 
-      request.post('http://localhost:10000/init_task_group', {
+      request.post('http://localhost:10000/tasks/init', {
         form : {
           base_folder : base_folder,
           task_folder : 'tasks',
@@ -131,23 +133,23 @@ describe('Network', function() {
       });
     });
 
-    it('should NS1 retrieve 4 tasks started', function(done) {
-      request.get('http://localhost:10000/list_tasks', function(err, res, body) {
+    it('should NS1 retrieve 5 tasks started', function(done) {
+      request.get('http://localhost:10000/tasks/list', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
-        should(tasks.length).eql(4);
+        should(tasks.length).eql(5);
         done();
       });
     });
 
     // PM2 is not dameonized by NS2
-    it.skip('should NS2 retrieve 4 tasks started', function(done) {
-      request.get('http://localhost:11000/list_tasks', function(err, res, body) {
+    it.skip('should NS2 retrieve 5 tasks started', function(done) {
+      request.get('http://localhost:11000/tasks/list', function(err, res, body) {
         should(err).be.null;
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
-        should(tasks.length).eql(4);
+        should(tasks.length).eql(5);
         done();
       });
     });
@@ -165,14 +167,14 @@ describe('Network', function() {
     it('should master see n2 has synchronized', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
-        dt[0].identity.synchronized.should.be.true;
+        dt[0].synchronized.should.be.true;
         done();
       });
     });
 
 
     it('should trigger task', function(done) {
-      request.post('http://localhost:10000/trigger', {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
         form : {
           task_id : 'echo',
           data : {
@@ -180,7 +182,6 @@ describe('Network', function() {
           }
         }
       }, function(err, raw, body) {
-        console.log(body);
         var res = JSON.parse(body);
         res.data.hello.should.eql('yey');
         done();
@@ -188,7 +189,7 @@ describe('Network', function() {
     });
 
     it('should trigger task with custom env', function(done) {
-      request.post('http://localhost:10000/trigger', {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
         form : {
           task_id : 'env',
           data : {}
@@ -217,12 +218,12 @@ describe('Network', function() {
       });
     });
 
-    it('should now N1 retrieve two hosts connected', function(done) {
+    it('should now N1 retrieve three hosts connected', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
         should(e).be.null;
         should(r.statusCode).eql(200);
-        should(dt.length).eql(2);
+        should(dt.length).eql(3);
         done();
       });
     });
@@ -232,7 +233,7 @@ describe('Network', function() {
         var dt = JSON.parse(b);
         should(e).be.null;
         should(r.statusCode).eql(200);
-        should(dt.length).eql(2);
+        should(dt.length).eql(3);
         done();
       });
     });
@@ -242,7 +243,7 @@ describe('Network', function() {
         var dt = JSON.parse(b);
         should(e).be.null;
         should(r.statusCode).eql(200);
-        should(dt.length).eql(2);
+        should(dt.length).eql(3);
         done();
       });
     });
@@ -253,9 +254,49 @@ describe('Network', function() {
       fs.lstatSync('/tmp/n3/');
       done();
     });
+  });
 
+
+  describe('Processing tasks checks', function() {
+    it('should retrieve 0 processing tasks', function(done) {
+      request.get('http://localhost:10000/tasks/processing', function(err, res, body) {
+        should(err).be.null;
+        should(res.statusCode).eql(200);
+        var tasks = JSON.parse(body);
+        should(tasks.length).eql(0);
+        done();
+      });
+    });
+
+    it('should trigger slow task and get it as being processed', function(done) {
+      this.timeout(6000);
+
+      setTimeout(function() {
+        request.get('http://localhost:10000/tasks/processing', function(err, res, body) {
+          should(err).be.null;
+          should(res.statusCode).eql(200);
+          var tasks = JSON.parse(body);
+          should(tasks.length).eql(1);
+          done();
+        });
+      }, 400);
+
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'slow'
+        }
+      }, function(err, res, body) {
+        should(res.statusCode).eql(200);
+        //var res = JSON.parse(body);
+        //done();
+      });
+    });
+  });
+
+
+  describe('End commands', function() {
     it('should clear all tasks', function(done) {
-      request.delete('http://localhost:10000/clear_all_tasks', function(err, raw, body) {
+      request.delete('http://localhost:10000/tasks/clear', function(err, raw, body) {
         done();
       });
     });
@@ -267,8 +308,6 @@ describe('Network', function() {
         });
       });
     });
-
-
   });
 
 });

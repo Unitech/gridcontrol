@@ -142,13 +142,24 @@ API.prototype.mountRoutes = function() {
   /**
    * Task endpoints
    */
-  app.get('/list_tasks', this.task_manager.controller.list_tasks);
-  app.post('/trigger_local', this.task_manager.controller.trigger_task);
-  app.post('/trigger', function(req, res, next) {
+  app.get('/tasks/list', this.task_manager.controller.list_tasks);
+  app.delete('/tasks/clear', this.task_manager.controller.clear_all_tasks);
+
+  app.post('/tasks/trigger_local', this.task_manager.controller.trigger_task);
+  app.post('/tasks/lb_trigger_single', function(req, res, next) {
     return req.load_balancer.route(req, res, next);
   });
-  app.post('/init_task_group', this.task_manager.controller.init_task_group);
-  app.delete('/clear_all_tasks', this.task_manager.controller.clear_all_tasks);
+
+  app.post('/tasks/lb_trigger_all', function(req, res, next) {
+    return req.load_balancer.route(req, res, next);
+  });
+
+  app.post('/tasks/init', this.task_manager.controller.init_task_group);
+
+  app.get('/tasks/processing', function(req, res, next) {
+    var tasks = req.load_balancer.processing_tasks;
+    return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
+  });
 
   /**
    * Misc endpoints
@@ -158,7 +169,14 @@ API.prototype.mountRoutes = function() {
   });
 
   app.get('/hosts/list', function(req, res, next) {
-    return res.send(stringify(req.net_manager.getPeers()));
+    var peers = [];
+
+    req.net_manager.getPeers().forEach(function(peer) {
+      peers.push(peer.identity);
+    });
+
+    peers.push(req.net_manager.getLocalIdentity());
+    return res.send(peers);
   });
 
   app.get('/conf', function(req, res, next) {

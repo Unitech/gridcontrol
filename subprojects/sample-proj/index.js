@@ -1,6 +1,6 @@
 
 
-var client = require('../client').conf({
+var client = require('../net-functions-api').conf({
   task_folder : 'tasks',
   instances   : 2,
   env         : {

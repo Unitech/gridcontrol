@@ -1,5 +1,4 @@
 
-
 var request         = require('request');
 var EventEmitter    = require('events').EventEmitter;
 
@@ -12,6 +11,7 @@ var EventEmitter    = require('events').EventEmitter;
  * @param opts.env
  */
 var Client = function() {
+  this.base_url    = 'http://localhost:10000';
   // Singleton
 };
 
@@ -28,7 +28,7 @@ Client.prototype.conf = function(opts, cb) {
   this.base_url    = 'http://localhost:' + (opts.port || 10000);
 
   request.post({
-    url : this.base_url + '/init_task_group',
+    url : this.base_url + '/tasks/init',
     json : {
       task_folder : this.task_folder,
       instances   : this.instances,
@@ -49,7 +49,7 @@ Client.prototype.conf = function(opts, cb) {
 Client.prototype.exec = Client.prototype.invoke = function(task_name, data, cb) {
   var that = this;
 
-  request.post(this.base_url + '/trigger', {
+  request.post(this.base_url + '/tasks/lb_trigger_single', {
     form : {
       task_id : task_name,
       data    : data
@@ -76,44 +76,33 @@ Client.prototype.exec = Client.prototype.invoke = function(task_name, data, cb) 
 };
 
 Client.prototype.listTasks = function(cb) {
-  request.get(this.base_url + '/list_tasks', function(e1, r, b) {
-    if (e1) return cb(e1);
+  request.get(this.base_url + '/tasks/list', function(err, r, b) {
+    return cb(err, parseBody(b));
+  });
+};
 
-    try {
-      b = JSON.parse(b);
-    } catch(e) {
-      return cb(e);
-    }
-
-    return cb(null, b);
+Client.prototype.listProcessingTasks = function(cb) {
+  request.get(this.base_url + '/tasks/processing', function(err, r, b) {
+    return cb(err, parseBody(b));
   });
 };
 
 Client.prototype.listHosts = function(cb) {
-  request.get(this.base_url + '/hosts/list', function(e1, r, b) {
-    if (e1) return cb(e1);
-
-    try {
-      b = JSON.parse(b);
-    } catch(e) {
-      return cb(e);
-    }
-
-    return cb(null, b);
+  request.get(this.base_url + '/hosts/list', function(err, r, b) {
+    return cb(err, parseBody(b));
   });
 };
 
 Client.prototype.stopTasks = function(cb) {
-  request.delete(this.base_url + '/clear_all_tasks',
-                 function(err, raw, body) {
-                   cb(err, body);
-                 });
+  request.delete(this.base_url + '/tasks/clear', function(err, raw, b) {
+    return cb(err, parseBody(b));
+  });
 };
 
 Client.prototype.all = function(task_name, data, eventemitter) {
   var ee = new EventEmitter();
 
-  var a = request.post(this.base_url + '/all', data);
+  var a = request.post(this.base_url + '/tasks/lb_trigger_all', data);
 
   a.on('error', function(e) {
     ee.emit('error', e);
@@ -129,5 +118,19 @@ Client.prototype.all = function(task_name, data, eventemitter) {
 
   return ee;
 };
+
+function parseBody(data) {
+  var ret = null;
+
+  if (!data)
+    return null;
+
+  try {
+    ret = JSON.parse(data);
+  } catch(e) {
+    console.error('Error while parsing', e.message);
+  }
+  return ret;
+}
 
 module.exports = new Client;

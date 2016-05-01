@@ -1,0 +1,19 @@
+{
+  "name": "net-functions-api",
+  "version": "0.0.2",
+  "description": "API to interact with net-functions",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha test/*.mocha.js"
+  },
+  "dependencies" : {
+    "request" : "*"
+  },
+  "devDependencies" : {
+    "should" : "*",
+    "mocha"  : "*",
+    "net-functions-pm2" : "latest"
+  },
+  "author": "",
+  "license": "ISC"
+}
