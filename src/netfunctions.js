@@ -293,6 +293,7 @@ NetFunctions.prototype.sendIdentity = function(sock) {
       name     : that.peer_name,
       hostname : os.hostname(),
       platform : os.platform(),
+      ns       : that._ns,
       user     : process.env.USER || null
     }
   });
@@ -307,6 +308,7 @@ NetFunctions.prototype.getLocalIdentity = function() {
     name         : that.peer_name,
     hostname     : os.hostname(),
     platform     : os.platform(),
+    ns           : that._ns,
     synchronized : true,
     files_master : this.file_manager.isFileMaster(),
     user         : process.env.USER

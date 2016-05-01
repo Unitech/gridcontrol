@@ -1,7 +1,10 @@
 
+
 ## Ideas
 
 - [ ] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
+- [ ] Fix returned synchronized flag when listing
+
 - [X] Build smart LB
 - [ ] Build CLI (+ list connected host via identity)
 
@@ -28,3 +31,9 @@ ___
 - LB implement broadcast strategy
 - configuration of tasks (JSON conf (ecosystem)? max memory/timeout?)
 - keep counter of invokations, errors
+
+## PM2
+
+- bundledDependecnies
+- upgrade to cli-table-2
+- pm2 ls --watch
