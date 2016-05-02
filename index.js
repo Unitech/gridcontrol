@@ -1,5 +1,5 @@
 
-process.env.DEBUG="api,network";
+process.env.DEBUG="api,network,tasks";
 
 var Intercom = require('./src/netfunctions.js');
 

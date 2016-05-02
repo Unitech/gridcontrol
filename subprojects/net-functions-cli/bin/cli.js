@@ -32,6 +32,22 @@ program
       });
   });
 
+
+/**
+ * Customs
+ */
+program
+  .description('List all tasks')
+  .command('list-tasks')
+  .alias('lst')
+  .action(function() {
+    netfunctions.listTasks(function(err, tasks) {
+      if (err) return exitError(err);
+      return console.log(tasks);
+      return cliux.displayHosts(hosts);
+    });
+  });
+
 program
   .description('Provision a target ip with Node/PM2/net-functions')
   .command('provision <username> <ip> <namespace>')
@@ -46,7 +62,7 @@ program
     });
 
     child.stderr.on('data', function(data) {
-      console.log('stdout: ' + data);
+      console.log('stderr: ' + data);
     });
 
     child.on('close', function(code) {

@@ -1,0 +1,6 @@
+protocol Math {
+  // One to multiply numbers.
+  double multiply(array<double> numbers);
+  // And another to add numbers, with an optional delay.
+  int add(array<int> numbers, float delay = 0);
+}

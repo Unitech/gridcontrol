@@ -303,7 +303,7 @@ NetFunctions.prototype.getLocalIdentity = function() {
   var that = this;
 
   return {
-    ip           : '127.0.0.1',
+    ip           : 'localhost',
     api_port     : that.peer_api_port,
     name         : that.peer_name,
     hostname     : os.hostname(),

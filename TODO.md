@@ -39,3 +39,4 @@ ___
 - bundledDependecnies
 - upgrade to cli-table-2
 - pm2 ls --watch
+- Remove banner Keymetrics (or at least make it smaller)

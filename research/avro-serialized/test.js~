@@ -1,0 +1,7 @@
+
+var avro = require('avsc');
+
+var type = avro.parse({
+  name: 'Pet',
+  type: 'record',
+  fields: [{

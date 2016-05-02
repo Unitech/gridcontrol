@@ -1,7 +1,7 @@
 
 var pm2        = require('pm2');
 var request    = require('request');
-var debug      = require('debug')('task:controller');
+var debug      = require('debug')('tasks');
 
 /**
  * @namespace TaskController
@@ -48,6 +48,8 @@ Controller.trigger_task = function(req, res, next) {
   }
 
   var url = 'http://localhost:' + req.task_manager.getTasks()[task_id].port + '/';
+
+  debug('Local trigger, hitting url %s', url);
 
   var a = request({
     url : url,

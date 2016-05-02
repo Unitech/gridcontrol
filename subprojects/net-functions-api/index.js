@@ -11,8 +11,8 @@ var EventEmitter    = require('events').EventEmitter;
  * @param opts.env
  */
 var Client = function() {
-  this.base_url    = 'http://localhost:10000';
   // Singleton
+  this.base_url    = 'http://localhost:10000';
 };
 
 Client.prototype.__proto__ = EventEmitter.prototype;
