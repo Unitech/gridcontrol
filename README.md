@@ -11,9 +11,9 @@ The more *PM2* you add, the more calculation power you get.
 
 ### Softwares
 
-- net-functions-pm2: Allow interconnection of PM2s
-- net-functions-api: Library in your app to communicate with net-functions-pm2 process
-- net-functions-cli: CLI utility to simplify provisioning of Peers
+- gridcontrol: Allow interconnection of PM2s
+- gridcontrol-api: Module to send tasks among a grid of computer
+- gridcontrol-cli: CLI utility to simplify provisioning of Peers
 
 ### Inter connect process managers
 
@@ -21,12 +21,12 @@ On multiple servers in the same private network (RPN, wifi...), type these two c
 
 ```bash
 $ npm install pm2 -g
-$ NS=namespace PASS=pass pm2 install pm2-cloud-functions
+$ GRID=namespace PASS=pass pm2 install gridcontrol
 ```
 
-This will connect each process manager together as long they have internet, through DNS multicast and DHT Bittorent.
+Each gridcontrol linked to the same grid will connect each other. Discovery is made through DNS multicast and DHT Bittorent.
 
-*To display cloud functions logs do `$ pm2 logs cloud-functions`*
+*To display cloud functions logs do `$ pm2 logs gridcontrol`*
 
 ### Create a base app
 
@@ -47,7 +47,7 @@ Now let's add some orchestration code into the index.js:
 **./index.js**
 
 ```javascript
-var cloudfunctions = require('cloudfunctions').conf({
+var grid = require('gridcontrol').init({
   task_folder : 'tasks'
 });
 
@@ -57,7 +57,7 @@ setInterval(function() {
    * This will invoke the function <filename> (here request)
    * in each server connected in a round robin way
    */
-  client.invoke('request', {
+  grid.dispatch('request', {
     url : 'http://google.com/'
   }, function(err, response, server_meta) {
     console.log('From server %s:%s', server.name, server.ip);
@@ -88,10 +88,22 @@ Now start the main application:
 $ node index.js
 ```
 
-You will see that in each server tasks are launched:
+Display each host connected to the grid:
 
 ```bash
-$ pm2 ls
+$ grid [hosts|list]
+```
+
+Display tasks statistics:
+
+```bash
+$ grid tasks
+```
+
+Provision a new node:
+
+```bash
+$ grid provision ubuntu@10.31.22.15 <grid-name> [square-name]
 ```
 
 ## Commands

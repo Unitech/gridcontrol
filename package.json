@@ -1,5 +1,5 @@
 {
-  "name": "net-functions-pm2",
+  "name": "gridcontrol",
   "version": "0.0.7",
   "description": "Execute functions in a cloud of PM2",
   "main": "index.js",
