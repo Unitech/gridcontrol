@@ -2,7 +2,7 @@
 var express    = require('express');
 var app        = express();
 var bodyParser = require('body-parser');
-var clone      = require('../safeclonedeep.js');
+var Tools      = require('../tools.js');
 
 var task = require(process.env.TASK_PATH);
 
@@ -22,7 +22,7 @@ app.get('/', function(req, res) {
 app.post('/', function (req, res) {
   task(req.body, function(err, data) {
     // Safe clone deep response
-    res.send({err:err, data:clone(data)});
+    res.send({err:err, data: Tools.safeClone(data)});
   });
 });
 

@@ -1,5 +1,4 @@
 
-var pm2        = require('pm2');
 var request    = require('request');
 var debug      = require('debug')('tasks');
 
@@ -19,8 +18,12 @@ Controller.list_tasks = function(req, res, next) {
 };
 
 Controller.clear_all_tasks = function(req, res, next) {
-  pm2.delete('all', function() {
-    res.send({success:true});
+  req.task_manager.deleteAllPM2Tasks(function(err, tasks) {
+    if (err) return next(err);
+    return res.send({
+      success:true,
+      processes_deleted : tasks
+    });
   });
 };
 

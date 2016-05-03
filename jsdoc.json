@@ -3,7 +3,7 @@
     "allowUnknownTags": true
   },
   "source": {
-    "includePattern": "lib/.+\\.js(doc)?$",
+    "includePattern": "src/.+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_",
     "exclude": [
       "node_modules",

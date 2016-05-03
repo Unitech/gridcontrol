@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "bash test/test.sh",
-    "docs" : "rm -rf docs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d docs -r ."
+    "docs" : "rm -rf apidocs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d apidocs -r ."
   },
   "bundledDependencies" : ["request", "pm2", "express", "body-parser", "async", "pmx", "debug", "moniker", "network-address", "tar-fs", "chalk", "fmt", "buffer-equals", "connections", "discovery-channel", "length-prefixed-message", "pump", "to-buffer"],
   "devDependencies" : {

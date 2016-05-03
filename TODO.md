@@ -36,6 +36,7 @@ ___
 
 ## PM2
 
+- when passing env object to pm2.start, the original object get modified..
 - bundledDependecnies
 - upgrade to cli-table-2
 - pm2 ls --watch

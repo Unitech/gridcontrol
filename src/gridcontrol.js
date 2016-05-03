@@ -1,8 +1,8 @@
+var debug           = require('debug')('network');
 var fs              = require('fs');
 var path            = require('path');
 var EventEmitter    = require('events').EventEmitter;
 var Moniker         = require('moniker');
-var debug           = require('debug')('network');
 var networkAddress  = require('network-address');
 var os              = require('os');
 var chalk           = require('chalk');
@@ -16,9 +16,9 @@ var API             = require('./api.js');
 var stringify       = require('./safeclonedeep.js');
 
 /**
- * Main entry point of NetFunctions
+ * Main entry point of GridControl
  * @constructor
- * @this {NetFunctions}
+ * @this {GridControl}
  * @param opts                {object} options
  * @param opts.tmp_file       {string} default location of sync data
  * @param opts.tmp_folder     {string} default location of folder uncomp
@@ -30,9 +30,9 @@ var stringify       = require('./safeclonedeep.js');
  * @param opts.public_key     {string} Public key passed to TCP and HTTP
  * @param cb                  {function} callback
  */
-var NetFunctions = function(opts, cb) {
-  if (!(this instanceof NetFunctions))
-    return new NetFunctions(opts, cb);
+var GridControl = function(opts, cb) {
+  if (!(this instanceof GridControl))
+    return new GridControl(opts, cb);
 
   if (typeof(opts) == 'function') {
     cb = opts;
@@ -52,7 +52,7 @@ var NetFunctions = function(opts, cb) {
     cert : fs.readFileSync(path.join(__dirname, opts.public_key || '../misc/public.crt'))
   };
 
-  var tmp_file   = opts.tmp_file || defaults.TMP_FILE;
+  var tmp_file   = opts.tmp_file   || defaults.TMP_FILE;
   var tmp_folder = opts.tmp_folder || defaults.TMP_FOLDER;
 
   this.file_manager = new FilesManagement({
@@ -85,14 +85,14 @@ var NetFunctions = function(opts, cb) {
   });
 };
 
-NetFunctions.prototype.__proto__ = EventEmitter.prototype;
+GridControl.prototype.__proto__ = EventEmitter.prototype;
 
 /**
  * Start network discovery
  * @param sock {object} socket object
  * @public
  */
-NetFunctions.prototype.startDiscovery = function(ns, cb) {
+GridControl.prototype.startDiscovery = function(ns, cb) {
   var that = this;
 
   this.Interplanetary = Interplanetary({
@@ -132,7 +132,7 @@ NetFunctions.prototype.startDiscovery = function(ns, cb) {
  * Stop API + Network discovery + clear files
  * @public
  */
-NetFunctions.prototype.close = function(cb) {
+GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
   this.api.stop();
   this.Interplanetary.close();
@@ -144,7 +144,7 @@ NetFunctions.prototype.close = function(cb) {
  * @param sock {object} socket object
  * @public
  */
-NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
+GridControl.prototype.onNewPeer = function(sock, remoteId) {
   var that = this;
 
   var remote_id = remoteId.toString('hex');
@@ -273,7 +273,7 @@ NetFunctions.prototype.onNewPeer = function(sock, remoteId) {
  * Return peers connected
  * @public
  */
-NetFunctions.prototype.getPeers = function() {
+GridControl.prototype.getPeers = function() {
   return this.Interplanetary.getPeers();
 };
 
@@ -282,10 +282,10 @@ NetFunctions.prototype.getPeers = function() {
  * @param sock {object} socket obj
  * @public
  */
-NetFunctions.prototype.sendIdentity = function(sock) {
+GridControl.prototype.sendIdentity = function(sock) {
   var that = this;
 
-  NetFunctions.sendJson(sock, {
+  GridControl.sendJson(sock, {
     cmd : 'identity',
     data : {
       ip       : that.peer_address,
@@ -299,7 +299,7 @@ NetFunctions.prototype.sendIdentity = function(sock) {
   });
 };
 
-NetFunctions.prototype.getLocalIdentity = function() {
+GridControl.prototype.getLocalIdentity = function() {
   var that = this;
 
   return {
@@ -315,15 +315,15 @@ NetFunctions.prototype.getLocalIdentity = function() {
   };
 };
 
-NetFunctions.prototype.sendHealthStatus = function(sock) {
+GridControl.prototype.sendHealthStatus = function(sock) {
   // Send health stats at a regular interval (for LB intelligence)
 };
 
-NetFunctions.prototype.broadcast = function(cmd, data) {
+GridControl.prototype.broadcast = function(cmd, data) {
   var that = this;
 
   this.Interplanetary.getPeers().forEach(function(sock) {
-    NetFunctions.sendJson(sock, {
+    GridControl.sendJson(sock, {
       cmd  : cmd,
       data : data
     });
@@ -334,7 +334,7 @@ NetFunctions.prototype.broadcast = function(cmd, data) {
  * Send command to all peers to synchronize
  * @public
  */
-NetFunctions.prototype.askAllPeersToSync = function() {
+GridControl.prototype.askAllPeersToSync = function() {
   var that = this;
 
   // @todo: check if different md5 than previous deployment
@@ -349,10 +349,10 @@ NetFunctions.prototype.askAllPeersToSync = function() {
  * @param sock {object} socket obj
  * @public
  */
-NetFunctions.prototype.askPeerToSync = function(sock) {
+GridControl.prototype.askPeerToSync = function(sock) {
   var that = this;
 
-  NetFunctions.sendJson(sock, {
+  GridControl.sendJson(sock, {
     cmd : 'sync',
     data : {
       ip   : that.peer_address,
@@ -369,7 +369,7 @@ NetFunctions.prototype.askPeerToSync = function(sock) {
  * @param data {object} json object
  * @static sendJSON
  */
-NetFunctions.sendJson = function(sock, data) {
+GridControl.sendJson = function(sock, data) {
   try {
     sock.write(JSON.stringify(data));
   } catch(e) {
@@ -377,4 +377,4 @@ NetFunctions.sendJson = function(sock, data) {
   }
 };
 
-module.exports = NetFunctions;
+module.exports = GridControl;

@@ -1,7 +1,7 @@
 
-process.env.DEBUG="api,network,tasks";
+process.env.DEBUG="api,network,tasks,filesmanager";
 
-var Intercom = require('./src/netfunctions.js');
+var Intercom = require('./src/gridcontrol.js');
 
 if (require.main === module) {
   new Intercom({

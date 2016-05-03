@@ -31,19 +31,34 @@ function sampleServer(cb) {
 }
 
 describe('Files', function() {
+  var file_manager_or;
   var file_manager_slave;
+  var serial;
 
   before(function(done) {
     sampleServer(done);
   });
 
   it('should instanciate new file manager', function(done) {
-    file_manager_slave = new FilesManagement({
+    file_manager_or = new FilesManagement({
       dest_file   : '/tmp/nene.tar.gz',
       dest_folder : '/tmp/glouglou'
     });
     done();
   });
+
+  it('should serialize file manager instance', function(done) {
+    serial = file_manager_or.serialize();
+
+    serial.should.have.properties(['dest_file', 'dest_folder', 'is_file_master']);
+    done();
+  });
+
+  it('should reinstanciate a file manager', function(done) {
+    file_manager_slave = new FilesManagement(serial);
+    done();
+  });
+
 
   it('should file manager be slave', function(done) {
     should(file_manager_slave.isFileMaster()).be.false;

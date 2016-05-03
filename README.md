@@ -1,5 +1,5 @@
 
-# PM2 CloudFunctions
+# GridControl
 
 Execute functions in a cloud of PM2s.
 
@@ -91,7 +91,7 @@ $ node index.js
 Display each host connected to the grid:
 
 ```bash
-$ grid [hosts|list]
+$ grid list
 ```
 
 Display tasks statistics:

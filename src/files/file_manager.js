@@ -1,4 +1,4 @@
-
+var debug           = require('debug')('filesmanager');
 var request         = require('request');
 var fs              = require('fs');
 var crypto          = require('crypto');
@@ -14,13 +14,29 @@ var filesController = require('./file_controller.js');
  * @param opts.dest_file {String} Port to start on
  */
 var FilesManagement = function(opts) {
-  this.dest_file        = opts.dest_file || defaults.TMP_FILE;
-  this.dest_folder      = opts.dest_folder || defaults.TMP_FOLDER;
-  this.is_file_master   = opts.is_file_master || false;
-  this.has_file_to_sync = false;
+  this.dest_file        = opts.dest_file        || defaults.TMP_FILE;
+  this.dest_folder      = opts.dest_folder      || defaults.TMP_FOLDER;
+  this.is_file_master   = opts.is_file_master   || false;
+  this.has_file_to_sync = opts.has_file_to_sync || false;
   this.controller       = filesController;
 
+  try {
+    debug('Deleting %s', this.dest_file);
+    fs.unlinkSync(this.dest_file);
+    debug('Deleting %s', this.dest_folder);
+    fs.unlinkSync(this.dest_folder);
+  } catch(e) {}
+
   this.current_sync_md5 = null;
+};
+
+FilesManagement.prototype.serialize = function() {
+  return {
+    dest_file        : this.dest_file,
+    dest_folder      : this.dest_folder,
+    is_file_master   : this.is_file_master,
+    has_file_to_sync : this.has_file_to_sync
+  };
 };
 
 /**
