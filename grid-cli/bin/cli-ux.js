@@ -2,7 +2,7 @@
 var inquirer = require('inquirer');
 var Table    = require('cli-table2');
 var chalk = require('chalk');
-var netfunctions = require('net-functions-api');
+var netfunctions = require('grid-api');
 
 var CliUX = {};
 

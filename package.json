@@ -23,7 +23,6 @@
     "pmx" : "*",
     "debug" : "*",
     "moniker" : "*",
-    "multicast-dns": "*",
     "network-address" : "*",
     "tar-fs" : "*",
     "chalk" : "*",

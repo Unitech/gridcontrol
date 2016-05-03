@@ -1,8 +1,13 @@
 # Cloud function client
 
-```
-var cloudfunctions = require('cloudfunctions').conf({
-  task_folder : 'tasks'
+```javascript
+var grid = require('gridcontrol').init({
+  task_folder : 'tasks',
+  instances   : 2,        // Number of instances of each tasks
+  env         : {         //
+    EXTRA : "ENV"
+  },
+  port : 10000            // API port (10000 is default)
 });
 
 setInterval(function() {
@@ -11,7 +16,7 @@ setInterval(function() {
    * This will invoke the function <filename> (here request)
    * in each server connected in a round robin way
    */
-  client.invoke('request', {
+  grid.dispatch('request', {
     url : 'http://google.com/'
   }, function(err, response, server_meta) {
     console.log('From server %s:%s', server.name, server.ip);
@@ -24,8 +29,10 @@ setInterval(function() {
 ## API
 
 ```
+.init(<opts>, <cb>)
 .exec / .invoke(<task_name>, <data>, <cb>)
 .listTasks(<cb>)
+.listProcessingTasks(<cb>)
 .listHosts(<cb>)
 .stopTasks(<cb>)
 .all(<task_name>, <data>, <eventemitter>

@@ -1,5 +1,5 @@
 {
-  "name": "net-functions-api",
+  "name": "grid-api",
   "version": "0.0.2",
   "description": "API to interact with net-functions",
   "main": "index.js",

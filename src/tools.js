@@ -1,5 +1,22 @@
 
+var fs    = require('fs');
+var path  = require('path');
+var debug = require('debug')('tools');
+
 var Tools = {};
+
+Tools.readConf = function(data, cb) {
+  var conf_file = path.resolve(process.env.HOME, '.gridcontrol.json');
+
+  fs.readFile(conf_file, function(err) {
+    if (err.code == 'ENOENT') {
+      debug('First initialization');
+    }
+    else if (err) {
+      console.error('Got uncaught error', err);
+    }
+  });
+};
 
 function safeDeepClone(circularValue, refs, obj) {
   var copy, tmp;

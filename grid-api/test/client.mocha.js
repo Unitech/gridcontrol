@@ -17,7 +17,7 @@ describe('Client test', function() {
     var client3 = require('..');
     var client5 = require('./other.js');
 
-    var client4 = client.conf({
+    var client4 = client.init({
       task_folder : 'fixtures/app1/tasks',
       instances   : 2,
       env         : {
@@ -55,7 +55,7 @@ describe('Client test', function() {
 
     var plan = new Plan(2, done);
 
-    client.conf({
+    client.init({
       task_folder : 'test/fixtures/app1/tasks',
       instances   : 2,
       env         : {

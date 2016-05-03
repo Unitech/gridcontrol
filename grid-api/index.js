@@ -12,12 +12,12 @@ var EventEmitter    = require('events').EventEmitter;
  */
 var Client = function() {
   // Singleton
-  this.base_url    = 'http://localhost:10000';
+  this.base_url    = 'https://localhost:10000';
 };
 
 Client.prototype.__proto__ = EventEmitter.prototype;
 
-Client.prototype.conf = function(opts, cb) {
+Client.prototype.init = function(opts, cb) {
   var that = this;
 
   EventEmitter.call(this);

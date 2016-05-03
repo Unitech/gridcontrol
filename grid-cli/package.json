@@ -1,16 +1,16 @@
 {
-  "name": "net-functions-cli",
-  "version": "0.0.1",
+  "name": "grid-cli",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "net": "./bin/cli.js"
+    "grid": "./bin/cli"
   },
   "dependencies" : {
-    "net-functions-api" : "latest",
+    "grid-api" : "latest",
     "request" : "*",
     "commander" : "*",
     "cli-table2" : "*",

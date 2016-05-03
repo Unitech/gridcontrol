@@ -1,12 +1,16 @@
 
-process.env.DEBUG="api,network,tasks,filesmanager";
+process.env.DEBUG="api,network,tasks,filesmanager,tools";
 
-var Intercom = require('./src/gridcontrol.js');
+var GridControl = require('./src/gridcontrol.js');
 
 if (require.main === module) {
-  new Intercom({
+
+  //var Tools = require('./src/tools.js');
+  //Tools.serializeToFile();
+
+  new GridControl({
     peer_api_port : process.env.API_PORT || process.argv[2] || 10000
   });
 }
 
-module.exports = Intercom;
+module.exports = GridControl;

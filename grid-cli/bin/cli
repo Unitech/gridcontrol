@@ -8,7 +8,7 @@ var sshexec      = require('ssh-exec');
 var chalk        = require('chalk');
 var cliSpinners  = require('cli-spinners');
 var async        = require('async');
-var netfunctions = require('net-functions-api');
+var netfunctions = require('grid-api');
 var cliux        = require('./cli-ux.js');
 
 program
@@ -20,7 +20,7 @@ program
 program
   .description('List all peers connected to network')
   .option('--watch')
-  .command('list-peers')
+  .command('list')
   .alias('ls')
   .action(function() {
     if (program.watch === true)
@@ -39,12 +39,11 @@ program
 program
   .description('List all tasks')
   .command('list-tasks')
-  .alias('lst')
+  .alias('tasks')
   .action(function() {
     netfunctions.listTasks(function(err, tasks) {
       if (err) return exitError(err);
       return console.log(tasks);
-      return cliux.displayHosts(hosts);
     });
   });
 

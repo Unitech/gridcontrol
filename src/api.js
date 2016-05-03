@@ -44,9 +44,10 @@ API.prototype.start = function(cb) {
   this.server = null;
 
   //if (this.auth)
-  //this.server = https.createServer(that.auth, that.app);
+  //t
   //else
 
+  //this.server = https.createServer(that.auth, that.app);
   this.server = http.createServer(that.app);
 
   this.setMiddlewares();
