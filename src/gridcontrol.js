@@ -147,8 +147,6 @@ GridControl.prototype.close = function(cb) {
 GridControl.prototype.onNewPeer = function(sock, remoteId) {
   var that = this;
 
-  var remote_id = remoteId.toString('hex');
-
   sock.on('close', function() {
     debug('Connection closed on server %s', that.peer_name);
   });

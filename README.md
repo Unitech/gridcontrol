@@ -1,7 +1,9 @@
 
 # GridControl
 
-Execute functions in a cloud of PM2s.
+Execute functions and tasks in a Server Grid.
+
+Each Server will have installed a networked process manager and One master will act as NFS and centralized process manager.
 
 This modules auto-link all PM2s in the same network and allows to execute functions in any of them, in any languages.
 
@@ -11,13 +13,17 @@ The more *PM2* you add, the more calculation power you get.
 
 ### Softwares
 
-- gridcontrol: Allow interconnection of PM2s
-- gridcontrol-api: Module to send tasks among a grid of computer
-- gridcontrol-cli: CLI utility to simplify provisioning of Peers
+- gridcontrol: Networked process manager (Auto discovery/Process management/NFS)
+- grid-api: Grid control's HTTP API (dispatch tasks)
+- grid-cli: Grid control's CLI for provisioning hosts, listing hosts, tasks
 
 ### Inter connect process managers
 
 On multiple servers in the same private network (RPN, wifi...), type these two commands:
+
+```
+$ grid provision ubuntu localhost TEST_NS
+```
 
 ```bash
 $ npm install pm2 -g
