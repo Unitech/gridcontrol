@@ -36,6 +36,8 @@ ___
 
 ## PM2
 
+- pm2 save [filename.json]
+- Not possible to specify the SOCK files or at lear the PM2_HOME when initializing Satan via pm2.connect
 - when passing env object to pm2.start, the original object get modified..
 - bundledDependecnies
 - upgrade to cli-table-2
