@@ -142,7 +142,6 @@ GridControl.prototype.start = function(cb) {
     });
   });
 
-
   that.api.start(err => {
     if (err) console.error(err);
     this.emit('api:ready');
@@ -157,6 +156,8 @@ GridControl.prototype.start = function(cb) {
 GridControl.prototype.startDiscovery = function(ns, cb) {
   var that = this;
 
+  this.namespace = ns;
+
   this.Interplanetary = Interplanetary({
     tls        : that.tls
   });
@@ -167,6 +168,7 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
   this.Interplanetary.on('error', function(e) {
     console.error('Interplanetary got error');
     console.error(e.message);
+    return cb(e);
   });
 
   this.Interplanetary.on('listening', function() {
@@ -178,6 +180,10 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
   // });
 
   this.Interplanetary.on('connection', this.onNewPeer.bind(this));
+};
+
+GridControl.prototype.stopDiscovery = function(cb) {
+  this.Interplanetary.close();
 };
 
 /**

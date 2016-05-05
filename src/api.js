@@ -172,6 +172,18 @@ API.prototype.mountRoutes = function() {
     return res.send('pong');
   });
 
+  app.get('/network/change_namespace', function(req, res, next) {
+    var new_namespace = req.body.namespace;
+
+    req.net_manager.stopDiscovery();
+    req.net_manager.startDiscovery(new_namespace, function(err) {
+      if (err) {
+        return next(err);
+      }
+      return res.send({success:true, namespace: 'new_namespace'});
+    });
+  });
+
   app.get('/hosts/list', function(req, res, next) {
     var peers = [];
 
