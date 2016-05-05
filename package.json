@@ -24,6 +24,7 @@
     "debug" : "*",
     "moniker" : "*",
     "network-address" : "*",
+    "public-ip" : "*",
     "tar-fs" : "*",
     "chalk" : "*",
     "fmt" : "*",

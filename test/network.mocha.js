@@ -17,20 +17,28 @@ describe('Network', function() {
   it('should create a first client', function(done) {
     n1 = new network({
       peer_api_port : 10000
-    }, function() { done() });
+    });
+
+    n1.start(done);
   });
 
   it('should have the rigth namespace (via process.env.NS)', function(done) {
-    should(n1._ns).eql('test:namespace');
+    should(n1.namespace).eql('test:namespace');
     done();
   });
 
   it('should connect second client', function(done) {
     n2 = new network({
       peer_api_port  : 11000,
-      tmp_file       : '/tmp/n2.tar.gz',
-      tmp_folder     : '/tmp/n2'
-    }, done);
+      file_manager : {
+        dest_file       : '/tmp/n2.tar.gz',
+        dest_folder     : '/tmp/n2'
+      }
+    });
+
+    n2.on('ready', done);
+
+    n2.start();
   });
 
   it('n1 should list 1 peer', function(done) {
@@ -41,6 +49,28 @@ describe('Network', function() {
   it('n2 should list 1 peer', function(done) {
     should(n2.getPeers().length).eql(1);
     setTimeout(done, 1000);
+  });
+
+  describe('GridControl methods', function() {
+    var serial;
+
+    it('should serialize n1', function(done) {
+      serial = n1.serialize();
+      //console.log(serial);
+      done();
+    });
+
+    it('should stop n1', function(done) {
+      n1.close(done);
+    });
+
+    it('should reinitialize n1 with same previous params', function(done) {
+      n1 = new network(serial);
+
+      n1.start(done);
+    });
+
+
   });
 
   describe('API Interactions', function() {
@@ -60,7 +90,7 @@ describe('Network', function() {
         should(e).be.null;
         should(r.statusCode).eql(200);
         should(dt.length).eql(2);
-        dt[0].should.have.properties(['ip', 'api_port', 'name', 'hostname', 'synchronized']);
+        dt[0].should.have.properties(['public_ip', 'private_ip', 'api_port', 'name', 'hostname', 'synchronized']);
         dt[0].synchronized.should.be.true;
         done();
       });
@@ -203,15 +233,18 @@ describe('Network', function() {
 
     it('should connect THIRD node', function(done) {
       this.timeout(10000);
+
       n3 = new network({
         peer_api_port  : 12000,
-        tmp_file       : '/tmp/n3.tar.gz',
-        tmp_folder     : '/tmp/n3'
-      }, function() {
-        // Wait some time that the new node synchronize
+        file_manager : {
+          dest_file       : '/tmp/n3.tar.gz',
+          dest_folder     : '/tmp/n3'
+        }
       });
 
-      n3.on('synchronized', function(data) {
+      n3.start();
+
+      n3.on('files:synchronized', function(data) {
         console.log('Files synchronized');
         data.file.should.eql(n3.file_manager.getFilePath());
         setTimeout(done, 500);

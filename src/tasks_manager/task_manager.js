@@ -27,11 +27,20 @@ var TaskManager = function(opts) {
     env         : {}
   };
 
+  if (opts.task_meta)
+    this.task_meta = opts.task_meta;
+
   pm2.connect(function() {
     debug('Connected to local PM2');
   });
 
   this.controller = Controller;
+};
+
+TaskManager.prototype.serialize = function() {
+  return {
+    task_meta : this.task_meta
+  };
 };
 
 TaskManager.prototype.terminate = function() {
@@ -80,8 +89,7 @@ TaskManager.prototype.initTaskGroup = function(opts, cb) {
   that.task_meta.task_folder = opts.task_folder;
   that.task_meta.env         = opts.env;
 
-  // base_folder not on task_meta, because on peers it is different
-
+  // base_folder not on task_meta, because on peers path is different
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);
 
   this.getAllTasksInFolder(fullpath_task, function(e, tasks_files) {

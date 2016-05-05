@@ -1,7 +1,6 @@
-var publicIp = require('public-ip');
+const publicIp = require('public-ip');
 
-console.log('wwww');
-publicIp.v4(function (err, ip) {
-  console.log(err, ip);
+publicIp.v4().then(ip => {
+  console.log(ip);
   //=> '46.5.21.123'
 });

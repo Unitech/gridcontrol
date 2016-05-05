@@ -3,16 +3,19 @@ var fs              = require('fs');
 var path            = require('path');
 var EventEmitter    = require('events').EventEmitter;
 var Moniker         = require('moniker');
-var networkAddress  = require('network-address');
+var publicIp        = require('public-ip');
 var os              = require('os');
 var chalk           = require('chalk');
 var fmt             = require('fmt');
+var pkg             = require('../package.json');
 var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
 var Interplanetary  = require('./interplanetary/index.js');
 var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
+var Wait            = require('./lib/wait.js');
+var InternalIp      = require('./lib/internal-ip.js');
 
 /**
  * Main entry point of GridControl
@@ -29,45 +32,60 @@ var API             = require('./api.js');
  * @param opts.public_key     {string} Public key passed to TCP and HTTP
  * @param cb                  {function} callback
  */
-var GridControl = function(opts, cb) {
+var GridControl = function(opts) {
   if (!(this instanceof GridControl))
-    return new GridControl(opts, cb);
-
-  if (typeof(opts) == 'function') {
-    cb = opts;
-    opts = {};
-  }
+    return new GridControl(opts);
 
   var that = this;
 
-  this._ns            = process.env.NS || opts.ns || 'pm2:fs';
-  this.is_file_master = opts.is_file_master || false;
-  this.peer_name      = opts.peer_name      || Moniker.choose();
-  this.peer_address   = opts.peer_address   || networkAddress();
-  this.peer_api_port  = opts.peer_api_port  || 10000;
+  // To save
+  this.peer_name     = opts.peer_name || Moniker.choose();
+  this.namespace     = process.env.NS || opts.namespace || 'pm2:fs';
+
+  this.private_ip    = InternalIp.v4();
+  this.peer_api_port = opts.peer_api_port  || 10000;
 
   this.tls = {
     key  : fs.readFileSync(path.join(__dirname, opts.private_key || '../misc/private.key')),
     cert : fs.readFileSync(path.join(__dirname, opts.public_key || '../misc/public.crt'))
   };
 
-  var tmp_file   = opts.tmp_file   || defaults.TMP_FILE;
-  var tmp_folder = opts.tmp_folder || defaults.TMP_FOLDER;
+  /**
+   * File manager initialization
+   */
+  var file_manager_opts = {
+    dest_file   : defaults.TMP_FILE,
+    dest_folder : defaults.TMP_FOLDER
+  };
 
-  this.file_manager = new FilesManagement({
-    dest_file      : tmp_file,
-    dest_folder    : tmp_folder,
-    is_file_master : that.is_file_master
-  });
+  if (opts.file_manager)
+    file_manager_opts = opts.file_manager;
 
-  this.task_manager = new TaskManager({
+  this.file_manager = new FilesManagement(file_manager_opts);
+
+  /**
+   * Task manager initialization
+   */
+  var task_manager_opts = {
     port_offset : that.peer_api_port + 1
-  });
+  };
 
+  if (opts.task_manager && opts.task_manager.task_meta) {
+    task_manager_opts.task_meta = opts.task_manager.task_meta;
+  }
+
+  this.task_manager = new TaskManager(task_manager_opts);
+
+  /**
+   * Load balancer initialization
+   */
   this.load_balancer = new LoadBalancer({
     local_loop  : true
   });
 
+  /**
+   * API initialization
+   */
   this.api = new API({
     load_balancer: that.load_balancer,
     task_manager : that.task_manager,
@@ -76,15 +94,60 @@ var GridControl = function(opts, cb) {
     port         : that.peer_api_port,
     tls          : that.tls
   });
-
-  // Start network discovery
-  this.startDiscovery(this._ns, function() {
-    // Start API
-    that.api.start(cb);
-  });
 };
 
 GridControl.prototype.__proto__ = EventEmitter.prototype;
+
+GridControl.prototype.serialize = function() {
+  return {
+    peer_name    : this.peer_name,
+    namespace    : this.namespace,
+    peer_api_port: this.peer_api_port,
+    file_manager : this.file_manager.serialize(),
+    task_manager : this.task_manager.serialize()
+  };
+};
+
+GridControl.prototype.start = function(cb) {
+  var that = this;
+
+  Wait(this, [
+    'ip:ready',
+    'discovery:ready',
+    'api:ready'
+  ], function() {
+    that.emit('ready');
+
+    // Form
+    fmt.title('Peer ready');
+    fmt.field('Name', that.peer_name);
+    fmt.field('Public IP', that.public_ip);
+    fmt.field('Private IP', that.private_ip);
+    fmt.field('API port', that.peer_api_port);
+    fmt.field('Joined Namespace', that.namespace);
+    fmt.field('Created at', new Date());
+    fmt.sep();
+
+    if (cb)
+      return cb();
+  });
+
+  publicIp.v4().then(ip => {
+    this.public_ip = ip;
+    this.emit('ip:ready');
+
+    this.startDiscovery(this.namespace, err => {
+      if (err) console.error(err);
+      this.emit('discovery:ready');
+    });
+  });
+
+
+  that.api.start(err => {
+    if (err) console.error(err);
+    this.emit('api:ready');
+  });
+};
 
 /**
  * Start network discovery
@@ -107,16 +170,6 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
   });
 
   this.Interplanetary.on('listening', function() {
-
-    // Form
-    fmt.title('Peer ready');
-    fmt.field('Name', that.peer_name);
-    fmt.field('Local address', that.peer_address);
-    fmt.field('API port', that.peer_api_port);
-    fmt.field('Joined Namespace', that._ns);
-    fmt.field('Created at', new Date());
-    fmt.sep();
-
     return cb ? cb() : false;
   });
 
@@ -171,7 +224,7 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
        */
       debug('status=handshake meta info from=%s[%s] on=%s',
             packet.data.name,
-            packet.data.ip,
+            packet.data.private_ip,
             that.peer_name);
       sock.identity = packet.data;
       // Set peer flag as not synchronized
@@ -201,7 +254,7 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
 
       that.file_manager.synchronize(packet.data.ip, packet.data.port, function(err, meta) {
         if (err) {
-          console.error('Got an error while retrieving app to synchronize from %s',
+          console.error('Got an error while retrieving app pacakage to synchronize from %s',
                         packet.data.ip);
           return console.error(err);
         };
@@ -218,7 +271,7 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
         /****************************************/
         /****** TASK START ON SLAVE NODE ********/
 
-        that.emit('synchronized', {
+        that.emit('files:synchronized', {
           ip : packet.data.ip,
           file : that.file_manager.getFilePath(),
           meta : packet.data.meta
@@ -284,15 +337,7 @@ GridControl.prototype.sendIdentity = function(sock) {
 
   GridControl.sendJson(sock, {
     cmd : 'identity',
-    data : {
-      ip       : that.peer_address,
-      api_port : that.peer_api_port,
-      name     : that.peer_name,
-      hostname : os.hostname(),
-      platform : os.platform(),
-      ns       : that._ns,
-      user     : process.env.USER || null
-    }
+    data : that.getLocalIdentity()
   });
 };
 
@@ -300,15 +345,17 @@ GridControl.prototype.getLocalIdentity = function() {
   var that = this;
 
   return {
-    ip           : 'localhost',
+    public_ip    : that.public_ip,
+    private_ip   : that.private_ip,
     api_port     : that.peer_api_port,
     name         : that.peer_name,
     hostname     : os.hostname(),
     platform     : os.platform(),
-    ns           : that._ns,
-    synchronized : true,
+    ns           : that.namespace,
     files_master : this.file_manager.isFileMaster(),
-    user         : process.env.USER
+    user         : process.env.USER,
+    grid_version : pkg.version,
+    uptime       : process.uptime()
   };
 };
 
@@ -352,7 +399,7 @@ GridControl.prototype.askPeerToSync = function(sock) {
   GridControl.sendJson(sock, {
     cmd : 'sync',
     data : {
-      ip   : that.peer_address,
+      ip   : that.private_ip,
       port : that.peer_api_port,
       meta : that.task_manager.getTaskMeta(),
       curr_md5 : that.file_manager.getCurrentMD5()

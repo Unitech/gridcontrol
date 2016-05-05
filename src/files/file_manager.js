@@ -85,7 +85,7 @@ FilesManagement.prototype.clear = function(cb) {
 
   rmdir(that.dest_folder, function(e1) {
     fs.unlink(that.dest_file, function(e2) {
-      return cb(e1 || e2);
+      return cb();
     });
   });
 };
@@ -106,11 +106,19 @@ FilesManagement.retrieveFile = function(url, dest_file, cb) {
     return cb(err);
   });
 
-  request({
+  var req = request({
     url : url,
     method : 'GET',
     timeout : 120000
   }).pipe(dest);
+
+  req.on('error', function(err) {
+    try {
+      dest.close();
+    } catch (e) {}
+    called = true;
+    return cb(err);
+  });
 };
 
 FilesManagement.prototype.getCurrentMD5 = function() {
