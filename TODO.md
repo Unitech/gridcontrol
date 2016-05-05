@@ -3,12 +3,12 @@
 ## Ideas
 
 - [ ] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
-- [ ] Fix returned synchronized flag when listing
+- [X] Fix returned synchronized flag when listing
 - [ ] At initialization check that http connection can be made
-- [ ] restart master strategies (leveldb for persistence?)
+- [X] restart master strategies (leveldb for persistence?)
 
 - [X] Build smart LB
-- [ ] Build CLI (+ list connected host via identity)
+- [X] Build CLI (+ list connected host via identity)
 
 - [X] Use discovery-swarm
 - [X] patch discovery-swam with TLS
@@ -20,7 +20,7 @@
 - [X] call client.invoke instead of exec (alias)
 - [NOK] Objectify Peer (keep array of Peer object instead of raw socket obj)
 
-- [ ] Graphic documentation (refers to paper notes)
+- [~] Graphic documentation (refers to paper notes)
 - [ ] Add TLS on HTTP
 - [ ] Compatibility with Amazon lamda/apdex
 - [ ] Transpose client in Python, Java, Go
