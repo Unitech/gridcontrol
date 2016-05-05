@@ -1,0 +1,31 @@
+# OS (Mac OSX)
+.DS_store
+*/.DS_store
+
+# Node JS
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+logs
+results
+
+npm-debug.log
+node_modules
+
+# SublimeText project files
+*.sublime-workspace
+
+# Textmate
+*.tmproj
+*.tmproject
+tmtags
+
+# Redis
+*.rdb

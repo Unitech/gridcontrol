@@ -11,6 +11,8 @@
   },
   "dependencies" : {
     "request" : "*",
+    "blessed" : "*",
+    "blessed-contrib" : "*",
     "commander" : "*",
     "cli-table2" : "*",
     "inquirer" : "*",
