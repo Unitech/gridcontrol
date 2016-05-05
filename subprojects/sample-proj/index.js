@@ -1,5 +1,5 @@
 
-var client = require('../net-functions-api').conf({
+var grid = require('../../grid-api').init({
   task_folder : 'tasks',
   instances   : 2,
   env         : {
@@ -7,27 +7,21 @@ var client = require('../net-functions-api').conf({
   }
 });
 
-client.on('ready', function() {
+grid.on('ready', function() {
   console.log('Ready');
 
-  client.exec('echo', {
-    name : 'hey'
-  }, function(err, data) {
-    console.log(err, data);
-  });
-
   setInterval(function() {
-    client.exec('echo', {
+    grid.dispatch('echo', {
       name : 'hey'
     }, function(err, data) {
-      console.log(data);
+      console.log(arguments);
     });
   }, 1000);
 
 });
 
 // Doing requests!
-// client.invoke('request-test', {
+// grid.invoke('request-test', {
 //   url : 'https://keymetrics.io/'
 // }, function(err, data) {
 //   //console.log(data);

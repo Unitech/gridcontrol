@@ -134,6 +134,10 @@ API.prototype.mountRoutes = function() {
   var that = this;
   var app  = this.app;
 
+  // app.get({
+  //   success:true
+  // });
+
   /**
    * Files endpoints
    */

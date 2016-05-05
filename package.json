@@ -1,33 +1,59 @@
 {
   "name": "gridcontrol",
-  "version": "0.0.7",
-  "description": "Execute functions in a cloud of PM2",
+  "version": "0.1.1",
+  "description": "",
   "main": "index.js",
+  "apps": [
+    {
+      "name": "net-function",
+      "script": "index.js"
+    }
+  ],
   "scripts": {
     "test": "bash test/test.sh",
-    "docs" : "rm -rf apidocs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d apidocs -r ."
+    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d apidocs -r ."
   },
-  "bundledDependencies" : ["request", "pm2", "express", "body-parser", "async", "pmx", "debug", "moniker", "network-address", "tar-fs", "chalk", "fmt", "buffer-equals", "connections", "discovery-channel", "length-prefixed-message", "pump", "to-buffer"],
-  "devDependencies" : {
-    "should" : "*",
-    "mocha"  : "*",
-    "jsdoc" : "*",
-    "ink-docstrap" : "*"
+  "bundledDependencies": [
+    "request",
+    "pm2",
+    "express",
+    "body-parser",
+    "async",
+    "pmx",
+    "debug",
+    "moniker",
+    "network-address",
+    "public-ip",
+    "tar-fs",
+    "chalk",
+    "fmt",
+    "buffer-equals",
+    "connections",
+    "discovery-channel",
+    "length-prefixed-message",
+    "pump",
+    "to-buffer"
+  ],
+  "devDependencies": {
+    "should": "*",
+    "mocha": "*",
+    "jsdoc": "*",
+    "ink-docstrap": "*"
   },
-  "dependencies" : {
-    "request" : "*",
-    "pm2" : "*",
-    "express" : "*",
-    "body-parser" : "*",
-    "async" : "*",
-    "pmx" : "*",
-    "debug" : "*",
-    "moniker" : "*",
-    "network-address" : "*",
-    "public-ip" : "*",
-    "tar-fs" : "*",
-    "chalk" : "*",
-    "fmt" : "*",
+  "dependencies": {
+    "request": "*",
+    "pm2": "*",
+    "express": "*",
+    "body-parser": "*",
+    "async": "*",
+    "pmx": "*",
+    "debug": "*",
+    "moniker": "*",
+    "network-address": "*",
+    "public-ip": "*",
+    "tar-fs": "*",
+    "chalk": "*",
+    "fmt": "*",
     "buffer-equals": "^1.0.3",
     "connections": "^1.4.2",
     "discovery-channel": "^5.0.0",
@@ -35,12 +61,6 @@
     "pump": "^1.0.1",
     "to-buffer": "^1.0.1"
   },
-  "apps": [
-    {
-      "name": "net-function",
-      "script": "index.js"
-    }
-  ],
-  "author": "",
+  "author": "Alexandre Strzelewicz <strzelewicz.alexandre@gmail.com>",
   "license": "ApacheV2"
 }

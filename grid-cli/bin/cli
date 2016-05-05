@@ -65,9 +65,7 @@ program
     });
 
     child.on('close', function(code) {
-      console.log('Copy done with code %d', code);
-      //if (code == 0)
-        //exitSuccess('Install script copy done');
+      console.log('Install script copied with code %d', code);
 
       var stream = sshexec("PS1='$ ' source ~/.bashrc; cat /tmp/install.sh | NS=" + namespace + " bash", strssh);
 
@@ -91,6 +89,28 @@ program
   .command('invoke')
   .action(function() {
 
+  });
+
+program
+  .description('Restart local Gridcontrol app')
+  .command('restart')
+  .action(function() {
+    var shelljs = require('shelljs');
+
+    shelljs.exec('pm2 restart gridcontrol', function() {
+      exitSuccess();
+    });
+  });
+
+program
+  .command('install')
+  .description('Install local Gridcontrol app')
+  .action(function() {
+    var shelljs = require('shelljs');
+
+    shelljs.exec('npm install pm2 -g; pm2 install gridcontrol', function() {
+      exitSuccess();
+    });
   });
 
 

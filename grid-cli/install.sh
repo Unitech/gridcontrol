@@ -67,10 +67,10 @@ function install_pm2 {
 }
 
 function install_net_functions {
-    installing net-functions
+    installing Gridcontrol
     . ~/.nvm/nvm.sh
-    pm2 install net-functions-pm2
-    success Net Functions
+    pm2 install gridcontrol
+    success Gridcontrol
 }
 
 function link_pm2 {

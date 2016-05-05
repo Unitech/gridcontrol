@@ -14,6 +14,7 @@
     "request" : "*",
     "commander" : "*",
     "cli-table2" : "*",
+    "shelljs" : "*",
     "inquirer" : "*",
     "chalk" : "*",
     "ssh-exec" : "*",

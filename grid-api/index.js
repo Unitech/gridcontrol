@@ -46,7 +46,7 @@ Client.prototype.init = function(opts, cb) {
   return this;
 };
 
-Client.prototype.exec = Client.prototype.invoke = function(task_name, data, cb) {
+Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = function(task_name, data, cb) {
   var that = this;
 
   request.post(this.base_url + '/tasks/lb_trigger_single', {
