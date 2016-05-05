@@ -9,20 +9,34 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies" : {
-    "request" : "*",
-    "blessed" : "*",
-    "blessed-contrib" : "*",
-    "commander" : "*",
-    "cli-table2" : "*",
-    "inquirer" : "*",
-    "chalk" : "*",
-    "ssh-exec" : "*",
-    "ora" : "*",
-    "clear" :"*",
-    "async" : "*",
-    "cli-spinners" : "*"
+  "dependencies": {
+    "request": "*",
+    "blessed": "*",
+    "blessed-contrib": "*",
+    "commander": "*",
+    "cli-table2": "*",
+    "inquirer": "*",
+    "chalk": "*",
+    "ssh-exec": "*",
+    "ora": "*",
+    "clear": "*",
+    "async": "*",
+    "cli-spinners": "*"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "bundledDependencies": [
+    "request",
+    "blessed",
+    "blessed-contrib",
+    "commander",
+    "cli-table2",
+    "inquirer",
+    "chalk",
+    "ssh-exec",
+    "ora",
+    "clear",
+    "async",
+    "cli-spinners"
+  ]
 }
