@@ -13,7 +13,6 @@ var TaskManager     = require('./tasks_manager/task_manager.js');
 var Interplanetary  = require('./interplanetary/index.js');
 var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
-var stringify       = require('./safeclonedeep.js');
 
 /**
  * Main entry point of GridControl

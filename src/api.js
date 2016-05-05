@@ -10,7 +10,6 @@ var http       = require('http');
 var https      = require('https');
 var fmt        = require('fmt');
 var debug      = require('debug')('api');
-var stringify  = require('./safeclonedeep.js');
 
 /**
  * Set API default values
