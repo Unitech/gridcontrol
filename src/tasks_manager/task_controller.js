@@ -27,49 +27,49 @@ Controller.clear_all_tasks = function(req, res, next) {
   });
 };
 
-Controller.trigger_task = function(req, res, next) {
-  var task_id  = req.body.task_id;
-  var retry_count = 0;
+// Controller.trigger_task = function(req, res, next) {
+//   var task_id  = req.body.task_id;
+//   var retry_count = 0;
 
-  /**
-   * Buffering system
-   */
-  if (!req.task_manager.getTasks()[task_id]) {
-    var inter = setInterval(function() {
-      if (req.task_manager.getTasks()[task_id]) {
-        clearInterval(inter);
-        return Controller.trigger_task(req, res, next);
-      }
-      retry_count++;
-      if (retry_count > 6) {
-        console.log(retry_count);
-        clearInterval(inter);
-        return next(new Error('Task [' + task_id + '] not found'));
-      }
-    }, 1000);
-    return false;
-  }
+//   /**
+//    * Buffering system
+//    */
+//   if (!req.task_manager.getTasks()[task_id]) {
+//     var inter = setInterval(function() {
+//       if (req.task_manager.getTasks()[task_id]) {
+//         clearInterval(inter);
+//         return Controller.trigger_task(req, res, next);
+//       }
+//       retry_count++;
+//       if (retry_count > 6) {
+//         console.log(retry_count);
+//         clearInterval(inter);
+//         return next(new Error('Task [' + task_id + '] not found'));
+//       }
+//     }, 1000);
+//     return false;
+//   }
 
-  var url = 'http://localhost:' + req.task_manager.getTasks()[task_id].port + '/';
+//   var url = 'http://localhost:' + req.task_manager.getTasks()[task_id].port + '/';
 
-  debug('Local trigger, hitting url %s', url);
+//   debug('Local trigger, hitting url %s', url);
 
-  var a = request({
-    url : url,
-    form: req.body
-  });
+//   var a = request({
+//     url : url,
+//     form: req.body
+//   });
 
-  function onErr() {
-    console.error('Error while pipping data');
-    res.end();
-  }
-  // Proxy query to the right service
-  req
-    .pipe(a, { end : false })
-    .on('error', onErr)
-    .pipe(res)
-    .on('error', onErr);
-};
+//   function onErr() {
+//     console.error('Error while pipping data');
+//     res.end();
+//   }
+//   // Proxy query to the right service
+//   req
+//     .pipe(a, { end : false })
+//     .on('error', onErr)
+//     .pipe(res)
+//     .on('error', onErr);
+// };
 
 Controller.init_task_group = function(req, res, next) {
   var base_folder = req.body.base_folder;

@@ -1,11 +1,10 @@
 var debug           = require('debug')('filesmanager');
-var request         = require('request');
 var fs              = require('fs');
 var crypto          = require('crypto');
 var Compress        = require('./compress.js');
 var defaults        = require('../constants.js');
 var exec            = require('child_process').exec;
-var filesController = require('./file_controller.js');
+var Dss             = require('./net_fs.js');
 
 /**
  * File manager, takes care of sync files
@@ -18,7 +17,7 @@ var FilesManagement = function(opts) {
   this.dest_folder      = opts.dest_folder      || defaults.TMP_FOLDER;
   this.is_file_master   = opts.is_file_master   || false;
   this.has_file_to_sync = opts.has_file_to_sync || false;
-  this.controller       = filesController;
+  this.DSS              = new Dss();
 
   try {
     debug('Deleting %s', this.dest_file);
@@ -40,23 +39,78 @@ FilesManagement.prototype.serialize = function() {
 };
 
 /**
- * Download + Unzip tarball from target_ip / port
+ * Download + Unzip tarball from target IP
  * (for slave to synchronize with file master)
  */
-FilesManagement.prototype.synchronize = function(ip, port, cb) {
+FilesManagement.prototype.synchronize = function(meta, cb) {
+  var that = this;
+  var ip = meta.ip;
+  var md5 = meta.curr_md5;
+
+  that.DSS.retrieveFile(ip, that.dest_file, function(err) {
+    if (err) return cb(err);
+
+    /**
+     * MD5 Checksum verification
+     * Retry if wrong checksum
+     */
+    if (FilesManagement.getFileMD5(that.dest_file) != md5) {
+      console.error('Wrong downloaded file MD5, retrying...');
+      setTimeout(function() {
+        that.synchronize(meta, cb);
+      }, 1000);
+      return false;
+    }
+
+    Compress.unpack(that.dest_file, that.dest_folder, function() {
+      return cb(null, {
+        dest_folder : that.dest_folder,
+        dest_file   : that.dest_file
+      });
+    });
+  });
+};
+
+FilesManagement.getFileMD5 = function(file) {
+  var checksum = null;
+  var that     = this;
+
+  try {
+    var data = fs.readFileSync(file);
+
+    checksum = crypto
+      .createHash('md5')
+      .update(data, 'utf8')
+      .digest('hex');
+
+  } catch(e) {
+    console.error('Got error while generating file MD5');
+    console.error(e);
+  }
+
+  return checksum;
+};
+
+/**
+ * Function called by File Master
+ * Called via task_controller on init_task_group
+ */
+FilesManagement.prototype.prepareSync = function(base_folder, cb) {
   var that = this;
 
-  var url = 'http://' + ip + ':' + port + '/files/get_current_sync';
+  // Create tarball
+  Compress.pack(base_folder, defaults.SYNC_FILE, function(e) {
+    if (!e) {
+      that.has_file_to_sync = true;
+      that.is_file_master   = true;
+      that.current_sync_md5 = FilesManagement.getFileMD5(defaults.SYNC_FILE);
+      // Start Distributed Source System
+      that.DSS.instanciateMaster();
+    }
 
-  FilesManagement.retrieveFile(url, that.dest_file, function(err) {
-    if (err)
-      return cb(err);
-    Compress.unpack(that.dest_file, that.dest_folder, function() {
-      // Then call something like TaskManagement.initTaskGroup
-      // to start apps
-      return cb(null, {
-        folder : that.dest_folder
-      });
+    return cb(e, {
+      folder : base_folder,
+      target : defaults.SYNC_FILE
     });
   });
 };
@@ -90,80 +144,12 @@ FilesManagement.prototype.clear = function(cb) {
   });
 };
 
-/**
- * Get route and pipe file to dest_file
- */
-FilesManagement.retrieveFile = function(url, dest_file, cb) {
-  var dest = fs.createWriteStream(dest_file);
-  var called = false;
-
-  dest.on('close', function() {
-    if (called == false) cb();
-  });
-
-  dest.on('error', function(err) {
-    called = true;
-    return cb(err);
-  });
-
-  var req = request({
-    url : url,
-    method : 'GET',
-    timeout : 120000
-  }).pipe(dest);
-
-  req.on('error', function(err) {
-    try {
-      dest.close();
-    } catch (e) {}
-    called = true;
-    return cb(err);
-  });
-};
-
 FilesManagement.prototype.getCurrentMD5 = function() {
   return this.current_sync_md5;
 };
 
 FilesManagement.prototype.getDestFileMD5 = function() {
   return FilesManagement.getFileMD5(this.dest_file);
-};
-
-FilesManagement.getFileMD5 = function(file) {
-  var checksum = null;
-  var that     = this;
-
-  try {
-    var data = fs.readFileSync(file);
-
-    checksum = crypto
-          .createHash('md5')
-          .update(data, 'utf8')
-          .digest('hex');
-
-  } catch(e) {
-    console.error('Got error while generating file MD5');
-    console.error(e);
-  }
-
-  return checksum;
-};
-
-FilesManagement.prototype.prepareSync = function(base_folder, cb) {
-  var that = this;
-
-  Compress.pack(base_folder, defaults.SYNC_FILE, function(e) {
-    if (!e) {
-      that.has_file_to_sync = true;
-      that.is_file_master   = true;
-      that.current_sync_md5 = FilesManagement.getFileMD5(defaults.SYNC_FILE);
-    }
-
-    return cb(e, {
-      folder : base_folder,
-      target : defaults.SYNC_FILE
-    });
-  });
 };
 
 module.exports = FilesManagement;

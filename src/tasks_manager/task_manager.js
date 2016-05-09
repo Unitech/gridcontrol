@@ -107,14 +107,7 @@ TaskManager.prototype.triggerTask = function(task_id, data, cb) {
   var cb_called = false;
   var url = 'http://localhost:' + this.getTasks()[task_id].port + '/';
 
-  function onErr(e) {
-    if (cb_called === true) return false;
-    cb_called = true;
-    console.error('Error while pipping data');
-    return cb(e);
-  };
-
-  request({
+  request.post({
     url : url,
     form: data
   }, function(err, raw, body) {

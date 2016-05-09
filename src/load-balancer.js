@@ -27,15 +27,16 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
   function genPeerHash() {
     var all_peers     = [];
 
-    // all_peers.push({
-    //   local : true,
-    //   synchronized : true
-    // });
+    all_peers.push({
+      socket : {
+        identity : {
+          synchronized : true
+        }
+      },
+      local        : true
+    });
 
-    // if (process.env.ONLY_LOCAL)
-    //   return all_peers;
-
-    var remote_peers  = req.net_manager.getPeers();
+    var remote_peers  = req.net_manager.getSocketRouters();
 
     remote_peers.forEach(function(peer) {
       all_peers.push(peer);
@@ -51,7 +52,7 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
     var peers  = genPeerHash();
     var target = peers[that._rri++ % peers.length];
 
-    if (target.synchronized == false)
+    if (target.socket.identity.synchronized == false)
       return setTimeout(rec, 100);
     return cb(null, target);
   })();
@@ -59,6 +60,8 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
 
 LoadBalancer.prototype.route = function(req, res, next) {
   var task_id  = req.body.task_id;
+  var task_data = req.body;
+
   var that = this;
 
   var uid = crypto.randomBytes(32).toString('hex');
@@ -69,17 +72,20 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
   this.findSuitablePeer(req, function(err, peer) {
     if (peer.local) {
+      console.log('Routing to local');
+      req.task_manager.triggerTask(task_id, task_data, function(err, ret) {
+        res.send(ret);
+      });
       return false;
     }
 
     console.log('Re routing query to %s:%s',
-                peer.identity.private_ip,
-                peer.identity.api_port);
+                peer.socket.identity.private_ip,
+                peer.socket.identity.api_port);
 
-
-    req.net_manager.sendRPC(peer, {
+    peer.send('trigger', {
       task_id : task_id,
-      data    : req.body
+      data    : task_data
     }, function(err, data) {
       res.send(data);
     });
@@ -87,12 +93,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
     return false;
 
 
-    var url = 'http://' + peer.private_ip + ':' + peer.api_port + '/tasks/trigger_local';
 
-    var a = request({
-      url : url,
-      form: req.body
-    });
 
     // @todo: do stats on task processing (invokation, errors...)
     // + Log running tasks for smarter load balancing in the future

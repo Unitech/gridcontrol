@@ -42,18 +42,14 @@ API.prototype.start = function(cb) {
 
   this.server = null;
 
-  //if (this.auth)
-  //t
-  //else
-
-  //this.server = https.createServer(that.auth, that.app);
   this.server = http.createServer(that.app);
 
   this.setMiddlewares();
   this.mountRoutes();
   this.endMiddleware();
 
-  that.server.listen(that.port, function (err) {
+  // HTTP API only exposed in local
+  that.server.listen(that.port, 'localhost', function (err) {
     debug('API listening on port %d', that.port);
     return cb ? cb(err) : false;
   });
@@ -134,22 +130,12 @@ API.prototype.mountRoutes = function() {
   var that = this;
   var app  = this.app;
 
-  // app.get({
-  //   success:true
-  // });
-
-  /**
-   * Files endpoints
-   */
-  app.get('/files/get_current_sync', this.file_manager.controller.get_current_sync);
-
   /**
    * Task endpoints
    */
   app.get('/tasks/list', this.task_manager.controller.list_tasks);
   app.delete('/tasks/clear', this.task_manager.controller.clear_all_tasks);
 
-  app.post('/tasks/trigger_local', this.task_manager.controller.trigger_task);
   app.post('/tasks/lb_trigger_single', function(req, res, next) {
     return req.load_balancer.route(req, res, next);
   });
@@ -161,7 +147,7 @@ API.prototype.mountRoutes = function() {
   app.post('/tasks/init', this.task_manager.controller.init_task_group);
 
   app.get('/tasks/processing', function(req, res, next) {
-    var tasks = req.load_balancer.processing_tasks;
+    var tasks = req.net_manager.processing_tasks;
     return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
   });
 
