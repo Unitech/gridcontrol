@@ -128,6 +128,17 @@ program
     });
   });
 
+
+program
+  .command('issh <cmd>')
+  .description('ssh to each online host and execute <cmd>')
+  .action(function(cmd, parallel) {
+
+    var windowmode = require('../window-mode.js');
+
+    windowmode.exposeStream(scaleway, cmd);
+  });
+
 program
   .command('terminate <hostname>')
   .description('terminate <hostname>')
