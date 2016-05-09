@@ -148,10 +148,7 @@ PrivateKey.prototype.createSign = function (hashAlgo) {
 
 	var v, nm, err;
 	try {
-		nm = this.type.toUpperCase() + '-';
-		if (this.type === 'ecdsa')
-			nm = 'ecdsa-with-';
-		nm += hashAlgo.toUpperCase();
+		nm = hashAlgo.toUpperCase();
 		v = crypto.createSign(nm);
 	} catch (e) {
 		err = e;
