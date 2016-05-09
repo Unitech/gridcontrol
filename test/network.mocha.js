@@ -11,6 +11,8 @@ var path    = require('path');
 var request = require('request');
 
 describe('Network', function() {
+  this.timeout(5000);
+
   var n1, n2, n3;
   var sync_file_size;
 

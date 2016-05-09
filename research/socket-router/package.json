@@ -1,0 +1,17 @@
+{
+  "name": "socket-router",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies" :{
+    "socket-router" : "*",
+    "json-socket" : "*",
+    "subote" : "*",
+    "nssocket" : "*"
+  },
+  "author": "",
+  "license": "ISC"
+}

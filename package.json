@@ -54,6 +54,7 @@
     "tar-fs": "*",
     "chalk": "*",
     "fmt": "*",
+    "nssocket" : "*",
     "buffer-equals": "^1.0.3",
     "connections": "^1.4.2",
     "discovery-channel": "^5.0.0",
