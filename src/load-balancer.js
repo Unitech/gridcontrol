@@ -27,15 +27,18 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
   function genPeerHash() {
     var all_peers     = [];
 
-    all_peers.push(req.net_manager.getLocalIdentity());
+    // all_peers.push({
+    //   local : true,
+    //   synchronized : true
+    // });
 
-    if (process.env.ONLY_LOCAL)
-      return all_peers;
+    // if (process.env.ONLY_LOCAL)
+    //   return all_peers;
 
     var remote_peers  = req.net_manager.getPeers();
 
     remote_peers.forEach(function(peer) {
-      all_peers.push(peer.identity);
+      all_peers.push(peer);
     });
 
     return all_peers;
@@ -58,14 +61,32 @@ LoadBalancer.prototype.route = function(req, res, next) {
   var task_id  = req.body.task_id;
   var that = this;
 
-  var task_exec_id = crypto.randomBytes(32).toString('hex');
+  var uid = crypto.randomBytes(32).toString('hex');
 
   // Avoid integer overflow
   if (Number.isSafeInteger(that._rri) === false)
     that._rri = 0;
 
   this.findSuitablePeer(req, function(err, peer) {
-    console.log('Re routing query to %s:%s', peer.private_ip, peer.api_port);
+    if (peer.local) {
+      return false;
+    }
+
+    console.log('Re routing query to %s:%s',
+                peer.identity.private_ip,
+                peer.identity.api_port);
+
+
+    req.net_manager.sendRPC(peer, {
+      task_id : task_id,
+      data    : req.body
+    }, function(err, data) {
+      res.send(data);
+    });
+
+    return false;
+
+
     var url = 'http://' + peer.private_ip + ':' + peer.api_port + '/tasks/trigger_local';
 
     var a = request({

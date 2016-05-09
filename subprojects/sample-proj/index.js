@@ -11,18 +11,20 @@ grid.on('ready', function() {
   console.log('Ready');
 
   setInterval(function() {
+	  grid.dispatch('request-test', {
+	    url : 'https://api.ipify.org/?format=json'
+	  }, function(err, data) {
+	    console.log('Got data', data);
+	  });
+  }, 250);
+
+  setInterval(function() {
     grid.dispatch('echo', {
       name : 'hey'
     }, function(err, data) {
-      console.log(arguments);
+	    //console.log(arguments);
+	    //console.log('Got response');
     });
-  }, 1000);
+  }, 100);
 
 });
-
-// Doing requests!
-// grid.invoke('request-test', {
-//   url : 'https://keymetrics.io/'
-// }, function(err, data) {
-//   //console.log(data);
-// });

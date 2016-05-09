@@ -3,6 +3,7 @@ var fs         = require('fs');
 var pm2        = require('pm2');
 var async      = require('async');
 var p          = require('path');
+var request    = require('request');
 var debug      = require('debug')('task:management');
 var Controller = require('./task_controller.js');
 var Tools      = require('../tools.js');
@@ -99,6 +100,25 @@ TaskManager.prototype.initTaskGroup = function(opts, cb) {
       if (e) return cb(e);
       return cb(null, procs);
     });
+  });
+};
+
+TaskManager.prototype.triggerTask = function(task_id, data, cb) {
+  var cb_called = false;
+  var url = 'http://localhost:' + this.getTasks()[task_id].port + '/';
+
+  function onErr(e) {
+    if (cb_called === true) return false;
+    cb_called = true;
+    console.error('Error while pipping data');
+    return cb(e);
+  };
+
+  request({
+    url : url,
+    form: data
+  }, function(err, raw, body) {
+    return cb(err, body);
   });
 };
 

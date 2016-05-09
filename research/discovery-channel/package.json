@@ -1,0 +1,14 @@
+{
+  "name": "discovery-channel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies" : {
+    "discovery-channel" : "*"
+  },
+  "author": "",
+  "license": "ISC"
+}

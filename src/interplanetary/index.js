@@ -191,7 +191,7 @@ InterPlanetary.prototype.addPeer = function (peer) {
 
 InterPlanetary.prototype.removePeer = function (peer) {
   peer = peerify(peer)
-  this._peersSeen[peer.id] = PEER_BANNED
+  this._peersSeen[peer.id] = PEER_SEEN
   // delete this._peersSeen[peer.id]
 }
 

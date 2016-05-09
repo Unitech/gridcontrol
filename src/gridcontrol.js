@@ -16,6 +16,7 @@ var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
 var Wait            = require('./lib/wait.js');
 var InternalIp      = require('./lib/internal-ip.js');
+var crypto          = require('crypto');
 
 /**
  * Main entry point of GridControl
@@ -41,6 +42,8 @@ var GridControl = function(opts) {
   // To save
   this.peer_name     = opts.peer_name || Moniker.choose();
   this.namespace     = process.env.NS || opts.namespace || 'pm2:fs';
+
+  this.processing_tasks = {};
 
   this.private_ip    = InternalIp.v4();
   this.peer_api_port = opts.peer_api_port  || 10000;
@@ -205,6 +208,7 @@ GridControl.prototype.close = function(cb) {
 GridControl.prototype.onNewPeer = function(sock, remoteId) {
   var that = this;
 
+  console.log('NEW PEER');
   sock.on('close', function() {
     debug('Connection closed on server %s', that.peer_name);
   });
@@ -248,6 +252,29 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
       }
       break;
 
+    case 'trigger:start':
+      var task_id = packet.data.task_id;
+      var data    = packet.data.data;
+      var res_id  = packet.data.res_id;
+
+      that.task_manager.triggerTask(task_id, data, function(err, res) {
+        GridControl.sendJson(sock, {
+          cmd : 'trigger:end',
+          data : {
+            err     : err,
+            res     : res,
+            res_id  : res_id
+          }
+        });
+      });
+      break;
+    case 'trigger:end':
+      console.log('Got response from trigger');
+      var uid = packet.data.res_id;
+      var err = packet.data.err;
+      var res = packet.data.res;
+      that.processing_tasks[uid].cb(err, res);
+      break;
     case 'sync':
       /**
        * Task to synchronize this node
@@ -409,6 +436,26 @@ GridControl.prototype.askPeerToSync = function(sock) {
       port : that.peer_api_port,
       meta : that.task_manager.getTaskMeta(),
       curr_md5 : that.file_manager.getCurrentMD5()
+    }
+  });
+};
+
+GridControl.prototype.sendRPC = function(sock, data, cb) {
+  var uid = crypto.randomBytes(32).toString('hex');
+
+  console.log(' >>>>>>>>>>>>>>>>>>> SENDIN');
+  this.processing_tasks[uid] = {
+    started_at : new Date(),
+    peer_info  : sock.identity,
+    cb         : cb
+  };
+
+  GridControl.sendJson(sock, {
+    cmd : 'trigger:start',
+    data : {
+      data    : data.data,
+      task_id : data.task_id,
+      res_id  : uid
     }
   });
 };
