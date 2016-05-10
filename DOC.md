@@ -11,20 +11,22 @@ The more *GridControl* you add, the more calculation power you get.
 
 ## Features
 
-- **0 conf** auto discovery system via Bittorent DHT and DNS multicast
-- **0 conf** connection system accross private network, wifi
-- **0 conf** application source sharing with dependencies and consitency checks
+- **0 conf** Auto discovery system via Bittorent DHT and DNS multicast
+- **0 conf** Connection system accross private network, wifi
+- **0 conf** Pandemic style application source sharing with dependencies and consistency checks
+- **Ecosystem**: Toolbox for Grid management (grid CLI, provisioning, multissh)
 - **Fast**: Grid interconnected via TCP/UTP sockets
 - **Fast**: Always UP services (no spawn for each actions)
 - **Intuitive**: Simple local HTTP API on each node
 - **Polyglot**: Services can be wrotte in any language
-- **Ecosystem**: Toolbox for grid management (grid CLI, provisioning, multissh)
 - **Compatible** with Amazon Lambda, Google Cloud Functions
-- And a lot more like Buffering, Retry on Failure, Security...
+- And a lot more like Buffering, Security, Retry on Failure...
 
 And [PM2](https://github.com/Unitech/pm2) behing the scene for process management and cluster capabilities.
 
 ## Quick start
+
+The Grid CLI is your main tool to control a Grid:
 
 ```bash
 $ npm install grid-cli -g

@@ -110,6 +110,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
         if (!data) data = {};
         data.err = err;
       }
+      if (!data) data = {};
       data.server = peer.socket.identity;
       res.send(data);
     });

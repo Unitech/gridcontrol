@@ -12,7 +12,7 @@
   "devDependencies" : {
     "should" : "*",
     "mocha"  : "*",
-    "net-functions-pm2" : "latest"
+    "gridcontrol" : "latest"
   },
   "author": "",
   "license": "ISC"
