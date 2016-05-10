@@ -2,9 +2,17 @@
 
 ## Ideas
 
+- [ ] Modularize multi ssh blessed based capability
+- [ ] Integrate multissh with CLI (multissh)
+------> Keymetrics integration : grid install keymetrics <private_key> <public_key>
+------> Keymetrics access: grid keymetrics access
+------> Change namespace: grid namespace <new:namespace>
+
 - [ ] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
+- [ ] Compatibility with Amazon lamda/apdex
+- [ ] Transpose client in Python, Java, Go
 - [X] Fix returned synchronized flag when listing
-- [ ] At initialization check that http connection can be made
+- [NOK- not anymore http between peers] At initialization check that http connection can be made
 - [X] restart master strategies (leveldb for persistence?)
 
 - [X] Build smart LB
@@ -21,9 +29,7 @@
 - [NOK] Objectify Peer (keep array of Peer object instead of raw socket obj)
 
 - [~] Graphic documentation (refers to paper notes)
-- [ ] Add TLS on HTTP
-- [ ] Compatibility with Amazon lamda/apdex
-- [ ] Transpose client in Python, Java, Go
+- [NOK - HTTP listen only local] Add TLS on HTTP
 ___
 
 - [ ] Keep track of current processing tasks
@@ -34,9 +40,17 @@ ___
 - configuration of tasks (JSON conf (ecosystem)? max memory/timeout?)
 - keep counter of invokations, errors
 
+## Keymetrics
+
+- Any PM2 linked for free
+- Add actions env
+
 ## PM2
 
+- modclean problems
 - pm2 save [filename.json]
+- integrate modprobe for pm2 revision publishing
+- refactor or add a way to manage multiple PM2 via common interface (like a class)
 - Not possible to specify the SOCK files or at lear the PM2_HOME when initializing Satan via pm2.connect
 - when passing env object to pm2.start, the original object get modified..
 - bundledDependecnies
