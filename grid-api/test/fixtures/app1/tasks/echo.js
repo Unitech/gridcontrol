@@ -1,5 +1,5 @@
 
-module.exports = function(context, cb) {
+module.exports = function(data, cb) {
   console.log('Got echo message!');
-  cb(null, { hello: context.data.name || 'Anonymous' });
+  cb(null, { hello: data.name || 'Anonymous' });
 };

@@ -1,12 +1,14 @@
 
 process.env.NS='test:namespace:two';
-process.env.DEBUG='network,api';
+process.env.DEBUG='network,api,lb,tasks';
 
 var should  = require('should');
 var Plan    = require('./plan.js');
-var NetFunctions = require('net-functions-pm2');
+var NetFunctions = require('gridcontrol');
 
 describe('Client test', function() {
+  this.timeout(5000);
+
   var client, n1;
 
   it('should get the right object', function(done) {
@@ -47,13 +49,15 @@ describe('Client test', function() {
   it('should start a node', function(done) {
     n1 = new NetFunctions({
       peer_api_port : 10000
-    }, done);
+    });
+
+    n1.start(done);
   });
 
   it('should buffer query and receive ready event', function(done) {
     this.timeout(5000);
 
-    var plan = new Plan(2, done);
+    var plan = new Plan(3, done);
 
     client.init({
       task_folder : 'test/fixtures/app1/tasks',
@@ -63,6 +67,7 @@ describe('Client test', function() {
       }
     });
 
+
     client.exec('echo', { name : 'heya' }, function(err, data) {
       should(data.hello).eql('heya');
       plan.ok(true);
@@ -70,6 +75,12 @@ describe('Client test', function() {
 
     client.on('ready', function() {
       plan.ok(true);
+
+      client.exec('echo', { name : 'heya' }, function(err, data) {
+        should(data.hello).eql('heya');
+        plan.ok(true);
+      });
+
     });
   });
 
