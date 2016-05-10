@@ -88,6 +88,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
           if (!data) data = {};
           data.err = err;
         }
+        data.server = req.net_manager.getLocalIdentity();
         res.send(data);
       });
 
@@ -109,6 +110,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
         if (!data) data = {};
         data.err = err;
       }
+      data.server = peer.socket.identity;
       res.send(data);
     });
 

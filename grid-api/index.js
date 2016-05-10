@@ -77,7 +77,7 @@ Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = fu
       ret = body;
     }
 
-    return cb(ret.err, ret.data);
+    return cb(ret.err, ret.data, ret.server);
   });
 };
 

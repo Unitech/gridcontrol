@@ -4,10 +4,9 @@
 var grid = require('gridcontrol').init({
   task_folder : 'tasks',
   instances   : 2,        // Number of instances of each tasks
-  env         : {         //
+  env         : {         // Extra environment variables spread on Grid
     EXTRA : "ENV"
-  },
-  port : 10000            // API port (10000 is default)
+  }
 });
 
 setInterval(function() {

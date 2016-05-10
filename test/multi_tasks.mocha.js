@@ -9,7 +9,7 @@ var request = require('request');
 var path = require('path');
 
 describe('Multi Tasks test', function() {
-  this.timeout(5000);
+  this.timeout(7000);
   var n1;
 
   it('should create a first client', function(done) {
@@ -56,7 +56,7 @@ describe('Multi Tasks test', function() {
       }, function(err, res, body) {
         should(res.statusCode).eql(200);
         body = JSON.parse(body);
-        body.err.code.should.eql('ETIMEDOUT');
+        body.err.code.should.eql('ETIMEDOUT' || 'ESOCKETTIMEDOUT');
         done();
       });
     });
@@ -83,6 +83,24 @@ describe('Multi Tasks test', function() {
         should(res.statusCode).eql(200);
         body = JSON.parse(body);
         body.err.should.eql('err');
+        done();
+      });
+    });
+  });
+
+  describe('Specify handler when triggering', function() {
+    it('should trigger python script', function(done) {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'handler.myHandler',
+          data : {
+            name : 'amazon'
+          }
+        }
+      }, function(err, res, body) {
+        should(res.statusCode).eql(200);
+        body = JSON.parse(body);
+        should(body.data.name).eql('amazon');
         done();
       });
     });

@@ -104,17 +104,23 @@ TaskManager.prototype.initTaskGroup = function(opts, cb) {
 };
 
 TaskManager.prototype.triggerTask = function(t_id, t_data, t_opts, cb) {
-  var cb_called = false;
+  var script  = t_id.split('.')[0];
+  var handler = t_id.split('.')[1] || null;
 
-  if (!this.getTasks()[t_id])
-    return cb(new Error('Unknown task ' + t_id));
-  var url = 'http://localhost:' + this.getTasks()[t_id].port + '/';
+  var context = {
+    handler : handler
+  };
+
+  if (!this.getTasks()[script])
+    return cb(new Error('Unknown script ' + script));
+
+  var url = 'http://localhost:' + this.getTasks()[script].port + '/';
 
   var req_opts = {
     url : url,
     form: {
       t_data : t_data,
-      t_opts : t_opts
+      context : context
     }
   };
 

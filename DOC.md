@@ -3,38 +3,63 @@
 
 Execute functions and tasks in a Server Grid.
 
-Each Server will have installed a networked process manager and One master will act as NFS and centralized process manager.
+Each Server will have installed a networked process manager and One master will act as the orchestrator.
 
-This modules auto-link all PM2s in the same network and allows to execute functions in any of them, in any languages.
+This modules auto-link each process manager in the same grid name and allows to execute functions in any of them, in any languages.
 
-The more *PM2* you add, the more calculation power you get.
+The more *GridControl* you add, the more calculation power you get.
+
+## Features
+
+- **0 conf** auto discovery system via Bittorent DHT and DNS multicast
+- **0 conf** connection system accross private network, wifi
+- **0 conf** application source sharing with dependencies and consitency checks
+- **Fast**: Grid interconnected via TCP/UTP sockets
+- **Fast**: Always UP services (no spawn for each actions)
+- **Intuitive**: Simple local HTTP API on each node
+- **Polyglot**: Services can be wrotte in any language
+- **Ecosystem**: Toolbox for grid management (grid CLI, provisioning, multissh)
+- **Compatible** with Amazon Lambda, Google Cloud Functions
+- And a lot more like Buffering, Retry on Failure, Security...
+
+And [PM2](https://github.com/Unitech/pm2) behing the scene for process management and cluster capabilities.
 
 ## Quick start
 
-### Softwares
-
-- gridcontrol: Networked process manager (Auto discovery/Process management/NFS)
-- grid-api: Grid control's HTTP API (dispatch tasks)
-- grid-cli: Grid control's CLI for provisioning hosts, listing hosts, tasks
-
-### Inter connect process managers
-
-On multiple servers in the same private network (RPN, wifi...), type these two commands:
-
+```bash
+$ npm install grid-cli -g
 ```
-$ grid provision ubuntu localhost TEST_NS
-```
+
+### Create a Compute Grid
+
+On your local machine:
 
 ```bash
-$ npm install pm2 -g
-$ GRID=namespace PASS=pass pm2 install gridcontrol
+$ grid install <GRID_NAME>
 ```
 
-Each gridcontrol linked to the same grid will connect each other. Discovery is made through DNS multicast and DHT Bittorent.
+To provision remote machines:
 
-*To display cloud functions logs do `$ pm2 logs gridcontrol`*
+```bash
+$ grid provision <USERNAME> <IP> <GRID_NAME>
+```
 
-### Create a base app
+This will SSH onto the server and will install and configure GridControl.
+*GRID_NAME* is a common identifier for each calcul units to link themselves.
+
+Provision as many server needed, then to list each units linked to the grid do:
+
+```bash
+$ grid list
+```
+
+If you need to execute commands / install softwares in batch in each unit do:
+
+```bash
+$ grid multissh <COMMAND>
+```
+
+### Create
 
 Now we have to create a project with this structure:
 
@@ -48,11 +73,25 @@ Now we have to create a project with this structure:
     └── request.js
 ```
 
+Let's look at the content of tasks/request.js:
+
+```javascript
+var request = require('request');
+
+module.myHandler = function(data, cb) {
+  request.get(data.url, function(err, res, body) {
+    if (err) return cb(err);
+    cb(null, { response : body });
+  });
+};
+```
+
 Now let's add some orchestration code into the index.js:
 
 **./index.js**
 
 ```javascript
+// Initialize and synchronize the whole grid
 var grid = require('gridcontrol').init({
   task_folder : 'tasks'
 });
@@ -63,9 +102,9 @@ setInterval(function() {
    * This will invoke the function <filename> (here request)
    * in each server connected in a round robin way
    */
-  grid.dispatch('request', {
+  grid.dispatch('request.myHandler', {
     url : 'http://google.com/'
-  }, function(err, response, server_meta) {
+  }, function(err, data, server_meta) {
     console.log('From server %s:%s', server.name, server.ip);
     console.log('Got response %s', data);
   });
@@ -73,22 +112,7 @@ setInterval(function() {
 }, 1000);
 ```
 
-Then create a folder called **tasks/** and add a first task into it:
-
-**./tasks/request.js**
-
-```javascript
-var request = require('request');
-
-module.exports = function(data, cb) {
-  request.get(data.url, function(err, res, body) {
-    if (err) return cb(err);
-    cb(null, { response : body });
-  });
-};
-```
-
-Now start the main application:
+Start the main application:
 
 ```bash
 $ node index.js
@@ -111,6 +135,10 @@ Provision a new node:
 ```bash
 $ grid provision ubuntu@10.31.22.15 <grid-name> [square-name]
 ```
+
+Each gridcontrol linked to the same grid will connect each other. Discovery is made through DNS multicast and DHT Bittorent.
+
+*To display cloud functions logs do `$ pm2 logs gridcontrol`*
 
 ## Commands
 

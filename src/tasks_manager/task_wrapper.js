@@ -20,15 +20,20 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function (req, res) {
-  var data = req.body.t_data;
-  //var opts = req.body.t_opts;
+  var data    = req.body.t_data;
+  var context = req.body.context;
 
-  task(data, function(err, data) {
-    // Safe clone deep response
-    res.send({err:Tools.safeClone(err), data: Tools.safeClone(data)});
-  });
+  if (context.handler) {
+    task[context.handler](data, function(err, data) {
+      res.send(Tools.safeClone({err:err, data: Tools.safeClone(data)}));
+    });
+  } else {
+    task(data, function(err, data) {
+      res.send(Tools.safeClone({err:err, data: Tools.safeClone(data)}));
+    });
+  }
 });
 
-app.listen(process.env.TASK_PORT, function () {
+app.listen(process.env.TASK_PORT, '127.0.0.1', function () {
   console.log('Task: %s exposed on port %d', process.env.TASK_PATH, process.env.TASK_PORT);
 });
