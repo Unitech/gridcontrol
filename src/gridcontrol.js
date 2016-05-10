@@ -1,10 +1,10 @@
+
 var debug           = require('debug')('network');
 var fs              = require('fs');
 var path            = require('path');
 var EventEmitter    = require('events').EventEmitter;
 var Moniker         = require('moniker');
 var publicIp        = require('public-ip');
-var crypto          = require('crypto');
 var os              = require('os');
 var chalk           = require('chalk');
 var fmt             = require('fmt');
@@ -20,6 +20,7 @@ var InternalIp      = require('./lib/internal-ip.js');
 var SocketPool      = require('./lib/socket_pool.js');
 
 /**
+ * TO UPDATE
  * Main entry point of GridControl
  * @constructor
  * @this {GridControl}
@@ -251,38 +252,17 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     var task_id    = packet.task_id;
     var task_data  = packet.data;
     var task_opts  = packet.opts;
-    var res_id     = packet.res_id;
 
     if (process.env.NODE_ENV == 'test')
       return cb();
 
-    var retry_count = 0;
-
-    /**
-     * Buffer system if task still not available
-     */
-    (function trigger(task_id, task_data, task_opts, res_id, cb) {
-      if (!that.task_manager.getTasks()[task_id]) {
-        var inter = setInterval(function() {
-          if (that.task_manager.getTasks()[task_id]) {
-            clearInterval(inter);
-            return trigger(task_id, task_data, task_opts, res_id);
-          }
-          retry_count++;
-          if (retry_count > 6) {
-            clearInterval(inter);
-            return cb(new Error('Task [' + task_id + '] not found'));
-          }
-        }, 1000);
-        return false;
-      }
-
-      that.task_manager.triggerTask(task_id, task_data, task_opts,
-                                    function(err, res) {
-                                      return cb(err, res);
-                                    });
-    })(task_id, task_data, task_opts, res_id, cb);
-
+    that.task_manager.triggerTask({
+      task_id  : task_id,
+      task_data: task_data,
+      task_opts: task_opts
+    }, function(err, res) {
+      return cb(err, res);
+    });
   });
 
   /**
@@ -377,6 +357,7 @@ GridControl.prototype.askAllPeersToSync = function() {
   var that = this;
 
   this.getSocketRouters().forEach(function(router) {
+    if (!router.socket || !router.socket.identity) return false;
     router.socket.identity.synchronized = false;
     that.askPeerToSync(router);
   });

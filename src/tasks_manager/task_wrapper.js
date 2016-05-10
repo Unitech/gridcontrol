@@ -20,7 +20,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function (req, res) {
-  var data    = req.body.t_data;
+  var data    = req.body.data;
   var context = req.body.context;
 
   if (context.handler) {

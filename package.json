@@ -10,31 +10,9 @@
     }
   ],
   "scripts": {
-    "test": "bash test/test.sh",
+    "test": "bash test/test.sh; sleep 1; ./node_modules/.bin/mocha grid-api/test/*.mocha.js",
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d apidocs -r ."
   },
-  "bundledDependencies": [
-    "request",
-    "pm2",
-    "express",
-    "body-parser",
-    "async",
-    "pmx",
-    "debug",
-    "moniker",
-    "network-address",
-    "public-ip",
-    "tar-fs",
-    "chalk",
-    "fmt",
-    "nssocket",
-    "buffer-equals",
-    "connections",
-    "discovery-channel",
-    "length-prefixed-message",
-    "pump",
-    "to-buffer"
-  ],
   "devDependencies": {
     "should": "*",
     "mocha": "*",

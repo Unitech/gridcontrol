@@ -4,7 +4,7 @@ var pm2        = require('pm2');
 var async      = require('async');
 var p          = require('path');
 var request    = require('request');
-var debug      = require('debug')('task:management');
+var debug      = require('debug')('tasks');
 var Controller = require('./task_controller.js');
 var Tools      = require('../lib/tools.js');
 var extend     = require('util')._extend;
@@ -103,36 +103,6 @@ TaskManager.prototype.initTaskGroup = function(opts, cb) {
   });
 };
 
-TaskManager.prototype.triggerTask = function(t_id, t_data, t_opts, cb) {
-  var script  = t_id.split('.')[0];
-  var handler = t_id.split('.')[1] || null;
-
-  var context = {
-    handler : handler
-  };
-
-  if (!this.getTasks()[script])
-    return cb(new Error('Unknown script ' + script));
-
-  var url = 'http://localhost:' + this.getTasks()[script].port + '/';
-
-  var req_opts = {
-    url : url,
-    form: {
-      t_data : t_data,
-      context : context
-    }
-  };
-
-  if (t_opts.timeout) {
-    req_opts.timeout = parseInt(t_opts.timeout);
-  }
-
-  request.post(req_opts, function(err, raw, body) {
-    return cb(err, body);
-  });
-};
-
 TaskManager.prototype.listAllPM2Tasks = function(cb) {
   pm2.list(function(err, proc_list) {
     if (err) return cb(err);
@@ -216,6 +186,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
           env       : Tools.safeClone(env)
         };
       }
+
       pm2.start(pm2_opts, function(err, procs) {
         if (err)
           console.error(err);
@@ -238,6 +209,68 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
     });
   });
 };
+
+/**
+ * Trigger a task
+ * @param {object} opts options
+ * @param {string} opts.task_data data to be passed to function
+ * @param {string} opts.task_id full string of the function to call (script name + handle)
+ * @param {object} opts.task_opts options about function execution (e.g. timeout)
+ */
+TaskManager.prototype.triggerTask = function(opts, cb) {
+  var that        = this;
+
+  var script      = opts.task_id.split('.')[0];
+  var handler     = opts.task_id.split('.')[1] || null;
+
+  function launch(cb) {
+    var url = 'http://localhost:' + that.getTasks()[script].port + '/';
+
+    var req_opts = {
+      url : url,
+      form: {
+        data    : opts.task_data,
+        context : {
+          handler : handler
+        }
+      }
+    };
+
+    if (opts.task_opts && opts.task_opts.timeout) {
+      req_opts.timeout = parseInt(opts.task_opts.timeout);
+    }
+
+    request.post(req_opts, function(err, raw, body) {
+      if (err && err.code == 'ECONNREFUSED') {
+        debug('Econnrefused, script not online yet, retrying');
+        setTimeout(function() { launch(cb); }, 200);
+        return false;
+      }
+      return cb(err, body);
+    });
+  }
+
+  if (that.getTasks()[script])
+    return launch(cb);
+
+  /**
+   * Retry system
+   */
+  var retry_count = 0;
+
+  var inter = setInterval(function() {
+    if (that.getTasks()[script]) {
+      clearInterval(inter);
+      return launch(cb);
+    }
+    debug('Retrying task %s', script);
+    if (retry_count++ > 12) {
+      clearInterval(inter);
+      return cb('Unknown script ' + script);
+    }
+  }, 500);
+};
+
 
 /**
  * Get files in target folder

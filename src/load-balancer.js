@@ -82,7 +82,11 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
     if (peer.local) {
       debug('Routing task %s to localhost', task_id);
-      req.task_manager.triggerTask(task_id, task_data, task_opts, function(err, data) {
+      req.task_manager.triggerTask({
+        task_id  : task_id,
+        task_data: task_data,
+        task_opts: task_opts
+      }, function(err, data) {
         delete that.processing_tasks[uuid];
         if (err) {
           if (!data) data = {};

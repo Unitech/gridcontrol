@@ -7,7 +7,7 @@ var Plan    = require('./plan.js');
 var NetFunctions = require('gridcontrol');
 
 describe('Client test', function() {
-  this.timeout(5000);
+  this.timeout(7000);
 
   var client, n1;
 
@@ -55,8 +55,6 @@ describe('Client test', function() {
   });
 
   it('should buffer query and receive ready event', function(done) {
-    this.timeout(5000);
-
     var plan = new Plan(3, done);
 
     client.init({
