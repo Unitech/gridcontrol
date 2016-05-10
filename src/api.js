@@ -59,9 +59,8 @@ API.prototype.start = function(cb) {
  * Stop API + Terminate Task manager
  * @public
  */
-API.prototype.stop = function() {
+API.prototype.close = function() {
   this.server.close();
-  this.task_manager.terminate();
 };
 
 /**
@@ -147,7 +146,7 @@ API.prototype.mountRoutes = function() {
   app.post('/tasks/init', this.task_manager.controller.init_task_group);
 
   app.get('/tasks/processing', function(req, res, next) {
-    var tasks = req.net_manager.processing_tasks;
+    var tasks = req.load_balancer.processing_tasks;
     return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
   });
 

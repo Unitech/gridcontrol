@@ -2,7 +2,7 @@
 var express    = require('express');
 var app        = express();
 var bodyParser = require('body-parser');
-var Tools      = require('../tools.js');
+var Tools      = require('../lib/tools.js');
 
 var task = require(process.env.TASK_PATH);
 
@@ -20,9 +20,12 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function (req, res) {
-  task(req.body, function(err, data) {
+  var data = req.body.t_data;
+  //var opts = req.body.t_opts;
+
+  task(data, function(err, data) {
     // Safe clone deep response
-    res.send({err:err, data: Tools.safeClone(data)});
+    res.send({err:Tools.safeClone(err), data: Tools.safeClone(data)});
   });
 });
 

@@ -46,13 +46,19 @@ Client.prototype.init = function(opts, cb) {
   return this;
 };
 
-Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = function(task_name, data, cb) {
+Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = function(task_name, data, opts, cb) {
   var that = this;
+
+  if (typeof(opts) == 'function') {
+    cb = opts;
+    opts = {};
+  }
 
   request.post(this.base_url + '/tasks/lb_trigger_single', {
     form : {
       task_id : task_name,
-      data    : data
+      data    : data,
+      opts    : opts
     }
   }, function(err, raw, body) {
     if (err) {

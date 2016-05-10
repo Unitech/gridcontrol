@@ -6,7 +6,7 @@ var p          = require('path');
 var request    = require('request');
 var debug      = require('debug')('task:management');
 var Controller = require('./task_controller.js');
-var Tools      = require('../tools.js');
+var Tools      = require('../lib/tools.js');
 var extend     = require('util')._extend;
 
 /**
@@ -103,14 +103,26 @@ TaskManager.prototype.initTaskGroup = function(opts, cb) {
   });
 };
 
-TaskManager.prototype.triggerTask = function(task_id, data, cb) {
+TaskManager.prototype.triggerTask = function(t_id, t_data, t_opts, cb) {
   var cb_called = false;
-  var url = 'http://localhost:' + this.getTasks()[task_id].port + '/';
 
-  request.post({
+  if (!this.getTasks()[t_id])
+    return cb(new Error('Unknown task ' + t_id));
+  var url = 'http://localhost:' + this.getTasks()[t_id].port + '/';
+
+  var req_opts = {
     url : url,
-    form: data
-  }, function(err, raw, body) {
+    form: {
+      t_data : t_data,
+      t_opts : t_opts
+    }
+  };
+
+  if (t_opts.timeout) {
+    req_opts.timeout = parseInt(t_opts.timeout);
+  }
+
+  request.post(req_opts, function(err, raw, body) {
     return cb(err, body);
   });
 };
@@ -163,7 +175,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
     // Then start all file
     async.forEachLimit(tasks_files, 1, function(task_file, next) {
       var task_path     = p.join(opts.base_folder, opts.task_folder, task_file);
-      var task_id       = p.basename(task_file, '.js');
+      var task_id       = p.basename(task_file).split('.')[0];
       var task_pm2_name = 'task:' + task_id;
       var task_port;
 
@@ -178,14 +190,27 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
         TASK_PORT : task_port
       });
 
-      pm2.start({
-        script    : p.join(__dirname, 'task_wrapper.js'),
-        name      : task_pm2_name,
-        instances : that.task_meta.instances,
-        exec_mode : 'cluster',
-        watch     : true,
-        env       : Tools.safeClone(env)
-      }, function(err, procs) {
+      var pm2_opts = {};
+
+      if (p.extname(task_path) == '.js') {
+        pm2_opts = {
+          script    : p.join(__dirname, 'task_wrapper.js'),
+          name      : task_pm2_name,
+          instances : that.task_meta.instances,
+          exec_mode : 'cluster',
+          watch     : true,
+          env       : Tools.safeClone(env)
+        };
+      }
+      else {
+        pm2_opts = {
+          script    : task_path,
+          name      : task_pm2_name,
+          watch     : true,
+          env       : Tools.safeClone(env)
+        };
+      }
+      pm2.start(pm2_opts, function(err, procs) {
         if (err)
           console.error(err);
         debug('Task id: %s, pm2_name: %s, exposed on port: %d',

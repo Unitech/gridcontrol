@@ -1,7 +1,7 @@
 
-process.env.DEBUG="api,network,tasks,filesmanager,tools,main";
+process.env.DEBUG="api,network,tasks,filesmanager,tools,main,lb";
 
-var GridControl = require('./src/gridcontrol.js');
+var GridControl = require('./src/');
 
 if (require.main === module) {
 

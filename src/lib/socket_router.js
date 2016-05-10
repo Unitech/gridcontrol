@@ -1,7 +1,10 @@
-var debug           = require('debug')('socket_router');
+var debug  = require('debug')('socket_router');
 var crypto = require('crypto');
 
 var SocketRouter = function(socket) {
+  if (!(this instanceof SocketRouter))
+    return new SocketRouter(socket);
+
   var that = this;
   this._route_table = {};
   this.socket = socket;
@@ -12,7 +15,7 @@ var SocketRouter = function(socket) {
     try {
       raw_packet = JSON.parse(raw_packet.toString());
     } catch(e) {
-      console.error('Unparsable data has been received');
+      console.error('Unparsable data has been received', raw_packet.toString());
       return false;
     }
     if (!raw_packet.cmd)
@@ -22,7 +25,7 @@ var SocketRouter = function(socket) {
     if (raw_packet.cmd == 'cb:result') {
       that._rpc_calls[raw_packet.data.response_id].cb(raw_packet.data.err, raw_packet.data.res);
       process.nextTick(function() {
-        delete that._rpc_calls;
+        delete that._rpc_calls[raw_packet.data.response_id];
       });
       return false;
     }
@@ -32,9 +35,13 @@ var SocketRouter = function(socket) {
 
     if (raw_packet.response_id) {
       that._route_table[raw_packet.cmd](raw_packet.data, function(err, res) {
+
+        if (err instanceof Error)
+          err = JSON.parse(JSON.stringify(err, ["message", "arguments", "stack", "name"]));
+
         that.send('cb:result', {
           res : res,
-          err  : 'ayaya',
+          err  : err,
           response_id : raw_packet.response_id
         });
       });

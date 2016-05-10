@@ -29,6 +29,22 @@ var FilesManagement = function(opts) {
   this.current_sync_md5 = null;
 };
 
+module.exports = FilesManagement;
+
+/**
+ * Clear all temporary folder/files
+ */
+FilesManagement.prototype.clear = function(cb) {
+  var that = this;
+
+  this.DSS.close();
+  rmdir(that.dest_folder, function(e1) {
+    fs.unlink(that.dest_file, function(e2) {
+      return cb();
+    });
+  });
+};
+
 FilesManagement.prototype.serialize = function() {
   return {
     dest_file        : this.dest_file,
@@ -44,10 +60,10 @@ FilesManagement.prototype.serialize = function() {
  */
 FilesManagement.prototype.synchronize = function(meta, cb) {
   var that = this;
-  var ip = meta.ip;
-  var md5 = meta.curr_md5;
+  var ip   = meta;
+  var md5  = meta.curr_md5;
 
-  that.DSS.retrieveFile(ip, that.dest_file, function(err) {
+  that.DSS.retrieveFile(meta, that.dest_file, function(err) {
     if (err) return cb(err);
 
     /**
@@ -131,19 +147,6 @@ FilesManagement.prototype.hasFileToSync = function() {
   return this.has_file_to_sync;
 };
 
-/**
- * Clear all temporary folder/files
- */
-FilesManagement.prototype.clear = function(cb) {
-  var that = this;
-
-  rmdir(that.dest_folder, function(e1) {
-    fs.unlink(that.dest_file, function(e2) {
-      return cb();
-    });
-  });
-};
-
 FilesManagement.prototype.getCurrentMD5 = function() {
   return this.current_sync_md5;
 };
@@ -151,8 +154,6 @@ FilesManagement.prototype.getCurrentMD5 = function() {
 FilesManagement.prototype.getDestFileMD5 = function() {
   return FilesManagement.getFileMD5(this.dest_file);
 };
-
-module.exports = FilesManagement;
 
 function rmdir(folder, cb) {
   exec('rm -rf ' + folder, function(err, stdout, stderr) {

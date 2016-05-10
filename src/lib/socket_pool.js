@@ -43,13 +43,6 @@ SocketPool.prototype.getSockets = function() {
   return ret;
 };
 
-SocketPool.prototype.broadcast = function(route, data) {
-  this.getSocketRouters.forEach(function(router) {
-    router.socket.identity.synchronized = false;
-    router.send(route, data);
-  });
-};
-
 SocketPool.prototype.getSocketRouters = function() {
   var ret = [];
   var that = this;
@@ -60,5 +53,12 @@ SocketPool.prototype.getSocketRouters = function() {
 
   return ret;
 };
+
+SocketPool.prototype.broadcast = function(route, data) {
+  this.getSocketRouters().forEach(function(router) {
+    router.send(route, data);
+  });
+};
+
 
 module.exports = SocketPool;

@@ -12,22 +12,20 @@ var debug   = require('debug')('lb');
  */
 var LoadBalancer = function(opts) {
   this.local_loop       = opts.local_loop || true;
-  this.stats_tasks      = {};
-  this.processing_tasks = {};
 
+  this.processing_tasks = {};
+  this.peer_list        = [];
+  this.socket_pool      = opts.socket_pool;
   // Round robin index
   this._rri = 0;
-};
 
-LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
-  var that  = this;
-  var retry = 0;
+  var that = this;
 
-  //@todo take monitoring data into account
-  function genPeerHash() {
-    var all_peers     = [];
+  (function suitablePeer() {
+    //@todo take monitoring data into account
+    that.peer_list     = [];
 
-    all_peers.push({
+    that.peer_list.push({
       socket : {
         identity : {
           synchronized : true
@@ -36,21 +34,21 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
       local        : true
     });
 
-    var remote_peers  = req.net_manager.getSocketRouters();
+    if (!process.env.ONLY_LOCAL)
+      that.peer_list = that.peer_list.concat(that.socket_pool.getSocketRouters());
+    setTimeout(suitablePeer, 500);
+  })();
+};
 
-    remote_peers.forEach(function(peer) {
-      all_peers.push(peer);
-    });
-
-    return all_peers;
-  };
+LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
+  var that  = this;
+  var retry = 0;
 
   (function rec() {
     if (retry++ > 15)
       console.error('Trying too many time to route request!');
 
-    var peers  = genPeerHash();
-    var target = peers[that._rri++ % peers.length];
+    var target = that.peer_list[that._rri++ % that.peer_list.length];
 
     if (target.socket.identity.synchronized == false)
       return setTimeout(rec, 100);
@@ -59,71 +57,62 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
 };
 
 LoadBalancer.prototype.route = function(req, res, next) {
-  var task_id  = req.body.task_id;
-  var task_data = req.body;
-
-  var that = this;
-
-  var uid = crypto.randomBytes(32).toString('hex');
+  var that      = this;
+  var task_id   = req.body.task_id;
+  var task_data = req.body.data;
+  var task_opts = req.body.opts || {};
+  var uuid      = crypto.randomBytes(32).toString('hex');
 
   // Avoid integer overflow
   if (Number.isSafeInteger(that._rri) === false)
     that._rri = 0;
 
   this.findSuitablePeer(req, function(err, peer) {
-    if (peer.local) {
-      console.log('Routing to local');
-      req.task_manager.triggerTask(task_id, task_data, function(err, ret) {
-        res.send(ret);
-      });
-      return false;
-    }
-
-    console.log('Re routing query to %s:%s',
-                peer.socket.identity.private_ip,
-                peer.socket.identity.api_port);
-
-    peer.send('trigger', {
-      task_id : task_id,
-      data    : task_data
-    }, function(err, data) {
-      res.send(data);
-    });
-
-    return false;
-
-
-
 
     // @todo: do stats on task processing (invokation, errors...)
     // + Log running tasks for smarter load balancing in the future
     // + link with HealthCheck regular data to know load
     // if (!that.stats_tasks[task_id])
-
-    that.processing_tasks[task_exec_id] = {
+    //
+    that.processing_tasks[uuid] = {
       started_at : new Date(),
-      peer_info  : peer,
-      task_id    : task_id,
-      rout_url   : url
+      peer_info  : peer.socket.identity,
+      task_id    : task_id
     };
 
-    function onErr() {
-      delete that.processing_tasks[task_exec_id];
-      console.error('Error while proxying task request');
-      res.end();
+    if (peer.local) {
+      debug('Routing task %s to localhost', task_id);
+      req.task_manager.triggerTask(task_id, task_data, task_opts, function(err, data) {
+        delete that.processing_tasks[uuid];
+        if (err) {
+          if (!data) data = {};
+          data.err = err;
+        }
+        res.send(data);
+      });
+
+      return false;
     }
 
-    a.on('error', onErr);
+    console.log('Routing tasks %s to %s:%s',
+                task_id,
+                peer.socket.identity.private_ip,
+                peer.socket.identity.api_port);
 
-    a.on('end', function() {
-      delete that.processing_tasks[task_exec_id];
+    peer.send('trigger', {
+      task_id : task_id,
+      data    : task_data,
+      opts    : task_opts
+    }, function(err, data) {
+      delete that.processing_tasks[uuid];
+      if (err) {
+        if (!data) data = {};
+        data.err = err;
+      }
+      res.send(data);
     });
 
-    // Proxy query to the right service
-    req
-      .pipe(a, { end : false })
-      .pipe(res)
-      .on('error', onErr);
+    return false;
   });
 };
 

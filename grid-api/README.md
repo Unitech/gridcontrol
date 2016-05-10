@@ -26,6 +26,19 @@ setInterval(function() {
 }, 1000);
 ```
 
+## Timeout
+
+```javascript
+  grid.dispatch('request', {
+    url : 'http://google.com/'
+  }, {
+    timeout : 5000
+  }, function(err, response, server_meta) {
+    console.log('From server %s:%s', server.name, server.ip);
+    console.log('Got response %s', data);
+  });
+```
+
 ## API
 
 ```

@@ -7,36 +7,25 @@ var Compress        = require('../src/files/compress.js');
 var fs              = require('fs');
 var Helper          = require('./helpers.js');
 var should          = require('should');
+var netFS = require('../src/files/net_fs.js');
 
 var src_folder = path.join(__dirname, 'fixtures');
 var dst_gzip   = path.join(__dirname, 'sync.tar.gz');
-
-// Expose sample server that exposes synchronized file
-function sampleServer(cb) {
-  var express    = require('express');
-  var app  = express();
-
-  app.get('/files/get_current_sync', function(req, res, next) {
-    var sync = fs.createReadStream(dst_gzip);
-    sync.pipe(res);
-  });
-
-  app.listen(10000, function() {
-    console.log('Compressing to %s', dst_gzip);
-    Compress.pack(src_folder, dst_gzip, function(err) {
-      if (err) console.error('WTF');
-      cb();
-    });
-  });
-}
 
 describe('Files', function() {
   var file_manager_or;
   var file_manager_slave;
   var serial;
-
+  var netfs;
+  var gzip_md5;
   before(function(done) {
-    sampleServer(done);
+    netfs = new netFS();
+
+    Compress.pack(src_folder, dst_gzip, function(err) {
+      gzip_md5 = FilesManagement.getFileMD5(dst_gzip);
+      netfs.instanciateMaster(dst_gzip);
+      done();
+    });
   });
 
   it('should instanciate new file manager', function(done) {
@@ -74,7 +63,10 @@ describe('Files', function() {
   });
 
   it('should synchronize (get tarball + unzip)', function(done) {
-    file_manager_slave.synchronize('localhost', 10000, function() {
+    file_manager_slave.synchronize({
+      public_ip : 'localhost',
+      curr_md5 : gzip_md5
+    }, function() {
       done();
     });
   });

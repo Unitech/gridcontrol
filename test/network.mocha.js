@@ -1,8 +1,7 @@
 
 process.env.NODE_ENV='test';
 process.env.DEBUG='network,api,lb';
-process.env.ONLY_LOCAL=true;
-process.env.NS='test:namespace';
+process.env.NS='vla:test:namespace';
 
 var fs      = require('fs');
 var network = require('../index.js');
@@ -17,44 +16,46 @@ describe('Network', function() {
   var n1, n2, n3;
   var sync_file_size;
 
-  it('should create a first client', function(done) {
-    n1 = new network({
-      peer_api_port : 10000
+  describe('Init', function() {
+    it('should create a first client', function(done) {
+      n1 = new network({
+        peer_api_port : 10000
+      });
+
+      n1.start(done);
     });
 
-    n1.start(done);
-  });
-
-  it('should have the rigth namespace (via process.env.NS)', function(done) {
-    should(n1.namespace).eql('test:namespace');
-    done();
-  });
-
-  it('should connect second client', function(done) {
-    n2 = new network({
-      peer_api_port  : 11000,
-      file_manager : {
-        dest_file       : '/tmp/n2.tar.gz',
-        dest_folder     : '/tmp/n2'
-      }
+    it('should have the rigth namespace (via process.env.NS)', function(done) {
+      should(n1.namespace).eql(process.env.NS);
+      done();
     });
 
-    n2.on('ready', done);
+    it('should connect second client', function(done) {
+      n2 = new network({
+        peer_api_port  : 11000,
+        file_manager : {
+          dest_file       : '/tmp/n2.tar.gz',
+          dest_folder     : '/tmp/n2'
+        }
+      });
 
-    n2.start();
+      n2.on('ready', done);
+
+      n2.start();
+    });
+
+    it('n1 should list 1 peer', function(done) {
+      should(n1.getPeers().length).eql(1);
+      done();
+    });
+
+    it('n2 should list 1 peer', function(done) {
+      should(n2.getPeers().length).eql(1);
+      setTimeout(done, 1000);
+    });
   });
 
-  it('n1 should list 1 peer', function(done) {
-    should(n1.getPeers().length).eql(1);
-    done();
-  });
-
-  it('n2 should list 1 peer', function(done) {
-    should(n2.getPeers().length).eql(1);
-    setTimeout(done, 1000);
-  });
-
-  describe('GridControl methods', function() {
+  describe('Serialization', function() {
     var serial;
 
     it('should serialize n1', function(done) {
@@ -72,15 +73,13 @@ describe('Network', function() {
 
       n1.start(done);
     });
-
-
   });
 
   describe('API Interactions', function() {
 
     it('should webserver be started', function(done) {
       request.get('http://localhost:10000/ping', function(err, res, body) {
-        should(err).be.null;
+        should(err).be.null();
         should(res.statusCode).eql(200);
         body.should.eql('pong');
         done();
@@ -90,18 +89,18 @@ describe('Network', function() {
     it('should retrieve two host connected', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
-        should(e).be.null;
+        should(e).be.null();
         should(r.statusCode).eql(200);
         should(dt.length).eql(2);
         dt[0].should.have.properties(['public_ip', 'private_ip', 'api_port', 'name', 'hostname', 'synchronized']);
-        dt[0].synchronized.should.be.true;
+        dt[0].synchronized.should.be.false();
         done();
       });
     });
 
     it('should retrieve 0 tasks started', function(done) {
       request.get('http://localhost:10000/tasks/list', function(err, res, body) {
-        should(err).be.null;
+        should(err).be.null();
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
         should(tasks.length).eql(0);
@@ -109,11 +108,9 @@ describe('Network', function() {
       });
     });
 
-
-
     it('should get configuration', function(done) {
       request.get('http://localhost:10000/conf', function(err, res, body) {
-        should(err).be.null;
+        should(err).be.null();
         should(res.statusCode).eql(200);
         var conf = JSON.parse(body);
         conf.should.have.properties(['file_manager', 'task_manager']);
@@ -200,7 +197,7 @@ describe('Network', function() {
     it('should master see n2 has synchronized', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
-        dt[0].synchronized.should.be.true;
+        dt[0].synchronized.should.be.true();
         done();
       });
     });
@@ -216,7 +213,7 @@ describe('Network', function() {
         }
       }, function(err, raw, body) {
         var res = JSON.parse(body);
-        should(err).be.null;
+        should(err).be.null();
         res.data.hello.should.eql('yey');
         return done();
       });
@@ -234,7 +231,9 @@ describe('Network', function() {
         done();
       });
     });
+  });
 
+  describe('Third node', function() {
     it('should connect THIRD node', function(done) {
       this.timeout(10000);
 
@@ -257,7 +256,7 @@ describe('Network', function() {
     it('should now N1 retrieve three hosts connected', function(done) {
       request.get('http://localhost:10000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
-        should(e).be.null;
+        should(e).be.null();
         should(r.statusCode).eql(200);
         should(dt.length).eql(3);
         done();
@@ -267,7 +266,7 @@ describe('Network', function() {
     it('should now N2 retrieve two hosts connected', function(done) {
       request.get('http://localhost:11000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
-        should(e).be.null;
+        should(e).be.null();
         should(r.statusCode).eql(200);
         should(dt.length).eql(3);
         done();
@@ -277,7 +276,7 @@ describe('Network', function() {
     it('should now N3 retrieve two hosts connected', function(done) {
       request.get('http://localhost:12000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
-        should(e).be.null;
+        should(e).be.null();
         should(r.statusCode).eql(200);
         should(dt.length).eql(3);
         done();
@@ -291,44 +290,6 @@ describe('Network', function() {
       done();
     });
   });
-
-
-  describe('Processing tasks checks', function() {
-    it('should retrieve 0 processing tasks', function(done) {
-      request.get('http://localhost:10000/tasks/processing', function(err, res, body) {
-        should(err).be.null;
-        should(res.statusCode).eql(200);
-        var tasks = JSON.parse(body);
-        should(tasks.length).eql(0);
-        done();
-      });
-    });
-
-    it.skip('should trigger slow task and get it as being processed', function(done) {
-      this.timeout(6000);
-
-      setTimeout(function() {
-        request.get('http://localhost:10000/tasks/processing', function(err, res, body) {
-          should(err).be.null;
-          should(res.statusCode).eql(200);
-          var tasks = JSON.parse(body);
-          should(tasks.length).eql(1);
-          done();
-        });
-      }, 400);
-
-      request.post('http://localhost:10000/tasks/lb_trigger_single', {
-        form : {
-          task_id : 'slow'
-        }
-      }, function(err, res, body) {
-        should(res.statusCode).eql(200);
-        //var res = JSON.parse(body);
-        //done();
-      });
-    });
-  });
-
 
   describe('End commands', function() {
     it('should clear all tasks', function(done) {
