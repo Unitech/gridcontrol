@@ -26,16 +26,14 @@ var LoadBalancer = function(opts) {
     that.peer_list     = [];
 
     that.peer_list.push({
-      socket : {
-        identity : {
-          synchronized : true
-        }
+      identity : {
+        synchronized : true
       },
       local        : true
     });
 
     if (!process.env.ONLY_LOCAL)
-      that.peer_list = that.peer_list.concat(that.socket_pool.getSocketRouters());
+      that.peer_list = that.peer_list.concat(that.socket_pool.getSockets());
     setTimeout(suitablePeer, 500);
   })();
 };
@@ -50,7 +48,7 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
 
     var target = that.peer_list[that._rri++ % that.peer_list.length];
 
-    if (target.socket.identity.synchronized == false)
+    if (target.identity.synchronized == false)
       return setTimeout(rec, 100);
     return cb(null, target);
   })();
@@ -76,7 +74,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
     //
     that.processing_tasks[uuid] = {
       started_at : new Date(),
-      peer_info  : peer.socket.identity,
+      peer_info  : peer.identity,
       task_id    : task_id
     };
 
@@ -101,8 +99,8 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
     console.log('Routing tasks %s to %s:%s',
                 task_id,
-                peer.socket.identity.private_ip,
-                peer.socket.identity.api_port);
+                peer.identity.private_ip,
+                peer.identity.api_port);
 
     peer.send('trigger', {
       task_id : task_id,
@@ -115,7 +113,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
         data.err = err;
       }
       if (!data) data = {};
-      data.server = peer.socket.identity;
+      data.server = peer.identity;
       res.send(data);
     });
 

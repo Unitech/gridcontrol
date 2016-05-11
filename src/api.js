@@ -172,7 +172,7 @@ API.prototype.mountRoutes = function() {
   app.get('/hosts/list', function(req, res, next) {
     var peers = [];
 
-    req.net_manager.getPeers().forEach(function(peer) {
+    req.net_manager.getSockets().forEach(function(peer) {
       peers.push(peer.identity);
     });
 

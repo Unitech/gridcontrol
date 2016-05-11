@@ -1,25 +1,23 @@
 
-var SocketRouter = require('./socket_router.js');
+var actorify = require('./actorify.js');
 
 var SocketPool = function() {
   this._socket_pool = {};
 };
 
 SocketPool.prototype.add = function(socket) {
-  var peer = new SocketRouter(socket);
+  var peer = actorify(socket);
   var that = this;
 
   socket.on('error', function() {
-    delete that._socket_pool[peer.uuid];
-    peer.kill();
+    delete that._socket_pool[peer.id];
   });
 
   socket.on('close', function() {
-    delete that._socket_pool[peer.uuid];
-    peer.kill();
+    delete that._socket_pool[peer.id];
   });
 
-  this._socket_pool[peer.uuid] = peer;
+  this._socket_pool[peer.id] = peer;
 
   return peer;
 };
@@ -27,23 +25,12 @@ SocketPool.prototype.add = function(socket) {
 SocketPool.prototype.close = function() {
   var that = this;
 
-  Object.keys(this._socket_pool).forEach(function(uid) {
-    that._socket_pool[uid].kill();
-  });
+  // Object.keys(this._socket_pool).forEach(function(id) {
+  //   that._socket_pool[id].stream.close();
+  // });
 };
 
 SocketPool.prototype.getSockets = function() {
-  var ret = [];
-  var that = this;
-
-  Object.keys(this._socket_pool).forEach(function(key) {
-    ret.push(that._socket_pool[key].socket);
-  });
-
-  return ret;
-};
-
-SocketPool.prototype.getSocketRouters = function() {
   var ret = [];
   var that = this;
 
@@ -55,7 +42,7 @@ SocketPool.prototype.getSocketRouters = function() {
 };
 
 SocketPool.prototype.broadcast = function(route, data) {
-  this.getSocketRouters().forEach(function(router) {
+  this.getSockets().forEach(function(router) {
     router.send(route, data);
   });
 };

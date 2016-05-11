@@ -21,7 +21,7 @@ describe('Multi Tasks test', function() {
   });
 
   it('n1 should list 0 peer', function(done) {
-    should(n1.getPeers().length).eql(0);
+    should(n1.getSockets().length).eql(0);
     done();
   });
 

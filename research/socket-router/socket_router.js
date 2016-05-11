@@ -1,5 +1,6 @@
 var debug  = require('debug')('socket_router');
 var crypto = require('crypto');
+var actorify = require('./actorify.js');
 
 var SocketRouter = function(socket) {
   if (!(this instanceof SocketRouter))

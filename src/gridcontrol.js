@@ -234,25 +234,21 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     }, 1500);
   }
 
-  router.mount('identity', function(data) {
+  router.on('identity', function(data) {
     debug('status=identity meta info from=%s[%s] on=%s',
           data.name,
           data.private_ip,
           that.peer_name);
-    sock.identity = data;
+    router.identity = data;
     // Set peer flag as not synchronized
-    sock.identity.synchronized = false;
+    router.identity.synchronized = false;
   });
 
-  router.mount('clear', function(data) {
+  router.on('clear', function(data) {
     that.file_manager.clear();
   });
 
-  router.mount('file', function(data) {
-    that.file_manager.clear();
-  });
-
-  router.mount('trigger', function(packet, cb) {
+  router.on('trigger', function(packet, cb) {
     var task_id    = packet.task_id;
     var task_data  = packet.data;
     var task_opts  = packet.opts;
@@ -272,18 +268,18 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
   /**
    * Received by master once the peer has been synchronized
    */
-  router.mount('sync:done', function(data) {
+  router.on('sync:done', function(data) {
     if (data.synced_md5 == that.file_manager.getCurrentMD5()) {
       debug('Peer [%s] successfully synchronized with up-to-date sync file',
-            sock.identity.name);
-      sock.identity.synchronized = true;
+            router.identity.name);
+      router.identity.synchronized = true;
     }
   });
 
   /**
    * Task to synchronize this node
    */
-  router.mount('sync', function(data) {
+  router.on('sync', function(data) {
     console.log('[%s] Incoming sync req from priv_ip=%s pub_ip=%s for MD5 [%s]',
                 that.peer_name,
                 data.private_ip,
@@ -327,12 +323,8 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
  * Return peers connected
  * @public
  */
-GridControl.prototype.getPeers = function() {
+GridControl.prototype.getSockets = function() {
   return this.SocketPool.getSockets();
-};
-
-GridControl.prototype.getSocketRouters = function() {
-  return this.SocketPool.getSocketRouters();
 };
 
 GridControl.prototype.getLocalIdentity = function() {
@@ -360,10 +352,9 @@ GridControl.prototype.getLocalIdentity = function() {
 GridControl.prototype.askAllPeersToSync = function() {
   var that = this;
 
-  this.getSocketRouters().forEach(function(router) {
-    if (!router.socket || !router.socket.identity) return false;
-    router.socket.identity.synchronized = false;
-    that.askPeerToSync(router);
+  this.getSockets().forEach(function(socket) {
+    socket.identity.synchronized = false;
+    that.askPeerToSync(socket);
   });
 };
 
@@ -372,10 +363,10 @@ GridControl.prototype.askAllPeersToSync = function() {
  * @param sock {object} socket obj
  * @public
  */
-GridControl.prototype.askPeerToSync = function(router) {
+GridControl.prototype.askPeerToSync = function(socket) {
   var that = this;
 
-  router.send('sync', {
+  socket.send('sync', {
     public_ip  : that.public_ip,
     private_ip : that.private_ip,
     meta       : that.task_manager.getTaskMeta(),

@@ -40,17 +40,16 @@ describe('Network', function() {
       });
 
       n2.on('ready', done);
-
       n2.start();
     });
 
     it('n1 should list 1 peer', function(done) {
-      should(n1.getPeers().length).eql(1);
+      should(n1.getSockets().length).eql(1);
       done();
     });
 
     it('n2 should list 1 peer', function(done) {
-      should(n2.getPeers().length).eql(1);
+      should(n2.getSockets().length).eql(1);
       setTimeout(done, 1000);
     });
   });
