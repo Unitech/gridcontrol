@@ -12,12 +12,14 @@ var pkg             = require('../package.json');
 var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
-var Interplanetary  = require('./interplanetary/index.js');
+
 var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
 var Wait            = require('./lib/wait.js');
-var InternalIp      = require('./lib/internal-ip.js');
-var SocketPool      = require('./lib/socket_pool.js');
+
+var Interplanetary  = require('./network/interplanetary.js');
+var InternalIp      = require('./network/internal-ip.js');
+var SocketPool      = require('./network/socket-pool.js');
 
 /**
  * TO UPDATE
@@ -279,7 +281,7 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
   /**
    * Task to synchronize this node
    */
-  router.on('sync', function(data) {
+  router.on('sync', function(data, file) {
     console.log('[%s] Incoming sync req from priv_ip=%s pub_ip=%s for MD5 [%s]',
                 that.peer_name,
                 data.private_ip,
@@ -289,8 +291,8 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     // Set task meta (env, task folder)
     that.task_manager.setTaskMeta(data.meta);
 
-    // Retrieve file with MD5 checks
-    that.file_manager.synchronize(data, function(err, meta) {
+    // Write received file to destination file
+    that.file_manager.synchronize(data, file, function(err, meta) {
       if (err)
         return console.error('Error while synchronizing file', err);
 
@@ -371,7 +373,7 @@ GridControl.prototype.askPeerToSync = function(socket) {
     private_ip : that.private_ip,
     meta       : that.task_manager.getTaskMeta(),
     curr_md5   : that.file_manager.getCurrentMD5()
-  });
+  }, that.file_manager.current_file_buff);
 };
 
 GridControl.sendJson = function(sock, data) {

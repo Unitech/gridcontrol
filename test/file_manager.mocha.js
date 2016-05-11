@@ -7,7 +7,7 @@ var Compress        = require('../src/files/compress.js');
 var fs              = require('fs');
 var Helper          = require('./helpers.js');
 var should          = require('should');
-var netFS = require('../src/files/net_fs.js');
+
 
 var src_folder = path.join(__dirname, 'fixtures');
 var dst_gzip   = path.join(__dirname, 'sync.tar.gz');
@@ -18,12 +18,12 @@ describe('Files', function() {
   var serial;
   var netfs;
   var gzip_md5;
-  before(function(done) {
-    netfs = new netFS();
+  var file_buffer;
 
+  before(function(done) {
     Compress.pack(src_folder, dst_gzip, function(err) {
       gzip_md5 = FilesManagement.getFileMD5(dst_gzip);
-      netfs.instanciateMaster(dst_gzip);
+      file_buffer = fs.readFileSync(dst_gzip);
       done();
     });
   });
@@ -66,7 +66,7 @@ describe('Files', function() {
     file_manager_slave.synchronize({
       public_ip : 'localhost',
       curr_md5 : gzip_md5
-    }, function() {
+    }, file_buffer, function() {
       done();
     });
   });

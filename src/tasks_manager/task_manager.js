@@ -122,7 +122,7 @@ TaskManager.prototype.deleteAllPM2Tasks = function(cb) {
   this.listAllPM2Tasks(function(err, tasks_proc) {
     if (err) return cb(err);
 
-    async.forEachLimit(tasks_proc, 1, function(proc_name, next) {
+    async.forEachLimit(tasks_proc, 5, function(proc_name, next) {
       pm2.delete(proc_name, next);
     }, function(err) {
       return cb(err, tasks_proc);

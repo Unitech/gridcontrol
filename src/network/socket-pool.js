@@ -1,12 +1,12 @@
 
-var actorify = require('./actorify.js');
+var socketrouter = require('./socket-router.js');
 
 var SocketPool = function() {
   this._socket_pool = {};
 };
 
 SocketPool.prototype.add = function(socket) {
-  var peer = actorify(socket);
+  var peer = socketrouter(socket);
   var that = this;
 
   socket.on('error', function() {
