@@ -149,7 +149,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
     if (err) console.error(err);
 
     // Then start all file
-    async.forEachLimit(tasks_files, 1, function(task_file, next) {
+    async.forEachLimit(tasks_files, 5, function(task_file, next) {
       var task_path     = p.join(opts.base_folder, opts.task_folder, task_file);
       var task_id       = p.basename(task_file).split('.')[0];
       var task_pm2_name = 'task:' + task_id;
