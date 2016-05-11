@@ -21,8 +21,8 @@ grid.on('ready', function() {
   setInterval(function() {
     grid.exec('echo', {
       name : 'hey'
-    }, function(err, data) {
-	    console.log(err, data);
+    }, function(err, data, server) {
+	    console.log(err, data, server.public_ip);
 	    //console.log('Got response');
     });
   }, 1000);

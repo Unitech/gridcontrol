@@ -127,6 +127,7 @@ Actor.prototype.send = function(){
   }
 
   var msg = new Message(args);
+
   this.stream.write(msg.toBuffer());
 
   return {

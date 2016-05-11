@@ -246,6 +246,11 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
         setTimeout(function() { launch(cb); }, 200);
         return false;
       }
+      try {
+        body = JSON.parse(body);
+      } catch(e) {
+      }
+
       return cb(err, body);
     });
   }

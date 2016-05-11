@@ -52,7 +52,7 @@ SocketPool.prototype.getRouters = function() {
 };
 
 SocketPool.prototype.broadcast = function(route, data) {
-  this.getRouters.forEach(function(router) {
+  this.getRouters().forEach(function(router) {
     router.send(route, data);
   });
 };

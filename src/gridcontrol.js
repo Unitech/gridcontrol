@@ -248,6 +248,8 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     if (process.env.NODE_ENV == 'test')
       return cb();
 
+    debug('Received a trigger action: %s', task_id);
+
     that.task_manager.triggerTask({
       task_id  : task_id,
       task_data: task_data,
@@ -355,23 +357,16 @@ GridControl.prototype.askAllPeersToSync = function() {
  * @param sock {object} socket obj
  * @public
  */
-GridControl.prototype.askPeerToSync = function(socket) {
+GridControl.prototype.askPeerToSync = function(router) {
   var that = this;
 
-  socket.send('sync', {
+  debug('Asking %s[%s] to sync', router.identity.public_ip, router.identity.name);
+  router.send('sync', {
     public_ip  : that.public_ip,
     private_ip : that.private_ip,
     meta       : that.task_manager.getTaskMeta(),
     curr_md5   : that.file_manager.getCurrentMD5()
   }, that.file_manager.current_file_buff);
-};
-
-GridControl.sendJson = function(sock, data) {
-  try {
-    sock.write(JSON.stringify(data));
-  } catch(e) {
-    console.log('Got error while writeing data %s to %s', data, sock.identity.name);
-  }
 };
 
 module.exports = GridControl;

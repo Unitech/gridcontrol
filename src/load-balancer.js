@@ -1,7 +1,7 @@
 var request = require('request');
 var crypto  = require('crypto');
 var debug   = require('debug')('lb');
-
+var Tools = require('./lib/tools.js');
 /**
  * Load balancer
  * @constructor
@@ -97,10 +97,10 @@ LoadBalancer.prototype.route = function(req, res, next) {
       return false;
     }
 
-    console.log('Routing tasks %s to %s:%s',
-                task_id,
-                peer.identity.private_ip,
-                peer.identity.api_port);
+    debug('Routing task %s to %s:%s',
+          task_id,
+          peer.identity.private_ip,
+          peer.identity.api_port);
 
     peer.send('trigger', {
       task_id : task_id,
@@ -112,8 +112,14 @@ LoadBalancer.prototype.route = function(req, res, next) {
         if (!data) data = {};
         data.err = err;
       }
-      if (!data) data = {};
-      data.server = peer.identity;
+      if (typeof(data) == 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch(e) {
+        }
+        data.server = peer.identity;
+      }
+
       res.send(data);
     });
 
