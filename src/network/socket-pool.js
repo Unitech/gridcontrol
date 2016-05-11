@@ -20,11 +20,9 @@ SocketPool.prototype.add = function(socket) {
 
 
   peer.on('identity', function(data) {
-    debug('status=identity meta info from=%s[%s] on=%s',
+    debug('status=identity meta info from=%s[%s]',
           data.name,
-          data.private_ip,
-          that.peer_name);
-    console.log('asdsad');
+          data.public_ip);
     peer.identity = data;
     // Set peer flag as not synchronized
     peer.identity.synchronized = false;
@@ -54,7 +52,7 @@ SocketPool.prototype.getRouters = function() {
 };
 
 SocketPool.prototype.broadcast = function(route, data) {
-  Object.keys(this._socket_pool).forEach(function(router) {
+  this.getRouters.forEach(function(router) {
     router.send(route, data);
   });
 };
