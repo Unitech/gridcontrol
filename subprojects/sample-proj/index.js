@@ -10,21 +10,21 @@ var grid = require('../../grid-api').init({
 grid.on('ready', function() {
   console.log('Ready');
 
-  setInterval(function() {
-	  grid.dispatch('request-test', {
-	    url : 'https://api.ipify.org/?format=json'
-	  }, function(err, data) {
-	    console.log('Got data', data);
-	  });
-  }, 250);
+  // setInterval(function() {
+	//   grid.dispatch('request-test', {
+	//     url : 'https://api.ipify.org/?format=json'
+	//   }, function(err, data) {
+	//     console.log('Got data', data);
+	//   });
+  // }, 250);
 
   setInterval(function() {
-    grid.dispatch('echo', {
+    grid.exec('echo', {
       name : 'hey'
     }, function(err, data) {
-	    //console.log(arguments);
+	    console.log(err, data);
 	    //console.log('Got response');
     });
-  }, 100);
+  }, 1000);
 
 });

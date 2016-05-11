@@ -1,4 +1,4 @@
 
-module.exports = function(context, cb) {
-  cb(null, { hello: context.data.name || 'Anonymous' });
+module.exports = function(data, cb) {
+  cb(null, { hello: data.name || 'Anonymous' });
 };
