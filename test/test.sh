@@ -2,6 +2,9 @@
 
 mocha=`pwd`/node_modules/.bin/mocha
 
+# Abort script at first error
+set -e
+
 export NODE_ENV test
 
 $mocha test/task_manager.mocha.js

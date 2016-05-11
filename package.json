@@ -10,7 +10,7 @@
     }
   ],
   "scripts": {
-    "test": "bash test/test.sh; sleep 1; ./node_modules/.bin/mocha grid-api/test/*.mocha.js",
+    "test": "bash test/test.sh && sleep 1 && ./node_modules/.bin/mocha grid-api/test/*.mocha.js",
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d apidocs -r ."
   },
   "devDependencies": {
@@ -40,6 +40,9 @@
     "length-prefixed-message": "^3.0.3",
     "pump": "^1.0.1",
     "to-buffer": "^1.0.1"
+  },
+  "optionalDependencies": {
+    "utp-native": "^1.2.2"
   },
   "author": "Alexandre Strzelewicz <strzelewicz.alexandre@gmail.com>",
   "license": "ApacheV2"

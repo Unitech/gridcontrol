@@ -248,6 +248,10 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     that.file_manager.clear();
   });
 
+  router.mount('file', function(data) {
+    that.file_manager.clear();
+  });
+
   router.mount('trigger', function(packet, cb) {
     var task_id    = packet.task_id;
     var task_data  = packet.data;
