@@ -1,9 +1,9 @@
 
 var request = require('request');
 
-module.exports = function(context, cb) {
-  console.log(context.data.url);
-  request(context.data.url || 'http://www.google.com', function (error, response, body) {
+module.exports = function(data, cb) {
+  console.log(data.url);
+  request(data.url || 'http://www.google.com', function (error, response, body) {
     if (error)
       return cb(error);
 

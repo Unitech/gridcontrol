@@ -7,7 +7,25 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies" : {
-    "request" : "*"
+    "request" : "*",
+    "pm2" : "*",
+    "express": "*",
+    "body-parser": "*",
+    "async": "*",
+    "pmx": "*",
+    "debug": "*",
+    "network-address": "*",
+    "public-ip": "*",
+    "tar-fs": "*",
+    "chalk": "*",
+    "fmt": "*",
+    "nssocket": "*",
+    "buffer-equals": "^1.0.3",
+    "connections": "^1.4.2",
+    "discovery-channel": "^5.0.0",
+    "length-prefixed-message": "^3.0.3",
+    "pump": "^1.0.1",
+    "to-buffer": "^1.0.1"
   },
   "author": "",
   "license": "ISC"
