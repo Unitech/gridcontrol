@@ -112,6 +112,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
         if (!data) data = {};
         data.err = err;
       }
+
       if (typeof(data) == 'string') {
         try {
           data = JSON.parse(data);
@@ -119,6 +120,8 @@ LoadBalancer.prototype.route = function(req, res, next) {
         }
         data.server = peer.identity;
       }
+      else if (typeof(data) == 'object')
+        data.server = peer.identity;
 
       res.send(data);
     });

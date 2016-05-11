@@ -7,6 +7,8 @@ var grid = require('../../grid-api').init({
   }
 });
 
+
+
 grid.on('ready', function() {
   console.log('Ready');
 
@@ -22,7 +24,7 @@ grid.on('ready', function() {
     grid.exec('echo', {
       name : 'hey'
     }, function(err, data, server) {
-	    console.log(err, data, server.public_ip);
+	    console.log(err, data, server && server.public_ip);
 	    //console.log('Got response');
     });
   }, 1000);
