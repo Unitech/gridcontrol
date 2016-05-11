@@ -236,16 +236,6 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     }, 1500);
   }
 
-  router.on('identity', function(data) {
-    debug('status=identity meta info from=%s[%s] on=%s',
-          data.name,
-          data.private_ip,
-          that.peer_name);
-    router.identity = data;
-    // Set peer flag as not synchronized
-    router.identity.synchronized = false;
-  });
-
   router.on('clear', function(data) {
     that.file_manager.clear();
   });
@@ -325,8 +315,8 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
  * Return peers connected
  * @public
  */
-GridControl.prototype.getSockets = function() {
-  return this.SocketPool.getSockets();
+GridControl.prototype.getRouters = function() {
+  return this.SocketPool.getRouters();
 };
 
 GridControl.prototype.getLocalIdentity = function() {
@@ -354,9 +344,9 @@ GridControl.prototype.getLocalIdentity = function() {
 GridControl.prototype.askAllPeersToSync = function() {
   var that = this;
 
-  this.getSockets().forEach(function(socket) {
-    socket.identity.synchronized = false;
-    that.askPeerToSync(socket);
+  this.SocketPool.getRouters().forEach(function(router) {
+    router.identity.synchronized = false;
+    that.askPeerToSync(router);
   });
 };
 

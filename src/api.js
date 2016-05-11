@@ -172,8 +172,8 @@ API.prototype.mountRoutes = function() {
   app.get('/hosts/list', function(req, res, next) {
     var peers = [];
 
-    req.net_manager.getSockets().forEach(function(peer) {
-      peers.push(peer.identity);
+    req.net_manager.getRouters().forEach(function(router) {
+      peers.push(router.identity);
     });
 
     peers.push(req.net_manager.getLocalIdentity());

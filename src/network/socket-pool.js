@@ -1,4 +1,5 @@
 
+var debug           = require('debug')('network');
 var socketrouter = require('./socket-router.js');
 
 var SocketPool = function() {
@@ -17,7 +18,18 @@ SocketPool.prototype.add = function(socket) {
     delete that._socket_pool[peer.id];
   });
 
-  this._socket_pool[peer.id] = peer;
+
+  peer.on('identity', function(data) {
+    debug('status=identity meta info from=%s[%s] on=%s',
+          data.name,
+          data.private_ip,
+          that.peer_name);
+    console.log('asdsad');
+    peer.identity = data;
+    // Set peer flag as not synchronized
+    peer.identity.synchronized = false;
+    that._socket_pool[peer.id] = peer;
+  });
 
   return peer;
 };
@@ -30,7 +42,7 @@ SocketPool.prototype.close = function() {
   // });
 };
 
-SocketPool.prototype.getSockets = function() {
+SocketPool.prototype.getRouters = function() {
   var ret = [];
   var that = this;
 
@@ -42,7 +54,7 @@ SocketPool.prototype.getSockets = function() {
 };
 
 SocketPool.prototype.broadcast = function(route, data) {
-  this.getSockets().forEach(function(router) {
+  Object.keys(this._socket_pool).forEach(function(router) {
     router.send(route, data);
   });
 };

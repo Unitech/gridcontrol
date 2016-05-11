@@ -34,6 +34,11 @@ app.post('/', function (req, res) {
   }
 });
 
+app.use(function(err, req, res, next) {
+  res.status(500);
+  res.send({err: Tools.safeClone(err), data : null});
+});
+
 app.listen(process.env.TASK_PORT, '127.0.0.1', function () {
   console.log('Task: %s exposed on port %d', process.env.TASK_PATH, process.env.TASK_PORT);
 });

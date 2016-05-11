@@ -33,7 +33,7 @@ var LoadBalancer = function(opts) {
     });
 
     if (!process.env.ONLY_LOCAL)
-      that.peer_list = that.peer_list.concat(that.socket_pool.getSockets());
+      that.peer_list = that.peer_list.concat(that.socket_pool.getRouters());
     setTimeout(suitablePeer, 500);
   })();
 };
