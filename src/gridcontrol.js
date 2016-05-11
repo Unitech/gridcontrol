@@ -288,9 +288,6 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
                 data.public_ip,
                 data.curr_md5);
 
-    // Set task meta (env, task folder)
-    that.task_manager.setTaskMeta(data.meta);
-
     // Write received file to destination file
     that.file_manager.synchronize(data, file, function(err, meta) {
       if (err)
@@ -298,6 +295,9 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
 
       // Set unpacked file path as base folder
       data.meta.base_folder = meta.dest_folder;
+
+      // Set task meta (env, task folder)
+      that.task_manager.setTaskMeta(data.meta);
 
       that.emit('files:synchronized', {
         file : that.file_manager.getFilePath()

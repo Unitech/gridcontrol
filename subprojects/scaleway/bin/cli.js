@@ -134,9 +134,26 @@ program
   .description('ssh to each online host and execute <cmd>')
   .action(function(cmd, parallel) {
 
-    var windowmode = require('../window-mode.js');
+    var multissh = require('../window-mode.js');
 
-    windowmode.exposeStream(scaleway, cmd);
+    /**
+     * server_list []
+     * [{
+     *    .hostname
+     *
+     */
+    var server_list = [];
+
+    scaleway.server_list.forEach(function(server) {
+      //if (server.status != 'running') return;
+
+      server_list.push({
+        ip : server.public_ip.address,
+        hostname : server.hostname,
+        user : 'root'
+      });
+    });
+    multissh.start(server_list, cmd);
   });
 
 program
