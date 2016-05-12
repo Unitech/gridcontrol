@@ -13,7 +13,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 var utp = null;
 try {
-  var utp = require('utp-native')
+  //var utp = require('utp-native')
 } catch (err) {
   // do nothing
 }

@@ -199,7 +199,6 @@ var WinMode = {
         that._stream_buffer[server.hostname].error = e;
         that._stream_buffer[server.hostname].finished = true;
         that.formatOut(server.hostname, chalk.bold('Command Finished with Error\nDuration: ' + (Math.abs(((new Date()).getTime() - that._stream_buffer[server.hostname].started_at.getTime()) / 1000)) + 'secs'));
-        next();
       });
 
       stream.on('finish', function(code) {
