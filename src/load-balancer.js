@@ -99,7 +99,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
     debug('Routing task %s to %s:%s',
           task_id,
-          peer.identity.private_ip,
+          peer.identity.public_ip,
           peer.identity.api_port);
 
     peer.send('trigger', {
