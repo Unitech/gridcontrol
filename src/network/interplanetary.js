@@ -28,11 +28,10 @@ var RECONNECT_WAIT = [1000, 1000, 5000, 15000];
 module.exports = InterPlanetary;
 
 /**
- * Interplanetary is a powerful discovery system
+ * InterPlanetary is a powerful discovery system
  * based on discovery-swarm
  * It link machines together in the same subnetwork via DNS multicast
  * And over the internet via the Bittorrent Distributed Hash Table (DHT)
- *
  * @constructor
  * @param opts           {object} options
  * @param opts.maxConnections
@@ -44,16 +43,15 @@ module.exports = InterPlanetary;
  * @param opts.dns       {boolean} default:true activate/deactivate DNS discovery
  * @param opts.dht       {boolean} default:true activate/deactivate DHT discovery
  * @param opts.net       {object}
- * @param opts.net.key   {string} readable private key
- * @param opts.net.cert  {string} readable public key
  *
- * @event Interplanetary#close on server close
- * @event Interplanetary#peer on new peer connected
- * @event Interplanetary#connecting on peer connecting
- * @event Interplanetary#drop
- * @event Interplanetary#connection
- * @event Interplanetary#error
- * @event Interplanetary#listening
+ * @fires InterPlanetary#close on server close
+ * @fires InterPlanetary#peer on new peer connected
+ * @fires InterPlanetary#connecting on peer connecting
+ * @fires InterPlanetary#drop
+ * @fires InterPlanetary#connection
+ * @fires InterPlanetary#error
+ * @fires InterPlanetary#close
+ * @fires InterPlanetary#listening
  */
 function InterPlanetary (opts) {
   if (!(this instanceof InterPlanetary))
@@ -127,6 +125,9 @@ InterPlanetary.prototype.destroy = function (onclose) {
   }
 
   function onserverclose () {
+    /**
+     * @event InterPlanetary#close
+     */
     if (!--missing) self.emit('close')
   }
 }
@@ -153,6 +154,10 @@ InterPlanetary.prototype.__defineGetter__('connected', function () {
   return this.connections.length
 })
 
+/**
+ * Join a namespace name
+ * @public
+ */
 InterPlanetary.prototype.join = function (name) {
   name = toBuffer(name)
 
@@ -185,6 +190,9 @@ InterPlanetary.prototype.addPeer = function (peer) {
   if (this._peersSeen[peer.id]) return
   this._peersSeen[peer.id] = PEER_SEEN
   this._peersQueued.push(peer)
+  /**
+   * @event InterPlanetary#peer
+   */
   this.emit('peer', peer)
   this._kick()
 }
@@ -230,6 +238,9 @@ InterPlanetary.prototype._ondiscover = function () {
     if (self._peersSeen[id]) return
     self._peersSeen[id] = PEER_SEEN
     self._peersQueued.push(peerify(peer))
+    /**
+     * @event InterPlanetary#peer
+     */
     self.emit('peer', peer)
     self._kick()
   }
@@ -249,6 +260,9 @@ InterPlanetary.prototype._kick = function () {
   if (!next) return
 
   this.totalConnections++
+  /**
+   * @event InterPlanetary#connecting
+   */
   this.emit('connecting', next)
 
   var tcpSocket = null
@@ -386,6 +400,9 @@ InterPlanetary.prototype._onconnection = function (connection, type, peer) {
 
     self._peersIds[remoteIdHex] = connection
     self.connections.push(connection)
+    /**
+     * @event InterPlanetary#connection
+     */
     self.emit('connection', connection, remoteId)
   }
 }

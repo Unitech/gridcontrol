@@ -23,6 +23,7 @@ var SocketPool      = require('./network/socket-pool.js');
 
 /**
  * Main entry point of GridControl
+ * once object instancied, call .start()
  * @constructor
  * @this {GridControl}
  * @param opts                               {object} options
@@ -41,7 +42,14 @@ var SocketPool      = require('./network/socket-pool.js');
  * @param opts.task_meta.json_conf           {object} default location of sync data
  * @param opts.task_meta.task_folder         {string} default location of sync data
  * @param opts.task_meta.env                 {object} default location of sync data
- * @param cb                                 {function} callback
+ *
+ * @fires GridControl#ready
+ * @fires GridControl#ip:ready
+ * @fires GridControl#discovery:ready
+ * @fires GridControl#api:ready
+ * @fires GridControl#files:synchronized
+ * @fires GridControl#peer:synchronize
+ * @fires GridControl#new:peer
  */
 var GridControl = function(opts) {
   if (!(this instanceof GridControl))
@@ -169,15 +177,14 @@ GridControl.prototype.start = function(cb) {
     /**
      * Force re discovery if no grid has been detected
      */
-    var inter = setInterval(function() {
+    setInterval(function() {
       if (that.getRouters().length == 0) {
         debug('Retrying discovery');
         that.Interplanetary.close();
         that.startDiscovery(that.namespace);
       }
-      else
-        clearInterval(inter);
-    }, 10000)
+    }, 10000);
+
     this.startDiscovery(this.namespace, err => {
       if (err) console.error(err);
       this.emit('discovery:ready');
@@ -221,6 +228,11 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
   this.Interplanetary.on('connection', this.onNewPeer.bind(this));
 };
 
+/**
+ * Stop discovery
+ * @param cb {callback
+ * @public
+ */
 GridControl.prototype.stopDiscovery = function(cb) {
   this.Interplanetary.close();
 };
@@ -233,6 +245,8 @@ GridControl.prototype.stopDiscovery = function(cb) {
 GridControl.prototype.onNewPeer = function(sock, remoteId) {
   var that   = this;
   var router = this.SocketPool.add(sock);
+
+  that.emit('new:peer', sock);
 
   router.send('identity', that.getLocalIdentity());
 
@@ -332,6 +346,10 @@ GridControl.prototype.getRouters = function() {
   return this.SocketPool.getRouters();
 };
 
+/**
+ * Get local identity
+ * @public
+ */
 GridControl.prototype.getLocalIdentity = function() {
   var that = this;
 
@@ -364,12 +382,16 @@ GridControl.prototype.askAllPeersToSync = function() {
 };
 
 /**
- * Send synchronize command to target sock
- * @param sock {object} socket obj
+ * Send peer to synchronize
+ * it sends the file buffer and meta on the same command
+ * (see that.file_manager.current_file_buff argument)
+ * @param router {object} router object
  * @public
  */
 GridControl.prototype.askPeerToSync = function(router) {
   var that = this;
+
+  that.emit('peer:synchronize');
 
   debug('Asking %s[%s] to sync', router.identity.public_ip, router.identity.name);
   router.send('sync', {

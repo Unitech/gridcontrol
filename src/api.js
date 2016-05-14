@@ -176,7 +176,9 @@ API.prototype.mountRoutes = function() {
       peers.push(router.identity);
     });
 
-    peers.push(req.net_manager.getLocalIdentity());
+    var local = req.net_manager.getLocalIdentity();
+    local.local = true;
+    peers.push(local);
     return res.send(peers);
   });
 

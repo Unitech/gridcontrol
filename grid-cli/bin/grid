@@ -1,0 +1,232 @@
+#!/usr/bin/env node
+
+var program      = require('commander');
+var fs           = require('fs');
+var path         = require('path');
+var package      = require('../package.json');
+var sshexec      = require('ssh-exec');
+var chalk        = require('chalk');
+var cliSpinners  = require('cli-spinners');
+var async        = require('async');
+var grid         = require('grid-api');
+var cliux        = require('./cli-ux.js');
+var multissh     = require('multissh');
+
+program
+  .version(package.version);
+
+/**
+ * Customs
+ */
+program
+  .description('List all peers connected to network')
+  .option('--watch')
+  .command('list')
+  .alias('ls')
+  .action(function() {
+    if (program.watch === true)
+      cliux.displayHostsWatch();
+    else
+      grid.listHosts(function(err, hosts) {
+        if (err) return exitError(err);
+        return cliux.displayHosts(hosts);
+      });
+  });
+
+program
+  .description('Status data about the current grid')
+  .command('status')
+  .action(function() {
+  });
+
+program
+  .description('List all peers connected to network')
+  .command('invoke')
+  .action(function() {
+  });
+
+program
+  .description('Clear all tasks and sync files')
+  .command('reset')
+  .action(function() {
+  });
+
+program
+  .description('Uninstall grid control on all nodes')
+  .command('unprovision')
+  .action(function() {
+  });
+
+program
+  .command('install <grid_name>')
+  .description('Install local Gridcontrol app')
+  .action(function(grid_name) {
+    var shelljs = require('shelljs');
+
+    shelljs.exec('npm install pm2 -g; GRID=' + grid_name + ' pm2 install gridcontrol', function() {
+      exitSuccess();
+    });
+  });
+
+program
+  .description('move all server to another grid namespace')
+  .command('move <new_grid_name>')
+  .action(function(new_grid_name) {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      multissh.start('GRID="' + new_grid_name + '" pm2 restart gridcontrol', server_list, function() {
+        var shelljs = require('shelljs');
+
+        shelljs.exec('GRID="' + new_grid_name + '" pm2 restart gridcontrol', function() {
+          exitSuccess();
+        });
+      });
+
+    });
+  });
+
+program
+  .description('provision a remote node')
+  .command('provision <username> <ip> <grid_name>')
+  .action(function(username, ip, namespace) {
+    var exec = require('child_process').exec;
+    var strssh = username + '@' + ip;
+
+    var child = exec('scp ' + __dirname + '/../install.sh ' + strssh + ':/tmp');
+
+    child.stdout.on('data', function(data) {
+      console.log('stdout: ' + data);
+    });
+
+    child.stderr.on('data', function(data) {
+      console.log('stderr: ' + data);
+    });
+
+    child.on('close', function(code) {
+      console.log('Install script copied with code %d', code);
+
+      var stream = sshexec("PS1='$ ' source ~/.bashrc; cat /tmp/install.sh | GRID=" + namespace + " bash", strssh);
+
+      stream.on('data', function(dt) {
+        process.stdout.write(dt.toString());
+      });
+
+      stream.on('error', function(e) {
+        console.log('Got error', e.message || e);
+      });
+
+      stream.on('exit', function() {
+        exitSuccess();
+      });
+
+    });
+  });
+
+program
+  .description('List all tasks')
+  .command('list-tasks')
+  .alias('tasks')
+  .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      multissh.start('pm2 ls', server_list);
+    });
+  });
+
+program
+  .description('Upgrade whole grid to latest gridcontrol version')
+  .command('upgrade [version]')
+  .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      multissh.start('pm2 install gridcontrol', server_list);
+    });
+  });
+
+program
+  .description('Execute a bash command on each Grid nodes')
+  .command('spread <bash command>')
+  .action(function(bash_command) {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      multissh.start(bash_command, server_list);
+    });
+  });
+
+program
+  .description('Display logs of all nodes')
+  .command('logs [task_name]')
+  .action(function(task_name) {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      var cmd = 'pm2 logs' + (task_name ? ' ' + task_name : '');
+      multissh.start(cmd, server_list);
+    });
+  });
+
+program
+  .description('Monitor all nodes and tasks with Keymetrics (https://keymetrics.io)')
+  .command('monitor <secret_key> <public_key>')
+  .action(function(secret, public) {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      var cmd = 'pm2 link ' + secret + ' ' + public;
+      multissh.start(cmd, server_list);
+    });
+  });
+
+program
+  .description('Restart local Gridcontrol app')
+  .command('restart')
+  .action(function() {
+    var shelljs = require('shelljs');
+
+    shelljs.exec('pm2 restart gridcontrol', function() {
+      exitSuccess();
+    });
+  });
+
+function listServerForMulti(cb) {
+  grid.listHosts(function(err, hosts) {
+    if (err) return cb(err);
+    var server_list = [];
+
+    hosts.forEach(function(host) {
+      if (host.local == true) return;
+      server_list.push({
+        ip : host.public_ip,
+        user : host.user
+      });
+    });
+
+    return cb(null, server_list);
+  });
+}
+
+
+/**
+ * Generics
+ */
+program
+  .command('*')
+  .action(function(env){
+    console.log('Enter a Valid command');
+    program.outputHelp();
+    process.exit(0);
+  });
+
+program.parse(process.argv);
+
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+}
+
+function exitError(err) {
+  console.error(err);
+  process.exit(1);
+}
+
+function exitSuccess(msg) {
+  console.log(chalk.bold.green(msg || 'Action successfully executed'));
+  process.exit(0);
+}

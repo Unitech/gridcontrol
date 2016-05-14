@@ -36,6 +36,7 @@ module.exports = FilesManagement;
  */
 FilesManagement.prototype.prepareSync = function(base_folder, cb) {
   var that = this;
+  var file_changed = false;
 
   // Create tarball
   Compress.pack(base_folder, defaults.SYNC_FILE, function(e) {
@@ -43,7 +44,17 @@ FilesManagement.prototype.prepareSync = function(base_folder, cb) {
 
     that.has_file_to_sync = true;
     that.is_file_master   = true;
-    that.current_sync_md5 = FilesManagement.getFileMD5(defaults.SYNC_FILE);
+
+    var new_md5 = FilesManagement.getFileMD5(defaults.SYNC_FILE);
+
+    if (that.current_sync_md5 == new_md5) {
+      file_changed = false;
+      debug('No modification on tar ball');
+    }
+    else {
+      file_changed = true;
+      that.current_sync_md5 = new_md5;
+    }
 
     fs.readFile(defaults.SYNC_FILE, function(err, file_buffer) {
       if (err) {
@@ -54,8 +65,9 @@ FilesManagement.prototype.prepareSync = function(base_folder, cb) {
       that.current_file_buff = file_buffer;
 
       return cb(err, {
-        folder : base_folder,
-        target : defaults.SYNC_FILE
+        file_changed : file_changed,
+        folder       : base_folder,
+        target       : defaults.SYNC_FILE
       });
     });
 

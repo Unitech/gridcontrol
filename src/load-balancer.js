@@ -43,7 +43,7 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
   var retry = 0;
 
   (function rec() {
-    if (retry++ > 15)
+    if (retry++ > 100)
       console.error('Trying too many time to route request!');
 
     var target = that.peer_list[that._rri++ % that.peer_list.length];

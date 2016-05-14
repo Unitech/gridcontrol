@@ -5,7 +5,7 @@
 - [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
 - [ ] grid-cli $ grid status -> print computing powert
 - [ ] blessed-contrib build a dashboard with list of node connected + tasks
-- [ ] Integrate multissh with CLI (multissh)
+- [x] Integrate multissh with CLI (multissh)
 
 - [X] Modularize multi ssh blessed based capability
 ------> Keymetrics integration : grid install keymetrics <private_key> <public_key>

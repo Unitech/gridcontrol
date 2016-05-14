@@ -11,10 +11,12 @@ SocketPool.prototype.add = function(socket) {
   var that = this;
 
   socket.on('error', function() {
+    debug('peer %s errored', that._socket_pool[peer.id].identity.public_ip);
     delete that._socket_pool[peer.id];
   });
 
   socket.on('close', function() {
+    debug('peer %s left', that._socket_pool[peer.id].identity.public_ip);
     delete that._socket_pool[peer.id];
   });
 

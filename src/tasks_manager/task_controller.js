@@ -40,13 +40,20 @@ Controller.init_task_group = function(req, res, next) {
   }, function(err, procs) {
     if (err) return next(err);
 
-    req.file_manager.prepareSync(base_folder, function(e, dt) {
+    req.file_manager.prepareSync(base_folder, function(e, infos) {
       if (e) {
         console.error('Got error while generating Syncro package. Please retry init.');
         return console.error(e);
       }
-      console.log('Sync file generated for folder=%s target=%s', dt.folder, dt.target);
-      req.net_manager.askAllPeersToSync();
+      console.log('Sync file generated for folder=%s target=%s',
+                  infos.folder,
+                  infos.target);
+      if (infos.file_changed == true) {
+        req.net_manager.askAllPeersToSync();
+      }
+      else {
+        debug('Files not modified, skipping sync');
+      }
     });
 
     return res.send(procs);
