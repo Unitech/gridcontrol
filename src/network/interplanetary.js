@@ -2,16 +2,14 @@ var discovery   = require('discovery-channel');
 var pump        = require('pump');
 var events      = require('events');
 var util        = require('util');
-var tls         = require('net');
+var net         = require('net');
 var equals      = require('buffer-equals');
 var toBuffer    = require('to-buffer');
 var crypto      = require('crypto');
 var lpmessage   = require('length-prefixed-message');
 var connections = require('connections');
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
-var utp = null;
+var utp = false;
 try {
   //var utp = require('utp-native')
 } catch (err) {
@@ -45,9 +43,9 @@ module.exports = InterPlanetary;
  * @param opts.utp       {boolean} (disabled) activate/deactivate UTP connection
  * @param opts.dns       {boolean} default:true activate/deactivate DNS discovery
  * @param opts.dht       {boolean} default:true activate/deactivate DHT discovery
- * @param opts.tls       {object}
- * @param opts.tls.key   {string} readable private key
- * @param opts.tls.cert  {string} readable public key
+ * @param opts.net       {object}
+ * @param opts.net.key   {string} readable private key
+ * @param opts.net.cert  {string} readable public key
  *
  * @event Interplanetary#close on server close
  * @event Interplanetary#peer on new peer connected
@@ -68,10 +66,6 @@ function InterPlanetary (opts) {
 
   this._opts = opts || {};
 
-  if (!this._opts.tls) {
-    throw new Error('No certificates!');
-  }
-
   this.maxConnections = this._opts.maxConnections || 0;
   this.totalConnections = 0;
 
@@ -81,7 +75,7 @@ function InterPlanetary (opts) {
 
   this._stream = this._opts.stream;
   this._discovery = null;
-  this._tcp = this._opts.tcp === false ? null : tls.createServer(this._opts.tls).on('connection', onconnection);
+  this._tcp = this._opts.tcp === false ? null : net.createServer().on('connection', onconnection);
   this._utp = this._opts.utp === false || !utp ? null : utp().on('connection', onconnection);
   this._tcpConnections = this._tcp && connections(this._tcp);
   this._adding = null;
@@ -264,7 +258,7 @@ InterPlanetary.prototype._kick = function () {
 
   if (this._tcp) {
     tcpClosed = false;
-    tcpSocket = tls.connect(next.port, next.host, this._opts.tls);
+    tcpSocket = net.connect(next.port, next.host);
     tcpSocket.on('connect', onconnect);
     tcpSocket.on('error', onerror);
     tcpSocket.on('close', onclose);

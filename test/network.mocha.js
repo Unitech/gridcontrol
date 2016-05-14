@@ -44,12 +44,12 @@ describe('Network', function() {
     });
 
     it('n1 should list 1 peer', function(done) {
-      should(n1.getSockets().length).eql(1);
+      should(n1.getRouters().length).eql(1);
       done();
     });
 
     it('n2 should list 1 peer', function(done) {
-      should(n2.getSockets().length).eql(1);
+      should(n2.getRouters().length).eql(1);
       setTimeout(done, 1000);
     });
   });

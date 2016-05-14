@@ -45,9 +45,6 @@
     "ms": "~0.6.1",
     "amp-message": "0.1.1"
   },
-  "optionalDependencies": {
-    "utp-native": "^1.2.2"
-  },
   "author": "Alexandre Strzelewicz <strzelewicz.alexandre@gmail.com>",
   "license": "ApacheV2"
 }
