@@ -37,6 +37,8 @@ $ google-chrome apidocs/index.html
 
 ## Folder structure
 
+![flow.png](flow.png)
+
 ```
 src/ : Sources
 docs/: Documentation

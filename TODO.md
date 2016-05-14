@@ -2,14 +2,18 @@
 
 ## Ideas
 
-- [ ] Modularize multi ssh blessed based capability
+- [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
+- [ ] grid-cli $ grid status -> print computing powert
+- [ ] blessed-contrib build a dashboard with list of node connected + tasks
 - [ ] Integrate multissh with CLI (multissh)
+
+- [X] Modularize multi ssh blessed based capability
 ------> Keymetrics integration : grid install keymetrics <private_key> <public_key>
 ------> Keymetrics access: grid keymetrics access
 ------> Change namespace: grid namespace <new:namespace>
 
-- [ ] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
-- [ ] Compatibility with Amazon lamda/apdex
+- [X] Socket that are not identified (not sent 'identify' data) can break stuff (.getPeers return all sockets)
+- [X] Compatibility with Amazon lamda/apdex
 - [ ] Transpose client in Python, Java, Go
 - [X] Fix returned synchronized flag when listing
 - [NOK- not anymore http between peers] At initialization check that http connection can be made
@@ -21,7 +25,7 @@
 - [X] Use discovery-swarm
 - [X] patch discovery-swam with TLS
 - [X] Fix issue, tests some time fail
-- [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
+
 
 - [X] Fix issue port on script restart
 - [X] Report error when task has been retried more than 8 times (8 seconds)
