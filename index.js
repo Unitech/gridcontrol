@@ -17,3 +17,5 @@ if (require.main === module) {
 }
 
 module.exports = GridControl;
+
+module.exports.client = require('./grid-api/');

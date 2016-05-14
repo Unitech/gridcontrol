@@ -47,8 +47,18 @@ docs/: Documentation
 test/: Test file folder
 ```
 
-##
+## Programmatic usage
+
 ```
+var gridcontrol = require('gridcontrol');
+
+// opts: see api doc for parameter
+gridcontrol({ })
+
+// this is the API client (grid-api)
+var client = gridcontrol.client
+```
+
 ## Repo for PR
 
 [https://github.com/gridcontrol/gridcontrol](https://github.com/gridcontrol/gridcontrol)
