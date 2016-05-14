@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "bash test/test.sh && sleep 1 && ./node_modules/.bin/mocha grid-api/test/*.mocha.js",
-    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc -c jsdoc.json -t ./node_modules/ink-docstrap/template -R README.md -d apidocs -r ."
+    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
   "devDependencies": {
     "should": "*",

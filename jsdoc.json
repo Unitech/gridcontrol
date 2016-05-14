@@ -3,20 +3,12 @@
     "allowUnknownTags": true
   },
   "source": {
-    "includePattern": "src/.+\\.js(doc)?$",
-    "excludePattern": "(^|\\/|\\\\)_",
-    "exclude": [
-      "node_modules",
-      "plugins",
-      "test",
-      "docs"
-    ]
   },
   "plugins": [],
   "templates": {
     "cleverLinks": false,
     "monospaceLinks": false,
-    "systemName" : "PM2 CloudFunctions",
+    "systemName" : "Gridcontrol",
     "copyright" : "Alexandre Strzelewicz",
     "theme" : "simplex"
   }

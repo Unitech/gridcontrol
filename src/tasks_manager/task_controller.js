@@ -2,9 +2,6 @@
 var request    = require('request');
 var debug      = require('debug')('tasks');
 
-/**
- * @namespace TaskController
- */
 var Controller = {};
 
 /**

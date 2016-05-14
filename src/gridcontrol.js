@@ -22,20 +22,26 @@ var InternalIp      = require('./network/internal-ip.js');
 var SocketPool      = require('./network/socket-pool.js');
 
 /**
- * TO UPDATE
  * Main entry point of GridControl
  * @constructor
  * @this {GridControl}
- * @param opts                {object} options
- * @param opts.tmp_file       {string} default location of sync data
- * @param opts.tmp_folder     {string} default location of folder uncomp
- * @param opts.peer_api_port  {integer} API port (then task p+1++)
- * @param opts.ns             {string} (default pm2:fs)
- * @param opts.is_file_master {boolean} (default false)
- * @param opts.peer_address   {string}  (default network ip)
- * @param opts.private_key    {string} Private key passed to TCP and HTTP
- * @param opts.public_key     {string} Public key passed to TCP and HTTP
- * @param cb                  {function} callback
+ * @param opts                               {object} options
+ * @param opts.peer_name                     {string} host name
+ * @param opts.namespace                     {string} grid name for discovery
+ * @param opts.peer_api_port                 {integer} API port (then task p+1++)
+ * @param opts.file_manager                  {object} default location of sync data
+ * @param opts.file_manager.dest_file        {string} default location of sync data
+ * @param opts.file_manager.dest_folder      {string} default location of sync data
+ * @param opts.file_manager.is_file_master   {string} default location of sync data
+ * @param opts.file_manager.has_file_to_sync {string} default location of sync data
+ * @param opts.file_manager.tmp_folder       {string} default location of folder uncomp
+ * @param opts.task_manager                  {object} default location of sync data
+ * @param opts.task_meta                     {object} default location of sync data
+ * @param opts.task_meta.instances           {integer} default location of sync data
+ * @param opts.task_meta.json_conf           {object} default location of sync data
+ * @param opts.task_meta.task_folder         {string} default location of sync data
+ * @param opts.task_meta.env                 {object} default location of sync data
+ * @param cb                                 {function} callback
  */
 var GridControl = function(opts) {
   if (!(this instanceof GridControl))
@@ -45,16 +51,10 @@ var GridControl = function(opts) {
 
   // To save
   this.peer_name     = opts.peer_name || Moniker.choose();
-  this.namespace     = process.env.NS || opts.namespace || 'pm2:fs';
+  this.namespace     = process.env.NS || process.env.GRID || opts.namespace || 'pm2:fs';
   this.private_ip    = InternalIp.v4();
   this.peer_api_port = opts.peer_api_port  || 10000;
   this.processing_tasks = [];
-
-  this.tls = {
-    key  : fs.readFileSync(path.join(__dirname, opts.private_key || '../misc/private.key')),
-    cert : fs.readFileSync(path.join(__dirname, opts.public_key || '../misc/public.crt'))
-  };
-
   this.SocketPool = new SocketPool();
 
   /**
@@ -99,15 +99,14 @@ var GridControl = function(opts) {
     task_manager : that.task_manager,
     file_manager : that.file_manager,
     net_manager  : this,
-    port         : that.peer_api_port,
-    tls          : that.tls
+    port         : that.peer_api_port
   });
 };
 
 GridControl.prototype.__proto__ = EventEmitter.prototype;
 
 /**
- * Stop API + Network discovery + clear files
+ * Stop everything (api, discovery, socket pool, task manager, file manager)
  * @public
  */
 GridControl.prototype.close = function(cb) {
@@ -120,8 +119,8 @@ GridControl.prototype.close = function(cb) {
 };
 
 /**
- * Serialize whole Grid control
- * for later restore
+ * Serialize whole Grid control for later restore
+ * Just pass back this objet to Gridcontrol constructor to rebuild
  */
 GridControl.prototype.serialize = function() {
   return {
@@ -167,6 +166,9 @@ GridControl.prototype.start = function(cb) {
     this.public_ip = ip;
     this.emit('ip:ready');
 
+    /**
+     * Force re discovery if no grid has been detected
+     */
     var inter = setInterval(function() {
       if (that.getRouters().length == 0) {
         debug('Retrying discovery');
@@ -190,7 +192,7 @@ GridControl.prototype.start = function(cb) {
 
 /**
  * Start network discovery
- * @param sock {object} socket object
+ * @param ns {string} namespace for discovery
  * @public
  */
 GridControl.prototype.startDiscovery = function(ns, cb) {
@@ -198,12 +200,12 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
 
   this.namespace = ns;
 
-  this.Interplanetary = Interplanetary({
-    tls        : that.tls
-  });
+  var key = new Buffer(this.namespace + ':square-node:unik');
+
+  this.Interplanetary = Interplanetary();
 
   this.Interplanetary.listen(0);
-  this.Interplanetary.join(ns);
+  this.Interplanetary.join(key.toString('hex'));
 
   this.Interplanetary.on('error', function(e) {
     console.error('Interplanetary got error');
