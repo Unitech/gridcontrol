@@ -21,7 +21,8 @@
     "ora" : "*",
     "clear" :"*",
     "async" : "*",
-    "cli-spinners" : "*"
+    "cli-spinners" : "*",
+    "multissh" : "*"
   },
   "author": "",
   "license": "ISC"
