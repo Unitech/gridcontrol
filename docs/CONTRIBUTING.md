@@ -1,16 +1,16 @@
 
 # Contributing
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/keymetrics/gridcontrol/master/docs/flow.png?token=AAuP88IIjugIu6wDbvXGA7pXRDSug4m3ks5XQIyawA%3D%3D"/>
-</div>
-
 ```bash
 $ git clone https://github.com/gridcontrol/gridcontrol
 $ cd gridcontrol/
 $ npm install
 $ GRID="GRID_NAME" API_PORT="API_PORT" node index.js
 ```
+
+<div align="center">
+<img src="https://raw.githubusercontent.com/keymetrics/gridcontrol/master/docs/flow.png?token=AAuP88IIjugIu6wDbvXGA7pXRDSug4m3ks5XQIyawA%3D%3D"/>
+</div>
 
 ## Debug logs
 
