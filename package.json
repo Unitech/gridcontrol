@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.3.0",
+  "version": "0.2.4",
   "description": "",
   "main": "index.js",
   "apps": [
@@ -33,7 +33,6 @@
     "tar-fs": "*",
     "chalk": "*",
     "fmt": "*",
-    "nssocket": "*",
     "buffer-equals": "^1.0.3",
     "connections": "^1.4.2",
     "discovery-channel": "^5.0.0",
