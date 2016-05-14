@@ -167,15 +167,15 @@ GridControl.prototype.start = function(cb) {
     this.public_ip = ip;
     this.emit('ip:ready');
 
-    // var inter = setInterval(function() {
-    //   if (that.getRouters().length == 0) {
-    //     debug('Retrying discovery');
-    //     that.Interplanetary.close();
-    //     that.startDiscovery(that.namespace);
-    //   }
-    //   else
-    //     clearInterval(inter);
-    // }, 1000)
+    var inter = setInterval(function() {
+      if (that.getRouters().length == 0) {
+        debug('Retrying discovery');
+        that.Interplanetary.close();
+        that.startDiscovery(that.namespace);
+      }
+      else
+        clearInterval(inter);
+    }, 10000)
     this.startDiscovery(this.namespace, err => {
       if (err) console.error(err);
       this.emit('discovery:ready');
