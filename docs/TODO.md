@@ -2,6 +2,7 @@
 
 ## Ideas
 
+- [ ] Grid upgrade = dont keep namespace
 - [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
 - [ ] grid-cli $ grid status -> print computing powert
 - [ ] blessed-contrib build a dashboard with list of node connected + tasks

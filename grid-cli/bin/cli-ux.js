@@ -6,6 +6,9 @@ var netfunctions = require('grid-api');
 
 var CliUX = {};
 
+CliUX.status = function(peers) {
+}
+
 CliUX.displayHosts = function(peers) {
   // instantiate
   var table = new Table({
@@ -31,6 +34,9 @@ CliUX.displayHosts = function(peers) {
   });
 
   console.log(table.toString());
+  if (peers[0]) {
+    console.log(chalk.bold('Grid name: ') + chalk.bold.blue(peers[0].ns));
+  }
 };
 
 CliUX.displayHostsWatch = function(peers) {

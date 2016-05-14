@@ -16,10 +16,10 @@ SocketPool.prototype.add = function(socket) {
   });
 
   socket.on('close', function() {
-    debug('peer %s left', that._socket_pool[peer.id].identity.public_ip);
+    if (that._socket_pool[peer.id] && that._socket_pool[peer.id].identity)
+      debug('peer %s left', that._socket_pool[peer.id].identity.public_ip);
     delete that._socket_pool[peer.id];
   });
-
 
   peer.on('identity', function(data) {
     debug('status=identity meta info from=%s[%s]',

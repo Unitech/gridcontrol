@@ -46,9 +46,14 @@ program
   });
 
 program
-  .description('Clear all tasks and sync files')
+  .description('Clear all')
   .command('reset')
+  .alias('clear')
   .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      execCmd('pm2 delete all ; pm2 restart gridcontrol', server_list);
+    });
   });
 
 program
@@ -58,8 +63,8 @@ program
   });
 
 program
-  .command('install <grid_name>')
-  .description('Install local Gridcontrol app')
+  .command('init <grid_name>')
+  .description('Install a local Gridcontrol Node')
   .action(function(grid_name) {
     var shelljs = require('shelljs');
 
@@ -74,7 +79,7 @@ program
   .action(function(new_grid_name) {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      multissh.start('GRID="' + new_grid_name + '" pm2 restart gridcontrol', server_list, function() {
+      multissh.start('NS="' + new_grid_name + '" pm2 restart gridcontrol', server_list, function() {
         var shelljs = require('shelljs');
 
         shelljs.exec('GRID="' + new_grid_name + '" pm2 restart gridcontrol', function() {
@@ -129,7 +134,7 @@ program
   .action(function() {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      multissh.start('pm2 ls', server_list);
+      execCmd('pm2 ls', server_list);
     });
   });
 
@@ -139,17 +144,17 @@ program
   .action(function() {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      multissh.start('pm2 install gridcontrol', server_list);
+      execCmd('pm2 install gridcontrol', server_list);
     });
   });
 
 program
   .description('Execute a bash command on each Grid nodes')
-  .command('spread <bash command>')
+  .command('spread <bash_command>')
   .action(function(bash_command) {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      multissh.start(bash_command, server_list);
+      execCmd(bash_command, server_list);
     });
   });
 
@@ -160,7 +165,7 @@ program
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
       var cmd = 'pm2 logs' + (task_name ? ' ' + task_name : '');
-      multissh.start(cmd, server_list);
+      execCmd(cmd, server_list);
     });
   });
 
@@ -171,7 +176,7 @@ program
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
       var cmd = 'pm2 link ' + secret + ' ' + public;
-      multissh.start(cmd, server_list);
+      execCmd(cmd, server_list);
     });
   });
 
@@ -186,16 +191,32 @@ program
     });
   });
 
+function execCmd(cmd, server_list) {
+  multissh.start(cmd, server_list, function() {
+    displayHosts();
+    setTimeout(function() {
+      process.exit(0);
+    }, 40);
+  });
+};
+
+function displayHosts() {
+  grid.listHosts(function(err, hosts) {
+    if (err) return exitError(err);
+    return cliux.displayHosts(hosts);
+  });
+};
+
 function listServerForMulti(cb) {
   grid.listHosts(function(err, hosts) {
     if (err) return cb(err);
     var server_list = [];
 
     hosts.forEach(function(host) {
-      if (host.local == true) return;
       server_list.push({
         ip : host.public_ip,
-        user : host.user
+        user : host.user,
+        local : host.local
       });
     });
 

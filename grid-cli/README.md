@@ -13,9 +13,11 @@ Now the bin `grid` should be available via the CLI.
 
 ## Commands
 
+Make sure SSH keys are set.
+
 ```bash
 # Install a local node (required)
-$ grid install <grid_name>
+$ grid init <grid_name>
 
 # Provision a remote node
 $ grid provision username ip <grid_name>
