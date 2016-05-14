@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "",
   "main": "index.js",
   "apps": [
@@ -40,7 +40,6 @@
     "length-prefixed-message": "^3.0.3",
     "pump": "^1.0.1",
     "to-buffer": "^1.0.1",
-
     "amp": "0.3.1",
     "ms": "~0.6.1",
     "amp-message": "0.1.1"
