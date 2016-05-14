@@ -2,7 +2,7 @@
 # Contributing
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/keymetrics/gridcontrol/master/docs/flow.png"/>
+<img src="https://raw.githubusercontent.com/keymetrics/gridcontrol/master/docs/flow.png?token=AAuP88IIjugIu6wDbvXGA7pXRDSug4m3ks5XQIyawA%3D%3D"/>
 </div>
 
 ```bash
