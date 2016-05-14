@@ -1,6 +1,10 @@
 
 # Contributing
 
+<div align="center">
+![flow.png](flow.png)
+</div>
+
 ```bash
 $ git clone https://github.com/gridcontrol/gridcontrol
 $ cd gridcontrol/
@@ -36,8 +40,6 @@ $ google-chrome apidocs/index.html
 ```
 
 ## Folder structure
-
-![flow.png](flow.png)
 
 ```
 src/ : Sources
