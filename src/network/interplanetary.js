@@ -10,12 +10,6 @@ var lpmessage   = require('length-prefixed-message');
 var connections = require('connections');
 
 var utp = false;
-try {
-  //var utp = require('utp-native')
-} catch (err) {
-  // do nothing
-}
-
 
 var PEER_SEEN = 1;
 var PEER_BANNED = 2;
@@ -168,6 +162,7 @@ InterPlanetary.prototype.join = function (name) {
   } else {
     this._discovery.join(name, this._tcp.address().port, {impliedPort: !!this._utp})
   }
+
 }
 
 InterPlanetary.prototype.leave = function (name) {
