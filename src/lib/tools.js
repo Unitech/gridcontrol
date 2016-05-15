@@ -5,16 +5,53 @@ var debug = require('debug')('tools');
 
 var Tools = {};
 
-Tools.readConf = function(data, cb) {
-  var conf_file = path.resolve(process.env.HOME, '.gridcontrol.json');
+Tools.readConf = function(file, cb) {
+  var conf_file;
 
-  fs.readFile(conf_file, function(err) {
-    if (err.code == 'ENOENT') {
+  if (typeof(file) === 'function') {
+    cb = file;
+    conf_file = path.resolve(process.env.HOME, '.gridcontrol.json');
+  }
+  else {
+    conf_file = path.resolve(process.cwd(), file);
+  }
+
+  fs.readFile(conf_file, function(err, data) {
+    if (err && err.code == 'ENOENT') {
       debug('First initialization');
+      return cb(err);
     }
     else if (err) {
       console.error('Got uncaught error', err);
+      return cb(err);
     }
+    else
+      return cb(null, JSON.parse(data));
+  });
+};
+
+Tools.writeConf = function(file, data, cb) {
+  var conf_file;
+
+  if (typeof(data) === 'function') {
+    cb = data;
+    conf_file = path.resolve(process.env.HOME, '.gridcontrol.json');
+  }
+  else if (data == null) {
+    cb = function() {};
+    data = file;
+    conf_file = path.resolve(process.env.HOME, '.gridcontrol.json');
+  }
+  else {
+    conf_file = path.resolve(process.cwd(), file);
+  }
+
+  fs.writeFile(conf_file, JSON.stringify(data,' ', 2), function(err) {
+    if (err) {
+      console.error('Got uncaught error', err);
+      return cb(err);
+    }
+    return cb(null, {success:true});
   });
 };
 

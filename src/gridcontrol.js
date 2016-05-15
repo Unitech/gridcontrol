@@ -13,6 +13,7 @@ var defaults        = require('./constants.js');
 var FilesManagement = require('./files/file_manager.js');
 var TaskManager     = require('./tasks_manager/task_manager.js');
 
+var Tools           = require('./lib/tools.js');
 var LoadBalancer    = require('./load-balancer.js');
 var API             = require('./api.js');
 var Wait            = require('./lib/wait.js');
@@ -57,13 +58,12 @@ var GridControl = function(opts) {
 
   var that = this;
 
-  // To save
-  this.peer_name     = opts.peer_name || Moniker.choose();
-  this.namespace     = process.env.NS || process.env.GRID || opts.namespace || 'pm2:fs';
-  this.private_ip    = InternalIp.v4();
-  this.peer_api_port = opts.peer_api_port  || 10000;
+  this.peer_name        = opts.peer_name || Moniker.choose();
+  this.namespace        = process.env.GRID || opts.namespace || 'pm2:fs';
+  this.private_ip       = InternalIp.v4();
+  this.peer_api_port    = opts.peer_api_port  || 10000;
   this.processing_tasks = [];
-  this.SocketPool = new SocketPool();
+  this.SocketPool       = new SocketPool();
 
   /**
    * File manager initialization
@@ -154,6 +154,19 @@ GridControl.prototype.start = function(cb) {
   ], function() {
     that.emit('ready');
 
+    /**
+     * Force re discovery if no grid has been detected
+     */
+    setInterval(function() {
+      if (that.getRouters().length == 0) {
+        debug('Retrying discovery');
+        that.Interplanetary.close();
+        that.startDiscovery(that.namespace);
+      }
+    }, 10000);
+
+    Tools.writeConf(that.serialize());
+
     // Form
     fmt.title('Peer ready');
     fmt.field('Name', that.peer_name);
@@ -173,17 +186,6 @@ GridControl.prototype.start = function(cb) {
   publicIp.v4().then(ip => {
     this.public_ip = ip;
     this.emit('ip:ready');
-
-    /**
-     * Force re discovery if no grid has been detected
-     */
-    setInterval(function() {
-      if (that.getRouters().length == 0) {
-        debug('Retrying discovery');
-        that.Interplanetary.close();
-        that.startDiscovery(that.namespace);
-      }
-    }, 10000);
 
     this.startDiscovery(this.namespace, err => {
       if (err) console.error(err);

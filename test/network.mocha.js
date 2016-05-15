@@ -1,7 +1,7 @@
 
 process.env.NODE_ENV='test';
 process.env.DEBUG='network,api,lb';
-process.env.NS='vla:test:namespace';
+process.env.GRID='vla:test:namespace';
 
 var fs      = require('fs');
 var network = require('../index.js');
@@ -26,7 +26,7 @@ describe('Network', function() {
     });
 
     it('should have the rigth namespace (via process.env.NS)', function(done) {
-      should(n1.namespace).eql(process.env.NS);
+      should(n1.namespace).eql(process.env.GRID);
       done();
     });
 

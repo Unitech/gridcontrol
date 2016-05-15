@@ -12,7 +12,6 @@ The more *GridControl* you add, the more calculation power you get.
 ## Features
 
 - **0 conf** Auto discovery system via Bittorent DHT and DNS multicast
-- **0 conf** Connection system accross private network, wifi
 - **0 conf** Pandemic style application source sharing with dependencies and consistency checks
 - **Ecosystem**: Toolbox for Grid management (grid CLI, provisioning, multissh)
 - **Fast**: Grid interconnected via TCP/UTP sockets

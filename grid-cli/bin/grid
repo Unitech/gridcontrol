@@ -79,7 +79,7 @@ program
   .action(function(new_grid_name) {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      multissh.start('NS="' + new_grid_name + '" pm2 restart gridcontrol', server_list, function() {
+      multissh.start('GRID="' + new_grid_name + '" pm2 restart gridcontrol', server_list, function() {
         var shelljs = require('shelljs');
 
         shelljs.exec('GRID="' + new_grid_name + '" pm2 restart gridcontrol', function() {

@@ -6,14 +6,19 @@ var GridControl = require('./src/');
 
 if (require.main === module) {
 
-  //var Tools = require('./src/tools.js');
-  //Tools.serializeToFile();
+  var Tools = require('./src/lib/tools.js');
 
-  var grid = new GridControl({
-    peer_api_port : process.env.API_PORT || process.argv[2] || 10000
+  Tools.readConf(function(err, conf) {
+    if (!conf) conf = {};
+
+    if (process.env.GRID)
+      conf.namespace = process.env.GRID;
+    if (process.env.API_PORT)
+      conf.peer_api_port = process.env.API_PORT;
+
+    var grid = new GridControl(conf);
+    grid.start();
   });
-
-  grid.start();
 }
 
 module.exports = GridControl;

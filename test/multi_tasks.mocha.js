@@ -1,7 +1,7 @@
 
 process.env.NODE_ENV='test';
 process.env.DEBUG='network,api,lb';
-process.env.NS='xcs:test:namespace';
+process.env.GRID='xcs:test:namespace';
 
 var gridcontrol = require('../index.js');
 var should = require('should');
