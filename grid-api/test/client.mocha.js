@@ -1,5 +1,5 @@
 
-process.env.NS='test:namespace:two';
+process.env.GRID='test:namespace:two';
 process.env.DEBUG='network,api,lb,tasks';
 
 var should  = require('should');

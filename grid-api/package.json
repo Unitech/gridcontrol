@@ -4,7 +4,7 @@
   "description": "API to interact with net-functions",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/*.mocha.js"
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha test/*.mocha.js"
   },
   "dependencies" : {
     "request" : "*"
