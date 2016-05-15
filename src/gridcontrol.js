@@ -165,7 +165,8 @@ GridControl.prototype.start = function(cb) {
       }
     }, 10000);
 
-    Tools.writeConf(that.serialize());
+    if (process.env.NODE_ENV != 'test')
+      Tools.writeConf(that.serialize());
 
     // Form
     fmt.title('Peer ready');
