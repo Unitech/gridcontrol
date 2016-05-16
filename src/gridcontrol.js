@@ -212,7 +212,11 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
 
   var key = new Buffer(this.namespace + ':square-node:unik');
 
-  this.Interplanetary = Interplanetary();
+  this.Interplanetary = Interplanetary({
+    dht : {
+      interval : 15000
+    }
+  });
 
   this.Interplanetary.listen(0);
   this.Interplanetary.join(key.toString('hex'));
