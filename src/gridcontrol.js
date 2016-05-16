@@ -212,7 +212,11 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
 
   var key = new Buffer(this.namespace + ':square-node:unik');
 
-  this.Interplanetary = Interplanetary();
+  this.Interplanetary = Interplanetary({
+    dht : {
+      interval : 15000
+    }
+  });
 
   this.Interplanetary.listen(0);
   this.Interplanetary.join(key.toString('hex'));
@@ -228,16 +232,21 @@ GridControl.prototype.startDiscovery = function(ns, cb) {
     return cb ? cb() : false;
   });
 
-  this.Interplanetary.on('connection', this.onNewPeer.bind(this));
-};
-
-/**
- * Stop discovery
- * @param cb {callback
- * @public
- */
-GridControl.prototype.stopDiscovery = function(cb) {
-  this.Interplanetary.close();
+  /**
+   * New connection from remote peer
+   */
+  this.Interplanetary.on('connection', function(sock) {
+    /**
+     * Auth and securize data transfer
+     */
+    that.SocketPool.add(sock, that.getLocalIdentity(), function(err, router) {
+      that.emit('new:node');
+      /**
+       * Mount action for socket
+       */
+      that.mountActions(router);
+    });
+  });
 };
 
 /**
@@ -245,23 +254,19 @@ GridControl.prototype.stopDiscovery = function(cb) {
  * @param sock {object} socket object
  * @public
  */
-GridControl.prototype.onNewPeer = function(sock, remoteId) {
+GridControl.prototype.mountActions = function(router) {
   var that   = this;
-  var router = this.SocketPool.add(sock);
-
-  that.emit('new:peer', sock);
-
-  router.send('identity', that.getLocalIdentity());
 
   /**
    * When a new peer connect and req is received to master && is synced
    * tell the new peer to synchronize with the current peer
    */
+
   if (that.file_manager.isFileMaster() &&
       that.file_manager.hasFileToSync()) {
     setTimeout(function() {
       that.askPeerToSync(router);
-    }, 1500);
+    }, 1000);
   }
 
   router.on('clear', function(data) {
@@ -340,6 +345,16 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     });
   });
 };
+
+/**
+ * Stop discovery
+ * @param cb {callback
+ * @public
+ */
+GridControl.prototype.stopDiscovery = function(cb) {
+  this.Interplanetary.close();
+};
+
 
 /**
  * Return peers connected

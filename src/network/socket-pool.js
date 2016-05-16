@@ -1,16 +1,17 @@
 
 var debug           = require('debug')('network');
-var socketrouter = require('./socket-router.js');
+var socketrouter    = require('./socket-router.js');
+var securesocketrouter    = require('./secure-socket-router.js');
 
 var SocketPool = function() {
   this._socket_pool = {};
 };
 
-SocketPool.prototype.add = function(socket) {
-  var peer = socketrouter(socket);
+SocketPool.prototype.add = function(socket, local_identity, cb) {
+  var peer = securesocketrouter(socket);
   var that = this;
 
-  socket.on('error', function() {
+  socket.on('error', function(e) {
     if (that._socket_pool[peer.id] && that._socket_pool[peer.id].identity)
       debug('peer %s errored', that._socket_pool[peer.id].identity.public_ip);
     else
@@ -20,24 +21,30 @@ SocketPool.prototype.add = function(socket) {
 
   socket.on('close', function() {
     if (that._socket_pool[peer.id] && that._socket_pool[peer.id].identity)
-      debug('peer %s left', that._socket_pool[peer.id].identity.public_ip);
+      debug('status=connection_close from=%s[%s]',
+            that._socket_pool[peer.id].identity.name,
+            that._socket_pool[peer.id].identity.public_ip);
     else
       debug('unknow peer left');
 
     delete that._socket_pool[peer.id];
   });
 
-  peer.on('identity', function(data) {
-    debug('status=identity meta info from=%s[%s]',
-          data.name,
-          data.public_ip);
-    peer.identity = data;
-    // Set peer flag as not synchronized
-    peer.identity.synchronized = false;
-    that._socket_pool[peer.id] = peer;
-  });
+  peer.on('ctx:success', function() {
 
-  return peer;
+    peer.on('identity', function(data) {
+      debug('status=identity meta info from=%s[%s]',
+            data.name,
+            data.public_ip);
+      peer.identity = data;
+      // Set peer flag as not synchronized
+      peer.identity.synchronized = false;
+      that._socket_pool[peer.id] = peer;
+      return cb(null, peer);
+    });
+
+    peer.send('identity', local_identity);
+});
 };
 
 SocketPool.prototype.close = function() {

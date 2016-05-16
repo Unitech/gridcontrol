@@ -31,6 +31,8 @@ describe('Network', function() {
     });
 
     it('should connect second client', function(done) {
+      var plan = new Plan(3, done);
+
       n2 = new network({
         peer_api_port  : 11000,
         file_manager : {
@@ -39,7 +41,21 @@ describe('Network', function() {
         }
       });
 
-      n2.on('ready', done);
+      n1.once('new:node', function() {
+        console.log('N1 discovered N2');
+        plan.ok(true);
+      });
+
+      n2.once('new:node', function() {
+        console.log('N2 discovered N1');
+        plan.ok(true);
+      });
+
+      n2.on('ready', function() {
+        console.log('N2 is Ready');
+        plan.ok(true);
+      });
+
       n2.start();
     });
 
@@ -49,8 +65,10 @@ describe('Network', function() {
     });
 
     it('n2 should list 1 peer', function(done) {
-      should(n2.getRouters().length).eql(1);
-      setTimeout(done, 1000);
+      //n2.on('new:node', function() {
+        should(n2.getRouters().length).eql(1);
+        done();
+      //});
     });
   });
 
@@ -140,7 +158,8 @@ describe('Network', function() {
         n1.task_manager.getTasks().echo.port.should.eql(10001);
 
         // Wait 2 seconds before starting to process msg
-        setTimeout(done, 1000);
+        //setTimeout(done, 1000);
+        done();
       });
     });
 
@@ -158,7 +177,8 @@ describe('Network', function() {
           }
         }
       }, function(err, res, body) {
-        setTimeout(done, 1000);
+        //setTimeout(done, 1000);
+        done();
       });
     });
 
@@ -234,6 +254,7 @@ describe('Network', function() {
 
   describe('Third node', function() {
     it('should connect THIRD node', function(done) {
+      var plan = new Plan(3, done);
       this.timeout(10000);
 
       n3 = new network({
@@ -244,11 +265,25 @@ describe('Network', function() {
         }
       });
 
-      n3.start();
+      n1.once('new:node', function() {
+        plan.ok(true);
+      });
 
-      n3.on('files:synchronized', function(data) {
+      n2.once('new:node', function() {
+        plan.ok(true);
+      });
+
+      n2.once('new:node', function() {
+        plan.ok(true);
+      });
+
+      n3.start();
+    });
+
+    it('should receive notification file sync', function(done) {
+      n3.once('files:synchronized', function(data) {
         data.file.should.eql(n3.file_manager.getFilePath());
-        setTimeout(done, 500);
+        done();
       });
     });
 
@@ -262,7 +297,7 @@ describe('Network', function() {
       });
     });
 
-    it('should now N2 retrieve two hosts connected', function(done) {
+    it('should now N2 retrieve three hosts connected', function(done) {
       request.get('http://localhost:11000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
         should(e).be.null();
@@ -272,7 +307,7 @@ describe('Network', function() {
       });
     });
 
-    it('should now N3 retrieve two hosts connected', function(done) {
+    it('should now N3 retrieve two three connected', function(done) {
       request.get('http://localhost:12000/hosts/list', function(e, r, b) {
         var dt = JSON.parse(b);
         should(e).be.null();

@@ -1,14 +1,13 @@
-
-
 /**
  * Module dependencies.
  */
 
-var Emitter = require('events').EventEmitter;
-var Message = require('amp-message');
-var fmt = require('util').format;
-var parse = require('ms');
-var amp = require('amp');
+var Emitter       = require('events').EventEmitter;
+var Message       = require('amp-message');
+var fmt           = require('util').format;
+var parse         = require('ms');
+var amp           = require('amp');
+var cs            = require('./crypto-service.js');
 
 /**
  * Slice ref.
@@ -37,6 +36,7 @@ module.exports = Actor;
 
 function Actor(stream) {
   if (!(this instanceof Actor)) return new Actor(stream);
+  var that = this;
   this.parser = new amp.Stream;
   this.parser.on('data', this.onmessage.bind(this));
   stream.pipe(this.parser);
@@ -44,6 +44,27 @@ function Actor(stream) {
   this.callbacks = {};
   this.ids = 0;
   this.id = ++ids;
+
+  try {
+    this.dhObj       = cs.diffieHellman();
+    var sharedPrime = this.dhObj.prime;
+    var publicKey   = this.dhObj.publicKey;
+  } catch(e) {
+    console.error('Error in generatin Diffie Hellman encodage');
+    console.error(e.stack);
+  }
+
+  that.on('key:exchange', function(data) {
+    var sharedSecret = that.dhObj.computeSecret(data.key);
+    that.emit('ctx:success');
+  });
+
+  that.send('key:exchange', {
+    prime : sharedPrime,
+    key   : publicKey
+  });
+
+
   Actor.emit('actor', this);
 }
 
