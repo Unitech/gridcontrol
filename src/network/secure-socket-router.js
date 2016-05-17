@@ -8,7 +8,7 @@ var fmt           = require('util').format;
 var parse         = require('ms');
 var amp           = require('amp');
 var cs            = require('./crypto-service.js');
-
+var debug         = require('debug')('socket-router');
 /**
  * Slice ref.
  */
@@ -44,27 +44,7 @@ function Actor(stream) {
   this.callbacks = {};
   this.ids = 0;
   this.id = ++ids;
-
-  try {
-    this.dhObj       = cs.diffieHellman();
-    var sharedPrime = this.dhObj.prime;
-    var publicKey   = this.dhObj.publicKey;
-  } catch(e) {
-    console.error('Error in generatin Diffie Hellman encodage');
-    console.error(e.stack);
-  }
-
-  that.on('key:exchange', function(data) {
-    var sharedSecret = that.dhObj.computeSecret(data.key);
-    that.emit('ctx:success');
-  });
-
-  that.send('key:exchange', {
-    prime : sharedPrime,
-    key   : publicKey
-  });
-
-
+  this.secret_key = null;
   Actor.emit('actor', this);
 }
 
@@ -74,6 +54,10 @@ function Actor(stream) {
 
 Actor.prototype.__proto__ = Emitter.prototype;
 Actor.__proto__ = Emitter.prototype;
+
+Actor.prototype.setSecretKey = function(key) {
+  this.secret_key = key;
+};
 
 /**
  * Inspect implementation.
@@ -93,7 +77,12 @@ Actor.prototype.onmessage = function(buf){
   var args = msg.args;
   var self = this;
 
-  //console.log(msg.toBuffer().toString('base64'));
+  if (this.secret_key) {
+    args.forEach(function(arg, i) {
+      args[i] = cs.verify(args[i], self.secret_key);
+    });
+  }
+
   // reply message, invoke
   // the given callback
   if ('_reply_' == args[0]) {
@@ -133,6 +122,7 @@ Actor.prototype.send = function(){
   var args = slice.call(arguments);
   var last = args[args.length - 1];
   var timer;
+  var that = this;
 
   if ('function' == typeof last) {
     var id = 'i:' + this.ids++;
@@ -148,9 +138,13 @@ Actor.prototype.send = function(){
     args.unshift(new Buffer(id));
   }
 
-  var msg = new Message(args);
+  if (this.secret_key) {
+    args.forEach(function(arg, i) {
+      args[i] = cs.secure(args[i], that.secret_key);
+    });
+  }
 
-  //console.log(msg.toBuffer().toString('base64'));
+  var msg = new Message(args);
   this.stream.write(msg.toBuffer());
 
   return {

@@ -57,16 +57,15 @@ function diffieHellman(prime) {
   var wrapper = {};
 
   if(!!prime)
-    dhObj = crypto.createDiffieHellman(prime, 'hex');
+    dhObj = crypto.createDiffieHellman(prime, 'base64');
   else
-    dhObj = crypto.createDiffieHellman(1);
+    dhObj = crypto.createDiffieHellman(64);
 
-  wrapper.prime = dhObj.getPrime('hex');
-  wrapper.publicKey = dhObj.generateKeys('hex');
+  wrapper.prime = dhObj.getPrime('base64');
+  wrapper.publicKey = dhObj.generateKeys('base64');
 
   wrapper.computeSecret = function(remotePublicKey) {
-    console.log('computing key %s', remotePublicKey);
-    return dhObj.computeSecret(remotePublicKey.toString(), 'hex', 'hex');
+    return dhObj.computeSecret(remotePublicKey.toString(), 'base64', 'base64');
   };
 
   return wrapper;

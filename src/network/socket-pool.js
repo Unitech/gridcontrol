@@ -1,8 +1,9 @@
 
-var debug           = require('debug')('network');
-var socketrouter    = require('./socket-router.js');
-var securesocketrouter    = require('./secure-socket-router.js');
-
+var debug              = require('debug')('network');
+var socketrouter       = require('./socket-router.js');
+var securesocketrouter = require('./secure-socket-router.js');
+var cs                 = require('./crypto-service.js');
+var async = require('async');
 var SocketPool = function() {
   this._socket_pool = {};
 };
@@ -15,7 +16,7 @@ SocketPool.prototype.add = function(socket, local_identity, cb) {
     if (that._socket_pool[peer.id] && that._socket_pool[peer.id].identity)
       debug('peer %s errored', that._socket_pool[peer.id].identity.public_ip);
     else
-      debug('unknow peer errored');
+      debug('unknow peer errored', e);
     delete that._socket_pool[peer.id];
   });
 
@@ -25,26 +26,70 @@ SocketPool.prototype.add = function(socket, local_identity, cb) {
             that._socket_pool[peer.id].identity.name,
             that._socket_pool[peer.id].identity.public_ip);
     else
-      debug('unknow peer left');
+      debug('Not identified connection closed');
 
     delete that._socket_pool[peer.id];
   });
 
-  peer.on('ctx:success', function() {
+  async.waterfall([
+    function(cb) {
+      var dhObj;
+      var cipher_key;
 
-    peer.on('identity', function(data) {
-      debug('status=identity meta info from=%s[%s]',
-            data.name,
-            data.public_ip);
-      peer.identity = data;
-      // Set peer flag as not synchronized
-      peer.identity.synchronized = false;
-      that._socket_pool[peer.id] = peer;
-      return cb(null, peer);
+      if (socket._server) {
+        peer.on('key:exchange', function(data) {
+          dhObj         = cs.diffieHellman(data.prime);
+          var publicKey = dhObj.publicKey;
+
+          cipher_key  = dhObj.computeSecret(data.key);
+
+          peer.send('key:final', {
+            key : publicKey
+          });
+
+          return cb(null, {server: true, key : cipher_key});
+        });
+        return;
+      }
+
+      dhObj       = cs.diffieHellman();
+
+      peer.send('key:exchange', {
+        prime : dhObj.prime,
+        key   : dhObj.publicKey
+      });
+
+      peer.on('key:final', function(data) {
+        cipher_key = dhObj.computeSecret(data.key);
+
+        return cb(null, {server: false, key : cipher_key});
+      });
+
+    }, function(meta, cb) {
+      peer.setSecretKey(meta.key);
+      debug('status=connection secured');
+      cb(null, meta);
+    }, function(meta, cb) {
+      peer.on('identity', function(data) {
+        debug('status=identity meta info from=%s[%s]',
+              data.name,
+              data.public_ip);
+        peer.identity = data;
+        peer.identity.synchronized = false;
+        that._socket_pool[peer.id] = peer;
+
+        if (meta && meta.server == true)
+          peer.send('identity', local_identity);
+
+        return cb(null, peer);
+      });
+
+      if (meta.server == false)
+        peer.send('identity', local_identity);
+
+    }], function() {
+      cb(null, peer);
     });
-
-    peer.send('identity', local_identity);
-});
 };
 
 SocketPool.prototype.close = function() {

@@ -163,7 +163,7 @@ GridControl.prototype.start = function(cb) {
         that.Interplanetary.close();
         that.startDiscovery(that.namespace);
       }
-    }, 10000);
+    }, 20000);
 
     if (process.env.NODE_ENV != 'test')
       Tools.writeConf(that.serialize());
