@@ -5,7 +5,7 @@ Execute functions and tasks in a Server Grid.
 
 Each Server will have installed a networked process manager and One master will act as the orchestrator.
 
-This modules auto-link each process manager in the same grid name and allows to execute functions in any of them, in any languages.
+This module links automatically each process manager in the same grid name and allows to execute functions in any of them, in any languages.
 
 The more *GridControl* you add, the more calculation power you get.
 
@@ -21,7 +21,7 @@ The more *GridControl* you add, the more calculation power you get.
 - **Compatible** with Amazon Lambda, Google Cloud Functions
 - And a lot more like Buffering, Security, Retry on Failure...
 
-And [PM2](https://github.com/Unitech/pm2) behing the scene for process management and cluster capabilities.
+And [PM2](https://github.com/Unitech/pm2) behind the scene for process management and cluster capabilities.
 
 ## Quick start
 
@@ -48,13 +48,13 @@ $ grid provision <USERNAME> <IP> <GRID_NAME>
 This will SSH onto the server and will install and configure GridControl.
 *GRID_NAME* is a common identifier for each calcul units to link themselves.
 
-Provision as many server needed, then to list each units linked to the grid do:
+Provision as many server as needed, then to list each grid linked units do:
 
 ```bash
 $ grid list
 ```
 
-If you need to execute commands / install softwares in batch in each unit do:
+If you need to execute commands / install softwares batch within each unit do:
 
 ```bash
 $ grid multissh <COMMAND>
@@ -173,14 +173,14 @@ $ npm test
 $ google-chrome docs/index.html
 ```
 
-## Discovery expanations
+## Discovery explanations
 
 ```
 $ NS=namespace PASS=access_password pm2 restart cloud-discovery
 ```
 
 If **NS** is set it will activate the DNS Multicast discovery.
-If **NS** and **PASS** is set, the DNS Multicast and DHT Bittorent discovery will be enabled.
+If **NS** and **PASS** are set, the DNS Multicast and DHT Bittorent discovery will be enabled.
 
 ## License
 
