@@ -12,7 +12,7 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 <br/>
 </div>
 
-![http://img15.deviantart.net/82a3/i/2011/131/a/d/the_grid_by_cnunes-d3g4h8w.jpg](http://img15.deviantart.net/82a3/i/2011/131/a/d/the_grid_by_cnunes-d3g4h8w.jpg)
+![https://s-media-cache-ak0.pinimg.com/236x/45/cb/4a/45cb4afa56005e612aee3a4dda8b1573.jpg](https://s-media-cache-ak0.pinimg.com/236x/45/cb/4a/45cb4afa56005e612aee3a4dda8b1573.jpg)
 
 5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
 
