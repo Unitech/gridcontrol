@@ -58,13 +58,13 @@ $ grid provision <USERNAME> <IP> <GRID_NAME>
 This will SSH onto the server and will install and configure GridControl.
 *GRID_NAME* is a common identifier for each node to link themselves.
 
-Provision as many server as needed, then to list node in the grid:
+Provision as many server as needed, then to list Nodes connected to the Grid:
 
 ```bash
 $ grid list
 ```
 
-To execute/install a software on each Grid's node do:
+To execute/install a software on each Grid's Node do:
 
 ```bash
 $ grid multissh <COMMAND>
