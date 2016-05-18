@@ -9,6 +9,7 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 
 <div align="center">
 <b>Welcome to the Grid</b>
+<br/>
 </div>
 
 ![http://img15.deviantart.net/82a3/i/2011/131/a/d/the_grid_by_cnunes-d3g4h8w.jpg](http://img15.deviantart.net/82a3/i/2011/131/a/d/the_grid_by_cnunes-d3g4h8w.jpg)
