@@ -72,7 +72,7 @@ program
 
 program
   .command('init <grid_name>')
-  .alias('install <grid_name>')
+  .alias('install')
   .description('Install a local Gridcontrol Node')
   .action(function(grid_name) {
     var spinner = ora({
@@ -90,6 +90,7 @@ program
         text : chalk.bold('Installing Network layer'),
         spinner: 'arrow3'
       });
+
       spinner2.start();
 
       shelljs.exec('GRID=' + grid_name + ' pm2 install gridcontrol', function(err) {
