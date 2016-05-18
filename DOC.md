@@ -1,17 +1,15 @@
 
 # GridControl
 
-Decentralized System for Scalable Microservice Applications.
-
-5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
-
-GridControl provision and links multiple servers togethers to form a *Compute Grid*. Files are synchronized, pub/sub system is set, Servers get link each other.
-
-Each Server will have installed a networked process manager and one master will act as the orchestrator. Uh, we are decentralized, the master can be any of this Nodes.
+GridControl provision and links multiple servers togethers to form a *Compute Grid*. Files are synchronized, pub/sub system is set, Servers get linked each other.
 
 You develop, you play, in a scalable way. The more *GridControl* you add, the more calculation power you get.
 
 **Welcome to the Grid.**
+
+![http://img15.deviantart.net/82a3/i/2011/131/a/d/the_grid_by_cnunes-d3g4h8w.jpg](http://img15.deviantart.net/82a3/i/2011/131/a/d/the_grid_by_cnunes-d3g4h8w.jpg)
+
+5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
 
 *Behind the scene: GridControl is a network layer built on top of PM2 to allow file synchronization, that adds an opionated PUB/SUB system and a wide-range discovery system over... the whole internet*
 
