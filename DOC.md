@@ -15,7 +15,7 @@ The more *GridControl* you add, the more calculation power you get.
 - **0 conf** Pandemic style application source sharing with dependencies and consistency checks
 - **Ecosystem**: Toolbox for Grid management (grid CLI, provisioning, multissh)
 - **Fast**: Grid interconnected via TCP/UTP sockets
-- **Fast**: Always UP services (no spawn for each actions)
+- **Fast**: services are started once, then stay alive waiting for an input. This saves non-negligible startup time.
 - **Intuitive**: Simple local HTTP API on each node
 - **Polyglot**: Services can be wrotte in any language
 - **Compatible** with Amazon Lambda, Google Cloud Functions
