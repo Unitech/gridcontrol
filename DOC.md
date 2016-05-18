@@ -1,27 +1,32 @@
 
 # GridControl
 
-Execute functions and tasks in a Server Grid.
+Decentralized System for Scalable Microservice Applications.
 
-Each Server will have installed a networked process manager and One master will act as the orchestrator.
+5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
 
-This module links automatically each process manager in the same grid name and allows to execute functions in any of them, in any languages.
+GridControl provision and links multiple servers togethers to form a *Compute Grid*. Files are synchronized, pub/sub system is set, Servers get link each other.
 
-The more *GridControl* you add, the more calculation power you get.
+Each Server will have installed a networked process manager and one master will act as the orchestrator. Uh, we are decentralized, the master can be any of this Nodes.
+
+You develop, you play, in a scalable way. The more *GridControl* you add, the more calculation power you get.
+
+**Welcome to the Grid.**
+
+*Behind the scene: GridControl is a network layer built on top of PM2 to allow file synchronization, that adds an opionated PUB/SUB system and a wide-range discovery system over... the whole internet*
 
 ## Features
 
 - **0 conf** Auto discovery system via Bittorent DHT and DNS multicast
 - **0 conf** Pandemic style application source sharing with dependencies and consistency checks
-- **Ecosystem**: Toolbox for Grid management (grid CLI, provisioning, multissh)
-- **Fast**: Grid interconnected via TCP/UTP sockets
-- **Fast**: services are started once, then stay alive waiting for an input. This saves non-negligible startup time.
-- **Intuitive**: Simple local HTTP API on each node
-- **Polyglot**: Services can be wrotte in any language
+- **Ecosystem** Complete toolbox for Grid management (grid CLI, provisioning, multissh)
+- **Decentralized** Each Nodes can trigger actions executed by another Nodes
+- **Fast** Grid interconnected via TCP sockets
+- **Fast** Services are started once, then stay alive waiting for inputs. This saves non-negligible startup time.
+- **Polyglot** Services can be wrotte in any language
 - **Compatible** with Amazon Lambda, Google Cloud Functions
+- **Rock Solid** [PM2](https://github.com/Unitech/pm2) behind the scene for process management and cluster capabilities
 - And a lot more like Buffering, Security, Retry on Failure...
-
-And [PM2](https://github.com/Unitech/pm2) behind the scene for process management and cluster capabilities.
 
 ## Quick start
 
@@ -30,6 +35,8 @@ The Grid CLI is your main tool to control a Grid:
 ```bash
 $ npm install grid-cli -g
 ```
+
+The binary `grid` is now available.
 
 ### Create a Compute Grid
 
@@ -46,23 +53,25 @@ $ grid provision <USERNAME> <IP> <GRID_NAME>
 ```
 
 This will SSH onto the server and will install and configure GridControl.
-*GRID_NAME* is a common identifier for each calcul units to link themselves.
+*GRID_NAME* is a common identifier for each node to link themselves.
 
-Provision as many server as needed, then to list each grid linked units do:
+Provision as many server as needed, then to list node in the grid:
 
 ```bash
 $ grid list
 ```
 
-If you need to execute commands / install softwares batch within each unit do:
+To execute/install a software on each Grid's node do:
 
 ```bash
 $ grid multissh <COMMAND>
 ```
 
-### Create
+### Interact with the Grid
 
-Now we have to create a project with this structure:
+Now let's use the Grid.
+
+We have to create a project with this structure:
 
 ```
 .
@@ -74,7 +83,7 @@ Now we have to create a project with this structure:
     └── request.js
 ```
 
-Let's look at the content of tasks/request.js:
+Let's look at the content of `tasks/request.js`:
 
 ```javascript
 var request = require('request');
@@ -87,9 +96,7 @@ module.myHandler = function(data, cb) {
 };
 ```
 
-Now let's add some orchestration code into the index.js:
-
-**./index.js**
+Now let's add some orchestration code into `index.js`:
 
 ```javascript
 // Initialize and synchronize the whole grid
@@ -100,13 +107,13 @@ var grid = require('gridcontrol').init({
 setInterval(function() {
 
   /**
-   * This will invoke the function <filename> (here request)
-   * in each server connected in a round robin way
+   * This will invoke the function <filename>.<handler> (fn name)
+   * in each node connected, in a round robin way
    */
   grid.dispatch('request.myHandler', {
     url : 'http://google.com/'
   }, function(err, data, server_meta) {
-    console.log('From server %s:%s', server.name, server.ip);
+    console.log('From server %s:%s', server.name, server.public_ip);
     console.log('Got response %s', data);
   });
 
@@ -119,132 +126,42 @@ Start the main application:
 $ node index.js
 ```
 
-Display each host connected to the grid:
+## More...
+
+Display each Node connected to the grid:
 
 ```bash
 $ grid list
 ```
 
-Display tasks statistics:
+Display all Node's logs:
 
 ```bash
-$ grid tasks
+$ grid logs
 ```
 
-Provision a new node:
+Upgrade all Nodes to latest GridcontroL
 
 ```bash
-$ grid provision ubuntu@10.31.22.15 <grid-name> [square-name]
+$ grid upgrade
 ```
 
-Each gridcontrol linked to the same grid will connect each other. Discovery is made through DNS multicast and DHT Bittorent.
-
-*To display cloud functions logs do `$ pm2 logs gridcontrol`*
-
-## Commands
-
-List tasks currently managed:
-
-```
-$ pm2 ls
-```
-
-Monitor tasks memory/cpu consumption:
-
-```
-$ pm2 monit
-```
-
-Display logs:
-
-```
-$ pm2 logs <task-name>
-```
-
-## tests
+Monitor all Nodes with [keymetrics.io](https://keymetrics.io):
 
 ```bash
-$ npm test
+$ grid monitor <secret_keymetrics> <public_keymetrics>
 ```
 
-## API Doc
+Move all Nodes to another Grid:
 
 ```bash
-$ google-chrome docs/index.html
+$ grid move <new_grid_name>
 ```
 
-## Discovery explanations
+## Contributing/Tests/API Documentation
 
-```
-$ NS=namespace PASS=access_password pm2 restart cloud-discovery
-```
-
-If **NS** is set it will activate the DNS Multicast discovery.
-If **NS** and **PASS** are set, the DNS Multicast and DHT Bittorent discovery will be enabled.
+Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)
 
 ## License
 
 Apache V2 (see LICENSE.txt)
-
-
-
-#
-# Overview (old doc)
-#
-
-## Cloud Function
-
-A cloud function is a simple script that will be executed over the network and will return a result to the calling script.
-
-Example:
-
-```javascript
-module.exports = function(context, cb) {
-  request(context.data.url, function (err, res, body) {
-    if (error)
-      return cb(error);
-    return cb(null, body);
-  });
-};
-```
-
-## Automatic discovery
-
-Each PM2 in the same subnet will auto discover themseleves via DNS multicast.
-
-## Files & Env synchronization
-
-The working directory will be automatically synchronized over the network.
-One PM2 is the "file master" and all other peers will synchronize with these files.
-
-The node_modules folder is also included on file broadcast. Data is transfered via a gziped tarball.
-
-## Lambda management
-
-PM2 is behind the scene to manage and cluster (if JS apps) tasks.
-
-## Lambda in another language
-
-To write a lambda in another language, you just need to create a HTTP server listening on port TASK_PORT on route / and returning the value needed:
-
-Python:
-
-```python
-#!/usr/bin/python
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-import os
-
-PORT_NUMBER = int(os.environ['TASK_PORT'])
-
-class myHandler(BaseHTTPRequestHandler):
-    #Handler for the GET requests
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type','text/data')
-        self.end_headers()
-        self.wfile.write("Hello World !")
-        return
-
-server = HTTPServer(('', PORT_NUMBER), myHandler)
-server.serve_forever()
-```

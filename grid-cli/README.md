@@ -22,6 +22,9 @@ $ grid init <grid_name>
 # Provision a remote node
 $ grid provision username ip <grid_name>
 
+# Upgrade the whole grid to latest version
+$ grid upgrade
+
 # List all node in Grid
 $ grid list
 $ grid ls --watch
