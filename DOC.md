@@ -1,15 +1,13 @@
 
 # GridControl
 
-<div align="center">
-GridControl provision and links multiple servers togethers to form a <b>Grid</b>
+GridControl provision and links multiple servers togethers to form a **Grid**
 
-<br/>
 Files are synchronized, Opionated Pub/Sub system is set, Servers get linked together.
-<br/>
 
 You develop, you play, in a scalable way. The more Servers you add to the Grid, the more calculation power you get.
-<br/>
+
+<div align="center">
 <b>Welcome to the Grid</b>
 </div>
 
