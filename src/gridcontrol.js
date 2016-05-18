@@ -1,26 +1,26 @@
-
-var debug           = require('debug')('network');
-var fs              = require('fs');
-var path            = require('path');
-var EventEmitter    = require('events').EventEmitter;
-var Moniker         = require('moniker');
-var publicIp        = require('public-ip');
-var os              = require('os');
-var chalk           = require('chalk');
-var fmt             = require('fmt');
-var pkg             = require('../package.json');
-var defaults        = require('./constants.js');
-var FilesManagement = require('./files/file_manager.js');
-var TaskManager     = require('./tasks_manager/task_manager.js');
-
-var Tools           = require('./lib/tools.js');
-var LoadBalancer    = require('./load-balancer.js');
-var API             = require('./api.js');
-var Wait            = require('./lib/wait.js');
-
-var Interplanetary  = require('./network/interplanetary.js');
-var InternalIp      = require('./network/internal-ip.js');
-var SocketPool      = require('./network/socket-pool.js');
+'use strict';
+const debug           = require('debug')('network');
+const fs              = require('fs');
+const path            = require('path');
+const EventEmitter    = require('events').EventEmitter;
+const Moniker         = require('moniker');
+const publicIp        = require('public-ip');
+const os              = require('os');
+const chalk           = require('chalk');
+const fmt             = require('fmt');
+const pkg             = require('../package.json');
+const defaults        = require('./constants.js');
+const FilesManagement = require('./files/file_manager.js');
+const TaskManager     = require('./tasks_manager/task_manager.js');
+const
+const Tools           = require('./lib/tools.js');
+const LoadBalancer    = require('./load-balancer.js');
+const API             = require('./api.js');
+const Wait            = require('./lib/wait.js');
+const
+const Interplanetary  = require('./network/interplanetary.js');
+const InternalIp      = require('./network/internal-ip.js');
+const SocketPool      = require('./network/socket-pool.js');
 
 /**
  * Main entry point of GridControl
@@ -143,45 +143,45 @@ GridControl.prototype.serialize = function() {
 /**
  * Start Grid control
  */
-GridControl.prototype.start = function(cb) {
-  var that = this;
+GridControl.prototype.start = function() {
 
-  // Wait for all event to be emitted
-  Wait(this, [
+  // Wait until every element has been emitted
+  // passer bind(this) plutot ?
+  // il se passe quoi si startDiscovery fail à l'init et que l'event est pas send?
+  let promise = Wait(this, [
     'ip:ready',
     'discovery:ready',
     'api:ready'
-  ], function() {
-    that.emit('ready');
+  ])
+  .then(() => {
+    this.emit('ready');
 
     /**
      * Force re discovery if no grid has been detected
      */
-    setInterval(function() {
-      if (that.getRouters().length == 0) {
+    setInterval(() => {
+      if (this.getRouters().length == 0) {
         debug('Retrying discovery');
-        that.Interplanetary.close();
-        that.startDiscovery(that.namespace);
+        this.Interplanetary.close();
+        this.startDiscovery(this.namespace);
       }
     }, 10000);
 
     if (process.env.NODE_ENV != 'test')
-      Tools.writeConf(that.serialize());
+      Tools.writeConf(this.serialize());
 
     // Form
     fmt.title('Peer ready');
-    fmt.field('Name', that.peer_name);
-    fmt.field('Public IP', that.public_ip);
-    fmt.field('Private IP', that.private_ip);
-    fmt.field('Local API port', that.peer_api_port);
-    fmt.field('Network port', that.network_port);
+    fmt.field('Name', this.peer_name);
+    fmt.field('Public IP', this.public_ip);
+    fmt.field('Private IP', this.private_ip);
+    fmt.field('Local API port', this.peer_api_port);
+    fmt.field('Network port', this.network_port);
     fmt.field('DSS port', defaults.DSS_FS_PORT);
-    fmt.field('Joined Namespace', that.namespace);
+    fmt.field('Joined Namespace', this.namespace);
     fmt.field('Created at', new Date());
     fmt.sep();
-
-    if (cb)
-      return cb();
+    return Promise.resolve()
   });
 
   publicIp.v4().then(ip => {
@@ -194,10 +194,14 @@ GridControl.prototype.start = function(cb) {
     });
   });
 
-  that.api.start(err => {
-    if (err) console.error(err);
+  this.api.start()
+  .then(() => {
+    console.log('api ready');
     this.emit('api:ready');
-  });
+  })
+  // .catch((err) => {})
+  
+  return promise
 };
 
 /**
