@@ -2,3 +2,4 @@ node_modules
 npm-debug.log
 *.tar.gz
 apidocs
+test/sync.tar.gz

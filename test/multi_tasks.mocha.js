@@ -12,12 +12,12 @@ describe('Multi Tasks test', function() {
   this.timeout(7000);
   var n1;
 
-  it('should create a first client', function(done) {
+  it('should create a first client', function() {
     n1 = gridcontrol({
       peer_api_port : 10000
     });
 
-    n1.start(done);
+    return n1.start();
   });
 
   it('n1 should list 0 peer', function(done) {

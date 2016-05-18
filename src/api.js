@@ -1,15 +1,16 @@
+'use strict';
 /**
  * @file Expose API to CloudFunctions
  * @author Alexandre Strzelewicz
  * @project PM2 CloudFunctions
  */
 
-var express    = require('express');
-var bodyParser = require('body-parser');
-var http       = require('http');
-var https      = require('https');
-var fmt        = require('fmt');
-var debug      = require('debug')('api');
+const express    = require('express');
+const bodyParser = require('body-parser');
+const http       = require('http');
+const https      = require('https');
+const fmt        = require('fmt');
+const debug      = require('debug')('api');
 
 /**
  * Set API default values
@@ -22,7 +23,7 @@ var debug      = require('debug')('api');
  * @param opts.file_manager Network manager (cloudfunctions.js) object
  * @param opts.tls TLS keys
  */
-var API = function(opts) {
+const API = function(opts) {
   this.load_balancer = opts.load_balancer;
   this.task_manager  = opts.task_manager;
   this.file_manager  = opts.file_manager;
@@ -35,23 +36,26 @@ var API = function(opts) {
  * Start API and listen to port
  * @public
  */
-API.prototype.start = function(cb) {
-  var that = this;
-
+API.prototype.start = function() {
   this.app  = express();
 
   this.server = null;
 
-  this.server = http.createServer(that.app);
+  this.server = http.createServer(this.app);
 
   this.setMiddlewares();
   this.mountRoutes();
   this.endMiddleware();
 
-  // HTTP API only exposed in local
-  that.server.listen(that.port, 'localhost', function (err) {
-    debug('API listening on port %d', that.port);
-    return cb ? cb(err) : false;
+  return new Promise((resolve, reject) => {
+    // HTTP API only exposed in local
+    this.server.listen(this.port, 'localhost', (err) => {
+      if(err)
+        return reject(err)
+
+      debug('API listening on port %d', this.port);
+      resolve()
+    });
   });
 };
 

@@ -1,9 +1,10 @@
+'use strict'
+const debug = require('debug')('wait');
+const assert = require('assert');
 
-var debug = require('debug')('wait');
-var assert = require('assert');
-
-function Wait(count, done) {
-  this.done = done;
+function Wait(count, resolve, reject) {
+  this.resolve = resolve;
+  this.reject = reject;
   this.count = count;
 }
 
@@ -11,22 +12,24 @@ Wait.prototype.ok = function(expression) {
   assert(expression);
 
   if (this.count === 0) {
-    //assert(false, 'Too many assertions called');
-  } else {
-    this.count--;
+    return this.reject('Too many assertions called');
   }
 
+  this.count--;
+
   if (this.count === 0) {
-    this.done();
+    this.resolve();
   }
 };
 
-var WaitSystem = function w(event_emitter, events, cb) {
-  var wait = new Wait(events.length, cb);
-  events.forEach(function(event) {
-    event_emitter.once(event, function() {
-      debug('Got wait event %s', event);
-      wait.ok(true);
+const WaitSystem = function w(event_emitter, events) {
+  return new Promise((resolve, reject) => {
+    const wait = new Wait(events.length, resolve, reject);
+    events.forEach(function(event) {
+      event_emitter.once(event, function() {
+        debug('Got wait event %s', event);
+        wait.ok(true); //?
+      });
     });
   });
 };

@@ -17,12 +17,12 @@ describe('Network', function() {
   var sync_file_size;
 
   describe('Init', function() {
-    it('should create a first client', function(done) {
+    it('should create a first client', function() {
       n1 = new network({
         peer_api_port : 10000
       });
 
-      n1.start(done);
+      return n1.start();
     });
 
     it('should have the rigth namespace (via process.env.NS)', function(done) {
@@ -67,10 +67,10 @@ describe('Network', function() {
       n1.close(done);
     });
 
-    it('should reinitialize n1 with same previous params', function(done) {
+    it('should reinitialize n1 with same previous params', function() {
       n1 = new network(serial);
 
-      n1.start(done);
+      return n1.start();
     });
   });
 
