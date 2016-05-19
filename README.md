@@ -93,7 +93,7 @@ Let's look at the content of `tasks/request.js`:
 ```javascript
 var request = require('request');
 
-module.myHandler = function(data, cb) {
+exports.myHandler = function(data, cb) {
   request.get(data.url, function(err, res, body) {
     if (err) return cb(err);
     cb(null, { response : body });
