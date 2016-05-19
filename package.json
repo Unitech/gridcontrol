@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "",
   "main": "index.js",
   "apps": [
@@ -43,6 +43,6 @@
     "ms": "~0.6.1",
     "amp-message": "0.1.1"
   },
-  "author": "Alexandre Strzelewicz <strzelewicz.alexandre@gmail.com>",
+  "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ApacheV2"
 }

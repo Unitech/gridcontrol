@@ -99,9 +99,23 @@ program
           return exitError(err);
 
         console.log('----------- Welcome to the grid ------------');
-        //console.log(chalk.bold(
-        displayHosts();
-        setTimeout(function() { exitSuccess() }, 150);
+
+        var spinner3 = ora({
+          text : chalk.bold('Connecting to local node...'),
+          spinner: 'arrow3'
+        });
+
+
+        // var t = setInterval(function() {
+        //   displayHosts(function(err) {
+        //     if (!err) {
+        //       clearInterval(t);
+        //       setTimeout(function() { exitSuccess() }, 150);
+        //     }
+        //   });
+        // }, 200);
+
+
       });
 
     });
@@ -227,9 +241,10 @@ function execCmd(cmd, server_list) {
   });
 };
 
-function displayHosts() {
+function displayHosts(cb) {
   grid.listHosts(function(err, hosts) {
-    if (err) return exitError(err);
+    if (err && cb) return cb(new Error('cannot connect'));
+    if (err) exitError(err);
     return cliux.displayHosts(hosts);
   });
 };
