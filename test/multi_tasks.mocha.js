@@ -56,7 +56,8 @@ describe('Multi Tasks test', function() {
       }, function(err, res, body) {
         should(res.statusCode).eql(200);
         body = JSON.parse(body);
-        body.err.code.should.eql('ETIMEDOUT' || 'ESOCKETTIMEDOUT');
+
+        (!!~['ETIMEDOUT', 'ESOCKETTIMEDOUT'].indexOf(body.err.code)).should.eql(true);
         done();
       });
     });

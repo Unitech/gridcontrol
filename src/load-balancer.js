@@ -1,7 +1,10 @@
-var request = require('request');
-var crypto  = require('crypto');
-var debug   = require('debug')('lb');
-var Tools = require('./lib/tools.js');
+'use strict';
+const request = require('request');
+const crypto  = require('crypto');
+const debug   = require('debug')('lb');
+const Tools = require('./lib/tools.js');
+const bluebird = require('bluebird')
+
 /**
  * Load balancer
  * @constructor
@@ -19,39 +22,43 @@ var LoadBalancer = function(opts) {
   // Round robin index
   this._rri = 0;
 
-  var that = this;
-
   (function suitablePeer() {
     //@todo take monitoring data into account
-    that.peer_list     = [];
+    this.peer_list = [];
 
-    that.peer_list.push({
+    this.peer_list.push({
       identity : {
         synchronized : true
       },
       local        : true
     });
 
-    if (!process.env.ONLY_LOCAL)
-      that.peer_list = that.peer_list.concat(that.socket_pool.getRouters());
-    setTimeout(suitablePeer, 500);
-  })();
+    if (!process.env.ONLY_LOCAL) {
+      this.peer_list = this.peer_list.concat(this.socket_pool.getRouters());
+    }
+
+    setTimeout(() => suitablePeer.bind(this)(), 500);
+  }).bind(this)();
 };
 
-LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
-  var that  = this;
-  var retry = 0;
+LoadBalancer.prototype.findSuitablePeer = function(req) {
+  let promise = (retry) => {
+    return new Promise((resolve, reject) => {
+      if(retry++ > 100) {
+        return reject(new Error('To many retries on route request while searching for a suitable peer')) ;
+      }
 
-  (function rec() {
-    if (retry++ > 100)
-      console.error('Trying too many time to route request!');
+      let target = this.peer_list[this._rri++ % this.peer_list.length];
 
-    var target = that.peer_list[that._rri++ % that.peer_list.length];
+      if (target.identity.synchronized == false) {
+        return bluebird.delay(100).then(() => promise(retry));
+      }
 
-    if (target.identity.synchronized == false)
-      return setTimeout(rec, 100);
-    return cb(null, target);
-  })();
+      return resolve(target)
+    })
+  }
+
+  return promise(0)
 };
 
 LoadBalancer.prototype.route = function(req, res, next) {
@@ -65,8 +72,8 @@ LoadBalancer.prototype.route = function(req, res, next) {
   if (Number.isSafeInteger(that._rri) === false)
     that._rri = 0;
 
-  this.findSuitablePeer(req, function(err, peer) {
-
+  this.findSuitablePeer(req)
+  .then((peer) => {
     // @todo: do stats on task processing (invokation, errors...)
     // + Log running tasks for smarter load balancing in the future
     // + link with HealthCheck regular data to know load
@@ -80,21 +87,20 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
     if (peer.local) {
       debug('Routing task %s to localhost', task_id);
-      req.task_manager.triggerTask({
+      return req.task_manager.triggerTask({
         task_id  : task_id,
         task_data: task_data,
         task_opts: task_opts
-      }, function(err, data) {
+      })
+      .then((data) => {
         delete that.processing_tasks[uuid];
-        if (err) {
-          if (!data) data = {};
-          data.err = err;
-        }
         data.server = req.net_manager.getLocalIdentity();
         res.send(data);
+      })
+      .catch((err) => {
+        delete that.processing_tasks[uuid];
+        res.send({err: err});
       });
-
-      return false;
     }
 
     debug('Routing task %s to %s:%s',
@@ -125,8 +131,6 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
       res.send(data);
     });
-
-    return false;
   });
 };
 
