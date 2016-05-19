@@ -262,7 +262,7 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
       task_id  : task_id,
       task_data: task_data,
       task_opts: task_opts
-    }, cb);
+    }).then(cb);
   });
 
   /**
@@ -307,7 +307,8 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
         });
       }
 
-      this.task_manager.initTaskGroup(data.meta, () => {
+      this.task_manager.initTaskGroup(data.meta)
+      .then(() => {
         // Notify master that current peer
         // has sync with this MD5 (to be sure is synced on right
         // files project)

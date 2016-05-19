@@ -25,41 +25,41 @@ describe('Task Manager', function() {
     meta.env.should.eql({});
   });
 
-  it('should getAllTaskFiles from folder', function(done) {
-    task_manager.getAllTasksInFolder(sample_app_path + '/tasks', function(err, files) {
-      should(err).be.null;
+  it('should getAllTaskFiles from folder', function() {
+    return task_manager.getAllTasksInFolder(sample_app_path + '/tasks')
+    .then((files) => {
       files.length.should.eql(APP_NUMBER);
       gfiles = files;
-      done();
-    });
+      return Promise.resolve()
+    })
   });
 
-  it('should start all tasks in fixture folder', function(done) {
+  it('should start all tasks in fixture folder', function() {
     this.timeout(8000);
-    task_manager.initTaskGroup({
+    return task_manager.initTaskGroup({
       task_folder : 'tasks',
       base_folder : sample_app_path,
       instances   : 2
-    }, done);
+    });
   });
 
-  it('should list the right number of tasks', function(done) {
-    task_manager.listAllPM2Tasks(function(err, procs) {
+  it('should list the right number of tasks', function() {
+    return task_manager.listAllPM2Tasks()
+    .then((procs) => {
       procs.length.should.eql(APP_NUMBER);
-      done();
+      return Promise.resolve()
     });
   });
 
-  it('should delete all tasks in fixture folder', function(done) {
+  it('should delete all tasks in fixture folder', function() {
     this.timeout(8000);
-    task_manager.deleteAllPM2Tasks(done);
+    return task_manager.deleteAllPM2Tasks();
   });
 
-  it('should list 0 running tasks', function(done) {
-    task_manager.listAllPM2Tasks(function(err, procs) {
+  it('should list 0 running tasks', function() {
+    return task_manager.listAllPM2Tasks((procs) => {
       procs.length.should.eql(0);
-      done();
+      return Promise.resolve()
     });
   });
-
 });
