@@ -24,6 +24,6 @@
     "cli-spinners" : "*",
     "multissh" : "*"
   },
-  "author": "",
+  "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ISC"
 }
