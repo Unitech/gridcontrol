@@ -59,76 +59,6 @@ API.prototype.start = function() {
   });
 };
 
-
-/**
- * Mount API routes
- * @public
- */
-API.prototype.mountRoutes = function() {
-  var that = this;
-  var app  = this.app;
-
-  /**
-   * Task endpoints
-   */
-  app.get('/tasks/list', this.task_manager.controller.list_tasks);
-  app.delete('/tasks/clear', this.task_manager.controller.clear_all_tasks);
-
-  app.post('/tasks/lb_trigger_single', function(req, res, next) {
-    return req.load_balancer.route(req, res, next);
-  });
-
-  app.post('/tasks/lb_trigger_all', function(req, res, next) {
-    return req.load_balancer.route(req, res, next);
-  });
-
-  app.post('/tasks/init', this.task_manager.controller.init_task_group);
-
-  app.get('/tasks/processing', function(req, res, next) {
-    var tasks = req.load_balancer.processing_tasks;
-    return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
-  });
-
-  /**
-   * Misc endpoints
-   */
-  app.get('/ping', function(req, res, next) {
-    return res.send('pong');
-  });
-
-  app.get('/network/change_namespace', function(req, res, next) {
-    var new_namespace = req.body.namespace;
-
-    req.net_manager.stopDiscovery();
-    req.net_manager.startDiscovery(new_namespace, function(err) {
-      if (err) {
-        return next(err);
-      }
-      return res.send({success:true, namespace: 'new_namespace'});
-    });
-  });
-
-  app.get('/hosts/list', function(req, res, next) {
-    var peers = [];
-
-    req.net_manager.getRouters().forEach(function(router) {
-      peers.push(router.identity);
-    });
-
-    var local = req.net_manager.getLocalIdentity();
-    local.local = true;
-    peers.push(local);
-    return res.send(peers);
-  });
-
-  app.get('/conf', function(req, res, next) {
-    res.send({
-      file_manager : req.file_manager,
-      task_manager : req.task_manager
-    });
-  });
-};
-
 /**
  * Stop API + Terminate Task manager
  * @public
@@ -142,22 +72,20 @@ API.prototype.close = function() {
  * @public
  */
 API.prototype.setMiddlewares = function() {
-  var that = this;
-
-  var createDomain = require('domain').create;
+  let createDomain = require('domain').create;
 
   this.app.use(bodyParser.urlencoded({
     extended : true
   }));
 
   // Attach task manager to request for child controllers
-  this.app.use(function(req, res, next) {
-    var domain = createDomain();
+  this.app.use((req, res, next) => {
+    let domain = createDomain();
 
-    req.load_balancer = that.load_balancer;
-    req.task_manager  = that.task_manager;
-    req.file_manager  = that.file_manager;
-    req.net_manager   = that.net_manager;
+    req.load_balancer = this.load_balancer;
+    req.task_manager  = this.task_manager;
+    req.file_manager  = this.file_manager;
+    req.net_manager   = this.net_manager;
 
     domain.add(req);
     domain.add(res);
@@ -170,7 +98,7 @@ API.prototype.setMiddlewares = function() {
 
 // Error middleware + error formating
 API.prototype.endMiddleware = function() {
-  this.app.use(function(err, req, res, next) {
+  this.app.use((err, req, res, next) => {
     fmt.sep();
     fmt.title('Error catched in express error middleware');
     if (err.stack)
@@ -191,6 +119,75 @@ API.prototype.endMiddleware = function() {
     res.status(500).send({
       msg : err.message || err.msg,
       success : false
+    });
+  });
+};
+
+/**
+ * Mount API routes
+ * @public
+ */
+API.prototype.mountRoutes = function() {
+  const app  = this.app;
+
+  /**
+   * Task endpoints
+   */
+  app.get('/tasks/list', this.task_manager.controller.list_tasks);
+  app.delete('/tasks/clear', this.task_manager.controller.clear_all_tasks);
+
+  app.post('/tasks/lb_trigger_single', function(req, res, next) {
+    req.load_balancer.route(req, res, next);
+  });
+
+  app.post('/tasks/lb_trigger_all', function(req, res, next) {
+    req.load_balancer.route(req, res, next);
+  });
+
+  app.post('/tasks/init', this.task_manager.controller.init_task_group);
+
+  app.get('/tasks/processing', function(req, res, next) {
+    let tasks = req.load_balancer.processing_tasks;
+    return res.send(Object.keys(tasks).map((key) => tasks[key]));
+  });
+
+  /**
+   * Misc endpoints
+   */
+  app.get('/ping', function(req, res, next) {
+    return res.send('pong');
+  });
+
+  app.get('/network/change_namespace', function(req, res, next) {
+    var new_namespace = req.body.namespace;
+
+    req.net_manager.stopDiscovery()
+    .then(() => {
+      return req.net_manager.startDiscovery(new_namespace)
+    })
+    .then(() => {
+      res.send({success:true, namespace: new_namespace});
+    })
+    .catch(next)
+  });
+
+  app.get('/hosts/list', function(req, res, next) {
+    let peers = [];
+
+    req.net_manager.getRouters().forEach((router) => {
+      peers.push(router.identity);
+    });
+
+    let local = req.net_manager.getLocalIdentity();
+    local.local = true;
+    peers.push(local);
+    res.send(peers);
+  });
+
+  app.get('/conf', function(req, res, next) {
+    res.send({
+      file_manager : req.file_manager,
+      task_manager : req.task_manager
     });
   });
 };

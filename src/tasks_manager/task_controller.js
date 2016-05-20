@@ -1,8 +1,8 @@
+'use strict'
+const request    = require('request');
+const debug      = require('debug')('tasks');
 
-var request    = require('request');
-var debug      = require('debug')('tasks');
-
-var Controller = {};
+const Controller = {};
 
 /**
  * res.send(array_of_tasks)
@@ -10,26 +10,28 @@ var Controller = {};
  * @method list_tasks
  */
 Controller.list_tasks = function(req, res, next) {
-  var tasks = req.task_manager.getTasks();
-  return res.send(Object.keys(tasks).map(function (key) {return tasks[key]}));
+  let tasks = req.task_manager.getTasks();
+  return res.send(Object.keys(tasks).map((key) => tasks[key]));
 };
 
 Controller.clear_all_tasks = function(req, res, next) {
-  req.task_manager.deleteAllPM2Tasks(function(err, tasks) {
-    if (err) return next(err);
-    return res.send({
+  req.task_manager.deleteAllPM2Tasks()
+  .then((tasks) => {
+    res.send({
       success:true,
       processes_deleted : tasks
     });
-  });
+  })
+  .catch(next);
 };
 
 Controller.init_task_group = function(req, res, next) {
-  var base_folder = req.body.base_folder;
-  var task_folder = req.body.task_folder || 'tasks';
-  var instances   = req.body.instances;
-  var json_conf   = req.body.json_conf;
-  var env         = req.body.env || {};
+  let base_folder = req.body.base_folder;
+  //@TODO config default tasks ?
+  let task_folder = req.body.task_folder || 'tasks';
+  let instances   = req.body.instances;
+  let json_conf   = req.body.json_conf;
+  let env         = req.body.env || {};
 
   if (!base_folder)
     return next(new Error('base_folder is missing'));
@@ -45,15 +47,12 @@ Controller.init_task_group = function(req, res, next) {
     instances   : instances,
     json_conf   : json_conf,
     env         : env
-  }, function(err, procs) {
-    if (err) return next(err);
-
-    // 4# Create base_folder tarball
-    // 5# Check if tarball's MD5 has changed
+  })
+  .then((procs) => {
     req.file_manager.prepareSync(base_folder, function(e, infos) {
       if (e) {
         console.error('Got error while preparing to sync peers');
-        return console.error(e);
+        return next(e);
       }
 
       console.log('Sync file generated for folder=%s target=%s',
@@ -63,15 +62,18 @@ Controller.init_task_group = function(req, res, next) {
       if (infos.file_changed == true) {
         // 6.0# Send to each peer the file + metadata
         req.net_manager.askAllPeersToSync();
-      }
-      else {
+      } else {
         // 6.1# Tarball has not changed
         debug('Tarball MD5 has not changed. Set peers synchronized');
         req.net_manager.setAllPeersAsSynced();
       }
     });
 
-    return res.send(procs);
+    res.send(procs);
+  })
+  .catch((err) => {
+    console.error('Got error while generating Syncro package. Please retry init.');
+    next(err)
   });
 };
 

@@ -1,10 +1,10 @@
+'use strict'
+const express    = require('express');
+const app        = express();
+const bodyParser = require('body-parser');
+const Tools      = require('../lib/tools.js');
 
-var express    = require('express');
-var app        = express();
-var bodyParser = require('body-parser');
-var Tools      = require('../lib/tools.js');
-
-var task = require(process.env.TASK_PATH);
+const task = require(process.env.TASK_PATH);
 
 app.use(bodyParser.urlencoded({
   extended : true
@@ -20,8 +20,8 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', function (req, res) {
-  var data    = req.body.data;
-  var context = req.body.context;
+  let data    = req.body.data;
+  let context = req.body.context;
 
   if (context.handler) {
 

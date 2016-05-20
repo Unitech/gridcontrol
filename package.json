@@ -10,7 +10,7 @@
     }
   ],
   "scripts": {
-    "test": "NODE_ENV='test' ./node_modules/.bin/mocha test/*.mocha.js",
+    "test": "NODE_ENV='test' ./node_modules/.bin/mocha test/*.mocha.js -b",
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
   "devDependencies": {
@@ -20,29 +20,30 @@
     "ink-docstrap": "*"
   },
   "dependencies": {
-    "request": "*",
-    "pm2": "*",
-    "express": "*",
-    "body-parser": "*",
+    "amp": "0.3.1",
+    "amp-message": "0.1.1",
     "async": "*",
-    "pmx": "*",
-    "debug": "*",
-    "moniker": "*",
-    "network-address": "*",
-    "public-ip": "*",
-    "tar-fs": "*",
-    "chalk": "*",
-    "fmt": "*",
+    "bluebird": "^3.4.0",
+    "body-parser": "*",
     "buffer-equals": "^1.0.3",
+    "chalk": "*",
     "connections": "^1.4.2",
-    "discovery-channel": "latest",
+    "debug": "*",
+    "discovery-channel": "^5.0.0",
+    "express": "*",
+    "fmt": "*",
     "dns-discovery" : "*",
     "length-prefixed-message": "^3.0.3",
-    "pump": "^1.0.1",
-    "to-buffer": "^1.0.1",
-    "amp": "0.3.1",
+    "moniker": "*",
     "ms": "~0.6.1",
-    "amp-message": "0.1.1"
+    "network-address": "*",
+    "pm2": "*",
+    "pmx": "*",
+    "public-ip": "*",
+    "pump": "^1.0.1",
+    "request": "*",
+    "tar-fs": "*",
+    "to-buffer": "^1.0.1"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ApacheV2"

@@ -60,7 +60,7 @@ describe('Multi Tasks test', function() {
       }, function(err, res, body) {
         should(res.statusCode).eql(200);
         body = JSON.parse(body);
-        should.ok(body.err.code == ('ETIMEDOUT' || 'ESOCKETTIMEDOUT') ? true : false);
+        (!!~['ETIMEDOUT', 'ESOCKETTIMEDOUT'].indexOf(body.err.code)).should.eql(true);
         done();
       });
     });

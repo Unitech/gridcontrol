@@ -121,6 +121,7 @@ GridControl.prototype.__proto__ = EventEmitter.prototype;
 /**
  * Stop everything (api, discovery, socket pool, task manager, file manager)
  * @public
+ * @TODO promise.all([]) + wait for clean close
  */
 GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
@@ -224,7 +225,10 @@ GridControl.prototype.startDiscovery = function(ns) {
  * @public
  */
 GridControl.prototype.stopDiscovery = function(cb) {
-  this.Interplanetary.close();
+  return new Promise((resolve, reject) => {
+    this.Interplanetary.once('close', () => resolve())
+    this.Interplanetary.close();
+  })
 };
 
 /**
@@ -264,7 +268,7 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
       task_id  : task_id,
       task_data: task_data,
       task_opts: task_opts
-    }, cb);
+    }).then(cb);
   });
 
   /**
@@ -310,10 +314,11 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
         });
       }
 
-      this.task_manager.initTaskGroup(data.meta, () => {
-        /**
-         * Notify master that current peer has sync with the right MD5
-         */
+      this.task_manager.initTaskGroup(data.meta)
+      .then(() => {
+        // Notify master that current peer
+        // has sync with this MD5 (to be sure is synced on right
+        // files project)
         this.socket_pool.broadcast('sync:done', {
           synced_md5 : data.curr_md5
         });

@@ -1,13 +1,14 @@
-
-var fs         = require('fs');
-var pm2        = require('pm2');
-var async      = require('async');
-var p          = require('path');
-var request    = require('request');
-var debug      = require('debug')('tasks');
-var Controller = require('./task_controller.js');
-var Tools      = require('../lib/tools.js');
-var extend     = require('util')._extend;
+'use strict';
+const async      = require('async');
+const p          = require('path');
+const request    = require('request');
+const debug      = require('debug')('tasks');
+const Controller = require('./task_controller.js');
+const Tools      = require('../lib/tools.js');
+const extend     = require('util')._extend;
+const bluebird = require('bluebird')
+const fs         = bluebird.promisifyAll(require('fs'));
+const pm2        = bluebird.promisifyAll(require('pm2'));
 
 /**
  * The Task Manager manage all tasks
@@ -15,7 +16,7 @@ var extend     = require('util')._extend;
  * @param opts {object} options
  * @param opts.port_offset {Integer} Port to start on
  */
-var TaskManager = function(opts) {
+const TaskManager = function(opts) {
   if (!opts) opts = {};
 
   this.port_offset = opts.port_offset ? parseInt(opts.port_offset) : 10001;
@@ -90,135 +91,133 @@ TaskManager.prototype.addTask = function(task_id, task) {
  * @param {string} opts.task_folder RELATIVE task folder path
  * @param {string} opts.instances number of instances of each script
  * @param {string} opts.json_conf Not used yet
+ * @return Promise
  */
-TaskManager.prototype.initTaskGroup = function(opts, cb) {
-  var that = this;
-
+TaskManager.prototype.initTaskGroup = function(opts) {
   if (!opts.env)
     opts.env = {};
 
-  that.task_meta.instances   = opts.instances || 0;
-  that.task_meta.json_conf   = opts.json_conf;
-  that.task_meta.task_folder = opts.task_folder;
-  that.task_meta.env         = opts.env;
+  this.task_meta.instances   = opts.instances || 0;
+  this.task_meta.json_conf   = opts.json_conf;
+  this.task_meta.task_folder = opts.task_folder;
+  this.task_meta.env         = opts.env;
+  this.can_accept_queries = false;
 
   // base_folder not on task_meta, because on peers path is different
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);
 
-  this.can_accept_queries = false;
+  return this.getAllTasksInFolder(fullpath_task)
+  .then((tasks_files) => {
+    return this.startTasks(opts, tasks_files)
+  })
+  .then((procs) => {
+    this.can_accept_queries = true;
+    return Promise.resolve(procs) 
+  });
+};
 
-  this.getAllTasksInFolder(fullpath_task, (e, tasks_files) => {
-    if (e) return cb(e);
+TaskManager.prototype.listAllPM2Tasks = function() {
+  return new Promise((resolve, reject) => {
+    pm2.list(function(err, proc_list) {
+      if (err) return reject(err);
 
-    this.startTasks(tasks_files, (err, procs) => {
-      if (e) return cb(e);
+      let ret = {};
 
-      this.can_accept_queries = true;
-      return cb(null, procs);
+      proc_list.forEach(function(proc) {
+        if (proc.name.lastIndexOf('task:', 0) > -1)
+          ret[proc.name] = {};
+      });
+
+      resolve(Object.keys(ret));
     });
   });
 };
 
-TaskManager.prototype.listAllPM2Tasks = function(cb) {
-  pm2.list(function(err, proc_list) {
-    if (err) return cb(err);
-
-    var ret = {};
-
-    proc_list.forEach(function(proc) {
-      if (proc.name.lastIndexOf('task:', 0) > -1)
-        ret[proc.name] = {};
-    });
-
-    cb(null, Object.keys(ret));
-  });
-};
-
-TaskManager.prototype.deleteAllPM2Tasks = function(cb) {
-  this.listAllPM2Tasks(function(err, tasks_proc) {
-    if (err) return cb(err);
-
-    async.forEachLimit(tasks_proc, 5, function(proc_name, next) {
-      pm2.delete(proc_name, next);
-    }, function(err) {
-      return cb(err, tasks_proc);
-    });
+TaskManager.prototype.deleteAllPM2Tasks = function() {
+  return this.listAllPM2Tasks()
+  .then((tasks_proc) => {
+    return new Promise((resolve, reject) => {
+      async.forEachLimit(tasks_proc, 5, function(proc_name, next) {
+        pm2.delete(proc_name, next);
+      }, function(err) {
+        if(err) { return reject(err); }
+        resolve(tasks_proc);
+      });
+    })
   });
 };
 
 /**
  * Start a list of task_files
  * @param {array} tasks_files array of files (tasks)
- * @param {function} cb callback triggered once application started
+ * @return Promise
  */
-TaskManager.prototype.startTasks = function(tasks_files, cb) {
-  var that = this;
-  var ret_procs = [];
+TaskManager.prototype.startTasks = function(opts, tasks_files) {
+  let ret_procs = [];
 
   // First delete all process with a name starting with task:
-  this.deleteAllPM2Tasks(err => {
-    if (err) console.error(err);
-
-    // Then start all file
-    async.forEachLimit(tasks_files, 5, (task_file_path, next) => {
-      var task_id       = p.basename(task_file_path).split('.')[0];
-      var task_pm2_name = 'task:' + task_id;
-      var task_port;
-
-      if (that.getTasks()[task_id])
-        task_port = that.getTasks()[task_id].port;
-      else
-        task_port = that.port_offset++;
-
-      // Merge extra env passed at initialization
-      var env = extend(this.task_meta.env, {
-        TASK_PATH : task_file_path,
-        TASK_PORT : task_port
-      });
-
-      var pm2_opts = {};
-
-      if (p.extname(task_file_path) == '.js') {
-        pm2_opts = {
-          script    : p.join(__dirname, 'task_wrapper.js'),
-          name      : task_pm2_name,
-          instances : that.task_meta.instances,
-          exec_mode : 'cluster',
-          watch     : true,
-          env       : Tools.safeClone(env)
-        };
-      }
-      else {
-        pm2_opts = {
-          script    : task_file_path,
-          name      : task_pm2_name,
-          watch     : true,
-          env       : Tools.safeClone(env)
-        };
-      }
-
-      pm2.start(pm2_opts, function(err, procs) {
-        if (err)
-          console.error(err);
-        debug('Task id: %s, pm2_name: %s, exposed on port: %d',
-              task_id, task_pm2_name, task_port);
-
-        that.addTask(task_id, {
-          port     : task_port,
-          task_id  : task_id,
-          pm2_name : task_pm2_name,
-          path     : task_file_path
-        });
-
-        next();
-      });
-
-    }, function(e) {
-      debug('%d tasks successfully started', tasks_files.length);
-      return cb(e, that.getTasks());
-    });
+  return this.deleteAllPM2Tasks()
+  .then(() => {
+    return bluebird.map(tasks_files, (task_file) => this.startTask(task_file), {concurrency: 5})
+  })
+  .then(() => {
+    return Promise.resolve(this.getTasks()) 
   });
 };
+
+TaskManager.prototype.startTask = function(task_file_path) {
+  let task_id       = p.basename(task_file_path).split('.')[0];
+  let task_pm2_name = 'task:' + task_id;
+  let task_port;
+  let tasks = this.getTasks()
+
+  if (tasks[task_id])
+    task_port = tasks[task_id].port;
+  else
+    task_port = this.port_offset++;
+
+  // Merge extra env passed at initialization
+  let env = extend(this.task_meta.env, {
+    TASK_PATH : task_file_path,
+    TASK_PORT : task_port
+  });
+
+  let pm2_opts = {};
+
+  if (p.extname(task_file_path) == '.js') {
+    pm2_opts = {
+      script    : p.join(__dirname, 'task_wrapper.js'),
+      name      : task_pm2_name,
+      instances : this.task_meta.instances,
+      exec_mode : 'cluster',
+      watch     : true,
+      env       : Tools.safeClone(env)
+    };
+  } else {
+    pm2_opts = {
+      script    : task_file_path,
+      name      : task_pm2_name,
+      watch     : true,
+      env       : Tools.safeClone(env)
+    };
+  }
+
+  return pm2.startAsync(pm2_opts)
+  .then((procs) => {
+    this.addTask(task_id, {
+      port     : task_port,
+      task_id  : task_id,
+      pm2_name : task_pm2_name,
+      path     : task_file_path
+    })
+
+    return Promise.resolve(procs);
+  })
+  .catch((err) => {
+    debug('Task id: %s, pm2_name: %s, exposed on port: %d', task_id, task_pm2_name, task_port);
+    return Promise.reject(err)
+  });
+}
 
 /**
  * Trigger a task
@@ -227,16 +226,24 @@ TaskManager.prototype.startTasks = function(tasks_files, cb) {
  * @param {string} opts.task_id full string of the function to call (script name + handle)
  * @param {object} opts.task_opts options about function execution (e.g. timeout)
  */
-TaskManager.prototype.triggerTask = function(opts, cb) {
-  var that        = this;
+TaskManager.prototype.triggerTask = function(opts) {
+  let that = this
+  let script      = opts.task_id.split('.')[0];
+  let handler     = opts.task_id.split('.')[1] || null;
 
-  var script      = opts.task_id.split('.')[0];
-  var handler     = opts.task_id.split('.')[1] || null;
+  if (opts.retry_count === undefined) {
+    opts.retry_count = 0;
+  }
 
-  function launch(cb) {
-    var url = 'http://localhost:' + that.getTasks()[script].port + '/';
+  //@TODO configure
+  if (opts.retry_count++ > 12) {
+    return Promise.reject(new Error('Unknown script ' + script));
+  }
 
-    var req_opts = {
+  function launch() {
+    let tasks = that.getTasks()
+    let url = 'http://localhost:' + tasks[script].port + '/';
+    let req_opts = {
       url : url,
       form: {
         data    : opts.task_data,
@@ -250,40 +257,37 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
       req_opts.timeout = parseInt(opts.task_opts.timeout);
     }
 
-    debug('Executing task locally');
-    request.post(req_opts, function(err, raw, body) {
-      if (err && err.code == 'ECONNREFUSED') {
-        debug('Econnrefused, script not online yet, retrying');
-        setTimeout(function() { launch(cb); }, 200);
-        return false;
-      }
-      try {
-        body = JSON.parse(body);
-      } catch(e) {}
+    return new Promise((resolve, reject) => {
+      request.post(req_opts, function(err, raw, body) {
+        if (err) {
+          return reject(err);
+        }
 
-      return cb(err, body);
-    });
+        try {
+          body = JSON.parse(body);
+        } catch(e) {
+          return reject(e);
+        }
+
+        delete opts.retry_count
+        resolve(body);
+      });
+    })
+    .catch(function(err) {
+      if (err.code == 'ECONNREFUSED') {
+        debug('Econnrefused, script not online yet, retrying');
+        return bluebird.delay(200).then(() => that.triggerTask(opts))
+      }
+
+      return Promise.reject(err)
+    })
   }
 
-  if (that.getTasks()[script])
-    return launch(cb);
+  if (this.getTasks()[script])
+    return launch();
 
-  /**
-   * Retry system
-   */
-  var retry_count = 0;
-
-  var inter = setInterval(function() {
-    if (that.getTasks()[script]) {
-      clearInterval(inter);
-      return launch(cb);
-    }
-    debug('Retrying task %s', script);
-    if (retry_count++ > 12) {
-      clearInterval(inter);
-      return cb('Unknown script ' + script);
-    }
-  }, 500);
+  //@todo configure
+  return bluebird.delay(500).then(() => this.triggerTask(opts))
 };
 
 
@@ -292,13 +296,12 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
  * @param {string} tasks_fullpath Absolute path to list files
  * @param {function} cb callback called once files are listed
  */
-TaskManager.prototype.getAllTasksInFolder = function(tasks_fullpath, cb) {
-  fs.readdir(tasks_fullpath, function(err, task_files) {
-    task_files.forEach((file, i) => {
-      task_files[i] = p.join(tasks_fullpath, file);
-    });
-    return cb(err, task_files);
-  });
+TaskManager.prototype.getAllTasksInFolder = function(tasks_fullpath) {
+  return fs.readdirAsync(tasks_fullpath)
+  .then((task_files) => {
+    task_files = task_files.map(f => p.join(tasks_fullpath, f))
+    return Promise.resolve(task_files)
+  })
 };
 
 module.exports = TaskManager;
