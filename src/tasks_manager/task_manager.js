@@ -18,7 +18,7 @@ var extend     = require('util')._extend;
 var TaskManager = function(opts) {
   if (!opts) opts = {};
 
-  this.port_offset = opts.port_offset || 10001;
+  this.port_offset = opts.port_offset ? parseInt(opts.port_offset) : 10001;
   this.task_list   = {};
   // Defaults values
   this.task_meta   = {
