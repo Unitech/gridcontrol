@@ -12,6 +12,10 @@ describe('Multi Tasks test', function() {
   this.timeout(7000);
   var n1;
 
+  after(function(done) {
+    n1.close(done);
+  });
+
   it('should create a first client', function() {
     n1 = gridcontrol({
       peer_api_port : 10000
@@ -56,7 +60,7 @@ describe('Multi Tasks test', function() {
       }, function(err, res, body) {
         should(res.statusCode).eql(200);
         body = JSON.parse(body);
-        body.err.code.should.eql('ETIMEDOUT' || 'ESOCKETTIMEDOUT');
+        should.ok(body.err.code == ('ETIMEDOUT' || 'ESOCKETTIMEDOUT') ? true : false);
         done();
       });
     });
@@ -83,6 +87,45 @@ describe('Multi Tasks test', function() {
         should(res.statusCode).eql(200);
         body = JSON.parse(body);
         body.err.should.eql('err');
+        done();
+      });
+    });
+
+    it('should get an error when handler does not exists', function(done) {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'handler.DOESNOTEXISTS'
+        }
+      }, function(err, res, body) {
+        should(err).be.null();
+        body = JSON.parse(body);
+        should.ok(body.err.message.indexOf('DOESNOTEXISTS') > -1);
+        done();
+      });
+    });
+
+    it.skip('should get an error module.exports is not a function', function(done) {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'handleras'
+        }
+      }, function(err, res, body) {
+        should(err).be.null();
+        body = JSON.parse(body);
+        should.ok(body.err.message.indexOf('does not export any') > -1);
+        done();
+      });
+    });
+
+    it('should get an error when handler is not a function', function(done) {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'handler.TOTO'
+        }
+      }, function(err, res, body) {
+        should(err).be.null();
+        body = JSON.parse(body);
+        should.ok(body.err.message.indexOf('is not a function') > -1);
         done();
       });
     });

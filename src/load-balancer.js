@@ -1,43 +1,22 @@
 var request = require('request');
 var crypto  = require('crypto');
 var debug   = require('debug')('lb');
-var Tools = require('./lib/tools.js');
+
 /**
  * Load balancer
  * @constructor
- * @param opts {object} options
- * @param opts.task_manager {object} task manager object
- * @param opts.net_manager {object} net manager object
- * @param opts.local_loop {boolean} should the LB proxy query to local?
  */
 var LoadBalancer = function(opts) {
-  this.local_loop       = opts.local_loop || true;
-
   this.processing_tasks = {};
-  this.peer_list        = [];
-  this.socket_pool      = opts.socket_pool;
-  // Round robin index
-  this._rri = 0;
-
-  var that = this;
-
-  (function suitablePeer() {
-    //@todo take monitoring data into account
-    that.peer_list     = [];
-
-    that.peer_list.push({
-      identity : {
-        synchronized : true
-      },
-      local        : true
-    });
-
-    if (!process.env.ONLY_LOCAL)
-      that.peer_list = that.peer_list.concat(that.socket_pool.getRouters());
-    setTimeout(suitablePeer, 500);
-  })();
+  this._rri             = 0;
 };
 
+/**
+ * Method to find suitable peer
+ * for now it only checks if peer is SYNCHRONIZED
+ * @param req {object} Express req object
+ * @param cb {function} Callback triggered once LB found peer
+ */
 LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
   var that  = this;
   var retry = 0;
@@ -46,14 +25,26 @@ LoadBalancer.prototype.findSuitablePeer = function(req, cb) {
     if (retry++ > 100)
       console.error('Trying too many time to route request!');
 
-    var target = that.peer_list[that._rri++ % that.peer_list.length];
+    var peer_list = req.net_manager.getPeerList();
 
+    var target = peer_list[that._rri++ % peer_list.length];
+
+    //@todo take monitoring data into account
     if (target.identity.synchronized == false)
       return setTimeout(rec, 100);
     return cb(null, target);
   })();
 };
 
+/**
+ * Main function to route a one-to-one action
+ * exposed on api.js as:
+ * http://127.0.0.1:10000/tasks/lb_trigger_single
+ *
+ * @param req.body.task_id = task id (script.handler)
+ * @param req.body.data    = data to be passed to the task
+ * @param req.body.opts    = extra options like 'timeout'
+ */
 LoadBalancer.prototype.route = function(req, res, next) {
   var that      = this;
   var task_id   = req.body.task_id;
@@ -67,11 +58,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
   this.findSuitablePeer(req, function(err, peer) {
 
-    // @todo: do stats on task processing (invokation, errors...)
-    // + Log running tasks for smarter load balancing in the future
-    // + link with HealthCheck regular data to know load
-    // if (!that.stats_tasks[task_id])
-    //
+    // @todo: do stats on task processing (invokation, errors, exec time...)
     that.processing_tasks[uuid] = {
       started_at : new Date(),
       peer_info  : peer.identity,
@@ -79,6 +66,9 @@ LoadBalancer.prototype.route = function(req, res, next) {
     };
 
     if (peer.local) {
+      /**
+       * Send task action to local node
+       */
       debug('Routing task %s to localhost', task_id);
       req.task_manager.triggerTask({
         task_id  : task_id,
@@ -97,6 +87,9 @@ LoadBalancer.prototype.route = function(req, res, next) {
       return false;
     }
 
+    /**
+     * Send task action to remote node
+     */
     debug('Routing task %s to %s:%s',
           task_id,
           peer.identity.public_ip,
@@ -131,6 +124,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
 };
 
 LoadBalancer.prototype.broadcast = function(req, res, next) {
+  //@TODO with http multistream
 };
 
 module.exports = LoadBalancer;

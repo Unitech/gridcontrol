@@ -63,7 +63,10 @@ var GridControl = function(opts) {
   this.private_ip       = InternalIp.v4();
   this.peer_api_port    = opts.peer_api_port  || 10000;
   this.processing_tasks = [];
-  this.SocketPool       = new SocketPool();
+  this.peer_list        = [];
+
+
+  this.socket_pool      = new SocketPool();
 
   /**
    * File manager initialization
@@ -94,10 +97,12 @@ var GridControl = function(opts) {
   /**
    * Load balancer initialization
    */
-  this.load_balancer = new LoadBalancer({
-    local_loop  : true,
-    socket_pool : this.SocketPool
-  });
+  this.load_balancer = new LoadBalancer();
+
+  /**
+   * Start Worker
+   */
+  this.startWorker();
 
   /**
    * API initialization
@@ -121,7 +126,7 @@ GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
   this.api.close();
   this.Interplanetary.close();
-  this.SocketPool.close();
+  this.socket_pool.close();
   this.task_manager.terminate();
   this.file_manager.clear(cb);
 };
@@ -147,7 +152,7 @@ GridControl.prototype.start = function() {
 
   return Promise.all([this.api.start(), publicIp.v4()])
   .then(values => {
-    this.public_ip = values[1] 
+    this.public_ip = values[1]
     this.emit('api:ready');
     this.emit('ip:ready');
 
@@ -187,7 +192,7 @@ GridControl.prototype.startDiscovery = function(ns) {
   this.namespace = ns;
 
   var key = new Buffer(this.namespace + ':square-node:unik');
-  
+
   this.Interplanetary = Interplanetary({
     dht : {
       interval : 15000
@@ -228,7 +233,7 @@ GridControl.prototype.stopDiscovery = function(cb) {
  * @public
  */
 GridControl.prototype.onNewPeer = function(sock, remoteId) {
-  const router = this.SocketPool.add(sock);
+  const router = this.socket_pool.add(sock);
 
   this.emit('new:peer', sock);
 
@@ -252,9 +257,6 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     let task_id    = packet.task_id;
     let task_data  = packet.data;
     let task_opts  = packet.opts;
-
-    if (process.env.NODE_ENV == 'test')
-      return cb();
 
     debug('Received a trigger action: %s', task_id);
 
@@ -302,16 +304,17 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
       });
 
       if (process.env.NODE_ENV == 'test') {
-        return this.SocketPool.broadcast('sync:done', {
+        // Do not try to start tasks on peers if test env
+        return this.socket_pool.broadcast('sync:done', {
           synced_md5 : data.curr_md5
         });
       }
 
       this.task_manager.initTaskGroup(data.meta, () => {
-        // Notify master that current peer
-        // has sync with this MD5 (to be sure is synced on right
-        // files project)
-        this.SocketPool.broadcast('sync:done', {
+        /**
+         * Notify master that current peer has sync with the right MD5
+         */
+        this.socket_pool.broadcast('sync:done', {
           synced_md5 : data.curr_md5
         });
       });
@@ -320,11 +323,42 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
 };
 
 /**
+ * Worker
+ * - cache a peer_list for loadbalancer to apply round robin algo
+ */
+GridControl.prototype.startWorker = function() {
+  var that = this;
+
+  function cachePeerList() {
+    that.peer_list     = [];
+
+    that.peer_list.push({
+      identity : {
+        synchronized : that.task_manager.can_accept_queries
+      },
+      local        : true
+    });
+
+    // route only to local if test environment
+    if (process.env.NODE_ENV != 'test')
+      that.peer_list = that.peer_list.concat(that.socket_pool.getRouters());
+
+    setTimeout(cachePeerList, 500);
+  }
+
+  cachePeerList();
+};
+
+GridControl.prototype.getPeerList = function() {
+  return this.peer_list;
+};
+
+/**
  * Return peers connected
  * @public
  */
 GridControl.prototype.getRouters = function() {
-  return this.SocketPool.getRouters();
+  return this.socket_pool.getRouters();
 };
 
 /**
@@ -348,11 +382,30 @@ GridControl.prototype.getLocalIdentity = function() {
 };
 
 /**
+ * Set all peers as NOT SYNCED
+ * to avoid routing to peer with old app versions
+ */
+GridControl.prototype.setAllPeersAsNotSynced = function() {
+  this.socket_pool.getRouters().forEach((router) => {
+    router.identity.synchronized = false;
+  });
+};
+
+/**
+ * Set all peers as SYNCED
+ * used in case the MD5 has not changed
+ */
+GridControl.prototype.setAllPeersAsSynced = function() {
+  this.socket_pool.getRouters().forEach((router) => {
+    router.identity.synchronized = true;
+  });
+};
+
+/**
  * Send command to all peers to synchronize
- * @public
  */
 GridControl.prototype.askAllPeersToSync = function() {
-  this.SocketPool.getRouters().forEach((router) => {
+  this.socket_pool.getRouters().forEach((router) => {
     router.identity.synchronized = false;
     this.askPeerToSync(router);
   });
@@ -363,12 +416,17 @@ GridControl.prototype.askAllPeersToSync = function() {
  * it sends the file buffer and meta on the same command
  * (see that.file_manager.current_file_buff argument)
  * @param router {object} router object
- * @public
  */
 GridControl.prototype.askPeerToSync = function(router) {
   this.emit('peer:synchronize');
 
-  debug('Asking %s[%s] to sync', router.identity.public_ip, router.identity.name);
+  try {
+    debug('Asking %s[%s] to sync', router.identity.public_ip, router.identity.name);
+  } catch(e) {
+    console.log('Critical, trying to route to unidentified socket');
+    console.log(router)
+    return;
+  }
   router.send('sync', {
     public_ip  : this.public_ip,
     private_ip : this.private_ip,

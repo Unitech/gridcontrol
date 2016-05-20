@@ -20,6 +20,8 @@ var TaskManager = function(opts) {
 
   this.port_offset = opts.port_offset ? parseInt(opts.port_offset) : 10001;
   this.task_list   = {};
+  this.can_accept_queries = false;
+
   // Defaults values
   this.task_meta   = {
     instances   : 0,
@@ -64,6 +66,16 @@ TaskManager.prototype.getTasks = function() {
   return this.task_list;
 };
 
+/**
+ * Check if task exists
+ * @param {string} task_id task id (script or script.handler)
+ */
+TaskManager.prototype.taskExists = function(task_id) {
+  var script      = task_id.split('.')[0];
+
+  return this.getTasks()[script] ? true : false;
+};
+
 TaskManager.prototype.addTask = function(task_id, task) {
   if (!task.port)
     console.error('Port is missing');
@@ -72,12 +84,12 @@ TaskManager.prototype.addTask = function(task_id, task) {
 };
 
 /**
- * List all tasks and .startTasks each of them
+ * List all tasks and start each of them
  * @param {object} opts options
  * @param {string} opts.base_folder ABSOLUTE project path
  * @param {string} opts.task_folder RELATIVE task folder path
  * @param {string} opts.instances number of instances of each script
- * @param {string} opts.json_conf NIY
+ * @param {string} opts.json_conf Not used yet
  */
 TaskManager.prototype.initTaskGroup = function(opts, cb) {
   var that = this;
@@ -93,11 +105,15 @@ TaskManager.prototype.initTaskGroup = function(opts, cb) {
   // base_folder not on task_meta, because on peers path is different
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);
 
-  this.getAllTasksInFolder(fullpath_task, function(e, tasks_files) {
+  this.can_accept_queries = false;
+
+  this.getAllTasksInFolder(fullpath_task, (e, tasks_files) => {
     if (e) return cb(e);
 
-    that.startTasks(opts, tasks_files, function(err, procs) {
+    this.startTasks(tasks_files, (err, procs) => {
       if (e) return cb(e);
+
+      this.can_accept_queries = true;
       return cb(null, procs);
     });
   });
@@ -132,26 +148,20 @@ TaskManager.prototype.deleteAllPM2Tasks = function(cb) {
 
 /**
  * Start a list of task_files
- * @param {object} opts options
- * @param {string} opts.base_folder absolute project path
- * @param {string} opts.task_folder absolute task folder path
- * @param {string} opts.instances number of instances of each script
- * @param {string} opts.json_conf NIY
  * @param {array} tasks_files array of files (tasks)
  * @param {function} cb callback triggered once application started
  */
-TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
+TaskManager.prototype.startTasks = function(tasks_files, cb) {
   var that = this;
   var ret_procs = [];
 
   // First delete all process with a name starting with task:
-  this.deleteAllPM2Tasks(function(err) {
+  this.deleteAllPM2Tasks(err => {
     if (err) console.error(err);
 
     // Then start all file
-    async.forEachLimit(tasks_files, 5, function(task_file, next) {
-      var task_path     = p.join(opts.base_folder, opts.task_folder, task_file);
-      var task_id       = p.basename(task_file).split('.')[0];
+    async.forEachLimit(tasks_files, 5, (task_file_path, next) => {
+      var task_id       = p.basename(task_file_path).split('.')[0];
       var task_pm2_name = 'task:' + task_id;
       var task_port;
 
@@ -161,14 +171,14 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
         task_port = that.port_offset++;
 
       // Merge extra env passed at initialization
-      var env = extend(opts.env, {
-        TASK_PATH : task_path,
+      var env = extend(this.task_meta.env, {
+        TASK_PATH : task_file_path,
         TASK_PORT : task_port
       });
 
       var pm2_opts = {};
 
-      if (p.extname(task_path) == '.js') {
+      if (p.extname(task_file_path) == '.js') {
         pm2_opts = {
           script    : p.join(__dirname, 'task_wrapper.js'),
           name      : task_pm2_name,
@@ -180,7 +190,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
       }
       else {
         pm2_opts = {
-          script    : task_path,
+          script    : task_file_path,
           name      : task_pm2_name,
           watch     : true,
           env       : Tools.safeClone(env)
@@ -197,7 +207,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files, cb) {
           port     : task_port,
           task_id  : task_id,
           pm2_name : task_pm2_name,
-          path     : task_path
+          path     : task_file_path
         });
 
         next();
@@ -240,6 +250,7 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
       req_opts.timeout = parseInt(opts.task_opts.timeout);
     }
 
+    debug('Executing task locally');
     request.post(req_opts, function(err, raw, body) {
       if (err && err.code == 'ECONNREFUSED') {
         debug('Econnrefused, script not online yet, retrying');
@@ -248,8 +259,7 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
       }
       try {
         body = JSON.parse(body);
-      } catch(e) {
-      }
+      } catch(e) {}
 
       return cb(err, body);
     });
@@ -284,6 +294,9 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
  */
 TaskManager.prototype.getAllTasksInFolder = function(tasks_fullpath, cb) {
   fs.readdir(tasks_fullpath, function(err, task_files) {
+    task_files.forEach((file, i) => {
+      task_files[i] = p.join(tasks_fullpath, file);
+    });
     return cb(err, task_files);
   });
 };

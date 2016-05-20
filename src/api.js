@@ -59,71 +59,6 @@ API.prototype.start = function() {
   });
 };
 
-/**
- * Stop API + Terminate Task manager
- * @public
- */
-API.prototype.close = function() {
-  this.server.close();
-};
-
-/**
- * Set Express middlewares (JSON parsing, Attach class to req)
- * @public
- */
-API.prototype.setMiddlewares = function() {
-  var that = this;
-
-  var createDomain = require('domain').create;
-
-  this.app.use(bodyParser.urlencoded({
-    extended : true
-  }));
-
-  // Attach task manager to request for child controllers
-  this.app.use(function(req, res, next) {
-    var domain = createDomain();
-
-    req.load_balancer = that.load_balancer;
-    req.task_manager  = that.task_manager;
-    req.file_manager  = that.file_manager;
-    req.net_manager   = that.net_manager;
-
-    domain.add(req);
-    domain.add(res);
-    domain.run(next);
-    domain.on('error', next);
-  });
-
-  this.app.use(bodyParser.json());
-};
-
-// Error middleware + error formating
-API.prototype.endMiddleware = function() {
-  this.app.use(function(err, req, res, next) {
-    fmt.sep();
-    fmt.title('Error catched in express error middleware');
-    if (err.stack)
-      fmt.li(err.stack);
-    if (err.type)
-      fmt.li(err.type);
-    if (err.msg)
-      fmt.li(err.msg);
-    if (err)
-      fmt.dump(err);
-
-    fmt.sep();
-    fmt.title('Body params');
-    fmt.dump(req.body);
-    fmt.title('Query params');
-    fmt.dump(req.params);
-    fmt.sep();
-    res.status(500).send({
-      msg : err.message || err.msg,
-      success : false
-    });
-  });
-};
 
 /**
  * Mount API routes
@@ -190,6 +125,72 @@ API.prototype.mountRoutes = function() {
     res.send({
       file_manager : req.file_manager,
       task_manager : req.task_manager
+    });
+  });
+};
+
+/**
+ * Stop API + Terminate Task manager
+ * @public
+ */
+API.prototype.close = function() {
+  this.server.close();
+};
+
+/**
+ * Set Express middlewares (JSON parsing, Attach class to req)
+ * @public
+ */
+API.prototype.setMiddlewares = function() {
+  var that = this;
+
+  var createDomain = require('domain').create;
+
+  this.app.use(bodyParser.urlencoded({
+    extended : true
+  }));
+
+  // Attach task manager to request for child controllers
+  this.app.use(function(req, res, next) {
+    var domain = createDomain();
+
+    req.load_balancer = that.load_balancer;
+    req.task_manager  = that.task_manager;
+    req.file_manager  = that.file_manager;
+    req.net_manager   = that.net_manager;
+
+    domain.add(req);
+    domain.add(res);
+    domain.run(next);
+    domain.on('error', next);
+  });
+
+  this.app.use(bodyParser.json());
+};
+
+// Error middleware + error formating
+API.prototype.endMiddleware = function() {
+  this.app.use(function(err, req, res, next) {
+    fmt.sep();
+    fmt.title('Error catched in express error middleware');
+    if (err.stack)
+      fmt.li(err.stack);
+    if (err.type)
+      fmt.li(err.type);
+    if (err.msg)
+      fmt.li(err.msg);
+    if (err)
+      fmt.dump(err);
+
+    fmt.sep();
+    fmt.title('Body params');
+    fmt.dump(req.body);
+    fmt.title('Query params');
+    fmt.dump(req.params);
+    fmt.sep();
+    res.status(500).send({
+      msg : err.message || err.msg,
+      success : false
     });
   });
 };

@@ -24,10 +24,26 @@ app.post('/', function (req, res) {
   var context = req.body.context;
 
   if (context.handler) {
+
+    if (!task[context.handler])
+      return res.send(Tools.safeClone({
+        err : new Error('Task handler "' + context.handler + '" is not defined in file ' + process.env.TASK_PATH)
+      }));
+
+    if (typeof(task[context.handler]) !== 'function')
+      return res.send(Tools.safeClone({
+        err : new Error('Task "' + context.handler + '" is not a function in file ' + process.env.TASK_PATH)
+      }));
+
     task[context.handler](data, function(err, data) {
       res.send(Tools.safeClone({err:err, data: Tools.safeClone(data)}));
     });
   } else {
+    if (!task || typeof(task) !== 'function') {
+      return res.send(Tools.safeClone({
+        err : new Error('Task does not export any main function in file ' + process.env.TASK_PATH)
+      }));
+    }
     task(data, function(err, data) {
       res.send(Tools.safeClone({err:err, data: Tools.safeClone(data)}));
     });

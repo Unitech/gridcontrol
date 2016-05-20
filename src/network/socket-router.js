@@ -68,7 +68,14 @@ Actor.prototype.inspect = function(){
  */
 
 Actor.prototype.onmessage = function(buf){
-  var msg = new Message(buf);
+  try {
+    var msg = new Message(buf);
+  } catch(e) {
+    console.error('Weird data received:');
+    console.error(buf.toString());
+    console.error('[Skipping]');
+    return false;
+  }
   var args = msg.args;
   var self = this;
 
