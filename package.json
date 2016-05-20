@@ -10,7 +10,7 @@
     }
   ],
   "scripts": {
-    "test": "bash test/test.sh && sleep 1 && ./node_modules/.bin/mocha grid-api/test/*.mocha.js",
+    "test": "NODE_ENV='test' ./node_modules/.bin/mocha test/*.mocha.js",
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
   "devDependencies": {
@@ -35,7 +35,8 @@
     "fmt": "*",
     "buffer-equals": "^1.0.3",
     "connections": "^1.4.2",
-    "discovery-channel": "^5.0.0",
+    "discovery-channel": "latest",
+    "dns-discovery" : "*",
     "length-prefixed-message": "^3.0.3",
     "pump": "^1.0.1",
     "to-buffer": "^1.0.1",
