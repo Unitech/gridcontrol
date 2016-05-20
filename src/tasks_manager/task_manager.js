@@ -8,6 +8,7 @@ const debug      = require('debug')('tasks');
 const Controller = require('./task_controller.js');
 const Tools      = require('../lib/tools.js');
 const extend     = require('util')._extend;
+const bluebird = require('bluebird')
 
 /**
  * The Task Manager manage all tasks
@@ -213,12 +214,22 @@ TaskManager.prototype.startTasks = function(opts, tasks_files) {
  * @param {string} opts.task_id full string of the function to call (script name + handle)
  * @param {object} opts.task_opts options about function execution (e.g. timeout)
  */
-TaskManager.prototype.triggerTask = function(opts, cb) {
+TaskManager.prototype.triggerTask = function(opts) {
+  let that = this
   let script      = opts.task_id.split('.')[0];
   let handler     = opts.task_id.split('.')[1] || null;
 
+  if (opts.retry_count === undefined) {
+    opts.retry_count = 0;
+  }
+
+  //@TODO configure
+  if (opts.retry_count++ > 12) {
+    return Promise.reject(new Error('Unknown script ' + script));
+  }
+
   function launch() {
-    let tasks = this.getTasks()
+    let tasks = that.getTasks()
     let url = 'http://localhost:' + tasks[script].port + '/';
     let req_opts = {
       url : url,
@@ -243,17 +254,17 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
         try {
           body = JSON.parse(body);
         } catch(e) {
-          return reject(e)
+          return reject(e);
         }
 
+        delete opts.retry_count
         resolve(body);
       });
     })
     .catch(function(err) {
       if (err.code == 'ECONNREFUSED') {
         debug('Econnrefused, script not online yet, retrying');
-        setTimeout(function() { launch(cb); }, 200);
-        return
+        return bluebird.delay(200).then(() => that.triggerTask(opts))
       }
 
       return Promise.reject(err)
@@ -263,29 +274,8 @@ TaskManager.prototype.triggerTask = function(opts, cb) {
   if (this.getTasks()[script])
     return launch();
 
-  /**
-   * Retry system
-   */
-  let retry_count = 0;
-  let inter
-
-  return new Promise((resolve, reject) => {
-    inter = setInterval(() => {
-      if (this.getTasks()[script]) {
-        clearInterval(inter);
-        return launch()
-        .then(resolve).catch(reject);
-      }
-
-      debug('Retrying task %s', script);
-
-      //@TODO configure
-      if (retry_count++ > 12) {
-        clearInterval(inter);
-        return reject(new Error('Unknown script ' + script));
-      }
-    }, 500);
-  })
+  //@todo configure
+  return bluebird.delay(500).then(() => this.triggerTask(opts))
 };
 
 

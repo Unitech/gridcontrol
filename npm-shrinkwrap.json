@@ -154,9 +154,9 @@
       }
     },
     "bluebird": {
-      "version": "2.9.34",
-      "from": "bluebird@>=2.9.34 <2.10.0",
-      "resolved": "https://registry.npmjs.org/bluebird/-/bluebird-2.9.34.tgz"
+      "version": "3.4.0",
+      "from": "bluebird@latest",
+      "resolved": "https://registry.npmjs.org/bluebird/-/bluebird-3.4.0.tgz"
     },
     "body-parser": {
       "version": "1.15.1",
@@ -1171,11 +1171,6 @@
       "version": "0.6.0",
       "from": "shelljs@0.6.0",
       "resolved": "https://registry.npmjs.org/shelljs/-/shelljs-0.6.0.tgz"
-    },
-    "should-equal": {
-      "version": "0.7.2",
-      "from": "should-equal@0.7.2",
-      "resolved": "https://registry.npmjs.org/should-equal/-/should-equal-0.7.2.tgz"
     },
     "should-format": {
       "version": "0.3.2",

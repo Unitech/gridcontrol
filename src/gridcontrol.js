@@ -116,6 +116,7 @@ GridControl.prototype.__proto__ = EventEmitter.prototype;
 /**
  * Stop everything (api, discovery, socket pool, task manager, file manager)
  * @public
+ * @TODO promise.all([]) + wait for clean close
  */
 GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
@@ -219,7 +220,10 @@ GridControl.prototype.startDiscovery = function(ns) {
  * @public
  */
 GridControl.prototype.stopDiscovery = function(cb) {
-  this.Interplanetary.close();
+  return new Promise((resolve, reject) => {
+    this.Interplanetary.once('close', () => resolve())
+    this.Interplanetary.close();
+  })
 };
 
 /**
