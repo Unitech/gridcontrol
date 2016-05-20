@@ -213,19 +213,24 @@ describe('Network', function() {
       }, function(err, raw, body) {
         var res = JSON.parse(body);
         should(err).be.null();
+        should(res.err).be.null();
+        should.exist(res.server);
         res.data.hello.should.eql('yey');
         return done();
       });
     });
 
-    it('should trigger task with custom env', function(done) {
+    it.skip('should trigger task with custom env', function(done) {
       request.post('http://localhost:10000/tasks/lb_trigger_single', {
         form : {
           task_id : 'env',
           data : {}
         }
       }, function(err, raw, body) {
-        //var res = JSON.parse(body);
+        should(err).be.null();
+        console.log(err, body);
+        var res = JSON.parse(body);
+        console.log(res);
         //res.data.env.should.eql('test');
         done();
       });

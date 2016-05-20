@@ -48,7 +48,7 @@ The binary `grid` is now available.
 On your local machine:
 
 ```bash
-$ grid install <GRID_NAME>
+$ grid init <GRID_NAME>
 ```
 
 To provision remote machines:
@@ -93,7 +93,7 @@ Let's look at the content of `tasks/request.js`:
 ```javascript
 var request = require('request');
 
-module.myHandler = function(data, cb) {
+exports.myHandler = function(data, cb) {
   request.get(data.url, function(err, res, body) {
     if (err) return cb(err);
     cb(null, { response : body });
@@ -104,17 +104,22 @@ module.myHandler = function(data, cb) {
 Now let's add some orchestration code into `index.js`:
 
 ```javascript
-// Initialize and synchronize the whole grid
-var grid = require('gridcontrol').init({
-  task_folder : 'tasks'
+var grid = require('gridcontrol');
+
+// Initialize the grid
+grid.init({
+  task_folder : 'tasks'  // default to ./tasks/
+  instances   : 2,       // instance per tasks, default to 'max'
+  env : {                // Extra environment variables to pass to tasks
+    TOKEN_SERVICE_X : 'xxxxxxx',
+    NODE_ENV : 'production'
+  }
 });
 
 setInterval(function() {
 
-  /**
-   * This will invoke the function <filename>.<handler> (fn name)
-   * in each node connected, in a round robin way
-   */
+  // Dispatch action <filename>.<handler> into the grid
+  // and retrieve response
   grid.dispatch('request.myHandler', {
     url : 'http://google.com/'
   }, function(err, data, server_meta) {
@@ -124,6 +129,8 @@ setInterval(function() {
 
 }, 1000);
 ```
+
+*For more documentation about the api please refer to grid-api/README.md
 
 Start the main application:
 

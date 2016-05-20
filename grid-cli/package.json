@@ -1,6 +1,6 @@
 {
   "name": "grid-cli",
-  "version": "0.0.3",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,6 @@
     "cli-spinners" : "*",
     "multissh" : "*"
   },
-  "author": "",
+  "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ISC"
 }

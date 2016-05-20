@@ -23,7 +23,6 @@ SocketPool.prototype.add = function(socket) {
       debug('peer %s left', that._socket_pool[peer.id].identity.public_ip);
     else
       debug('unknow peer left');
-
     delete that._socket_pool[peer.id];
   });
 

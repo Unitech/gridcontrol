@@ -1,6 +1,4 @@
 'use strict';
-const fs         = require('fs');
-const pm2        = require('pm2');
 const async      = require('async');
 const p          = require('path');
 const request    = require('request');
@@ -9,6 +7,8 @@ const Controller = require('./task_controller.js');
 const Tools      = require('../lib/tools.js');
 const extend     = require('util')._extend;
 const bluebird = require('bluebird')
+const fs         = bluebird.promisifyAll(require('fs'));
+const pm2        = bluebird.promisifyAll(require('pm2'));
 
 /**
  * The Task Manager manage all tasks
@@ -19,8 +19,10 @@ const bluebird = require('bluebird')
 const TaskManager = function(opts) {
   if (!opts) opts = {};
 
-  this.port_offset = opts.port_offset || 10001;
+  this.port_offset = opts.port_offset ? parseInt(opts.port_offset) : 10001;
   this.task_list   = {};
+  this.can_accept_queries = false;
+
   // Defaults values
   this.task_meta   = {
     instances   : 0,
@@ -65,6 +67,16 @@ TaskManager.prototype.getTasks = function() {
   return this.task_list;
 };
 
+/**
+ * Check if task exists
+ * @param {string} task_id task id (script or script.handler)
+ */
+TaskManager.prototype.taskExists = function(task_id) {
+  var script      = task_id.split('.')[0];
+
+  return this.getTasks()[script] ? true : false;
+};
+
 TaskManager.prototype.addTask = function(task_id, task) {
   if (!task.port)
     console.error('Port is missing');
@@ -73,12 +85,12 @@ TaskManager.prototype.addTask = function(task_id, task) {
 };
 
 /**
- * List all tasks and .startTasks each of them
+ * List all tasks and start each of them
  * @param {object} opts options
  * @param {string} opts.base_folder ABSOLUTE project path
  * @param {string} opts.task_folder RELATIVE task folder path
  * @param {string} opts.instances number of instances of each script
- * @param {string} opts.json_conf NIY
+ * @param {string} opts.json_conf Not used yet
  * @return Promise
  */
 TaskManager.prototype.initTaskGroup = function(opts) {
@@ -89,6 +101,7 @@ TaskManager.prototype.initTaskGroup = function(opts) {
   this.task_meta.json_conf   = opts.json_conf;
   this.task_meta.task_folder = opts.task_folder;
   this.task_meta.env         = opts.env;
+  this.can_accept_queries = false;
 
   // base_folder not on task_meta, because on peers path is different
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);
@@ -96,6 +109,10 @@ TaskManager.prototype.initTaskGroup = function(opts) {
   return this.getAllTasksInFolder(fullpath_task)
   .then((tasks_files) => {
     return this.startTasks(opts, tasks_files)
+  })
+  .then((procs) => {
+    this.can_accept_queries = true;
+    return Promise.resolve(procs) 
   });
 };
 
@@ -132,11 +149,6 @@ TaskManager.prototype.deleteAllPM2Tasks = function() {
 
 /**
  * Start a list of task_files
- * @param {object} opts options
- * @param {string} opts.base_folder absolute project path
- * @param {string} opts.task_folder absolute task folder path
- * @param {string} opts.instances number of instances of each script
- * @param {string} opts.json_conf NIY
  * @param {array} tasks_files array of files (tasks)
  * @return Promise
  */
@@ -146,66 +158,66 @@ TaskManager.prototype.startTasks = function(opts, tasks_files) {
   // First delete all process with a name starting with task:
   return this.deleteAllPM2Tasks()
   .then(() => {
-    return new Promise((resolve, reject) => {
-      // Then start all file
-      async.forEachLimit(tasks_files, 5, (task_file, next) => {
-        let task_path     = p.join(opts.base_folder, opts.task_folder, task_file);
-        let task_id       = p.basename(task_file).split('.')[0];
-        let task_pm2_name = 'task:' + task_id;
-        let task_port;
-        let tasks = this.getTasks() ;
-
-        if (tasks[task_id] && tasks[task_id].port) {
-          task_port = tasks[task_id].port;
-        } else {
-          task_port = this.port_offset++;
-        }
-
-        // Merge extra env passed at initialization
-        let env = extend(opts.env, {
-          TASK_PATH : task_path,
-          TASK_PORT : task_port
-        });
-
-        let pm2_opts = {
-          script    : task_path,
-          name      : task_pm2_name,
-          watch     : true,
-          env       : Tools.safeClone(env)
-        };
-
-        if (p.extname(task_path) == '.js') {
-          pm2_opts.script = p.join(__dirname, 'task_wrapper.js'),
-          pm2_opts.exec_mode = 'cluster'
-          pm2_opts.instances = this.task_meta.instances
-        }
-
-        pm2.start(pm2_opts, (err, procs) => {
-          if (err) {
-            return next(err);
-          }
-
-          debug('Task id: %s, pm2_name: %s, exposed on port: %d',
-                task_id, task_pm2_name, task_port);
-
-          this.addTask(task_id, {
-            port     : task_port,
-            task_id  : task_id,
-            pm2_name : task_pm2_name,
-            path     : task_path
-          });
-
-          next();
-        });
-
-      }, (e) => {
-        if (e) { return reject(e); }
-        debug('%d tasks successfully started', tasks_files.length);
-        return resolve(this.getTasks());
-      });
-    });
+    return bluebird.map(tasks_files, (task_file) => this.startTask(task_file), {concurrency: 5})
+  })
+  .then(() => {
+    return Promise.resolve(this.getTasks()) 
   });
 };
+
+TaskManager.prototype.startTask = function(task_file_path) {
+  let task_id       = p.basename(task_file_path).split('.')[0];
+  let task_pm2_name = 'task:' + task_id;
+  let task_port;
+  let tasks = this.getTasks()
+
+  if (tasks[task_id])
+    task_port = tasks[task_id].port;
+  else
+    task_port = this.port_offset++;
+
+  // Merge extra env passed at initialization
+  let env = extend(this.task_meta.env, {
+    TASK_PATH : task_file_path,
+    TASK_PORT : task_port
+  });
+
+  let pm2_opts = {};
+
+  if (p.extname(task_file_path) == '.js') {
+    pm2_opts = {
+      script    : p.join(__dirname, 'task_wrapper.js'),
+      name      : task_pm2_name,
+      instances : this.task_meta.instances,
+      exec_mode : 'cluster',
+      watch     : true,
+      env       : Tools.safeClone(env)
+    };
+  } else {
+    pm2_opts = {
+      script    : task_file_path,
+      name      : task_pm2_name,
+      watch     : true,
+      env       : Tools.safeClone(env)
+    };
+  }
+
+  return pm2.startAsync(pm2_opts)
+  .then((procs) => {
+    this.addTask(task_id, {
+      port     : task_port,
+      task_id  : task_id,
+      pm2_name : task_pm2_name,
+      path     : task_file_path
+    })
+
+    return Promise.resolve(procs);
+  })
+  .catch((err) => {
+    debug('Task id: %s, pm2_name: %s, exposed on port: %d', task_id, task_pm2_name, task_port);
+    return Promise.reject(err)
+  });
+}
 
 /**
  * Trigger a task
@@ -285,11 +297,10 @@ TaskManager.prototype.triggerTask = function(opts) {
  * @param {function} cb callback called once files are listed
  */
 TaskManager.prototype.getAllTasksInFolder = function(tasks_fullpath) {
-  return new Promise((resolve, reject) => {
-    fs.readdir(tasks_fullpath, function(err, task_files) {
-      if (err) { return reject(err); }
-      resolve(task_files);
-    });
+  return fs.readdirAsync(tasks_fullpath)
+  .then((task_files) => {
+    task_files = task_files.map(f => p.join(tasks_fullpath, f))
+    return Promise.resolve(task_files)
   })
 };
 
