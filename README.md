@@ -13,7 +13,7 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 </div>
 
 <div align="center">
-<img src="https://s-media-cache-ak0.pinimg.com/236x/45/cb/4a/45cb4afa56005e612aee3a4dda8b1573.jpg"/>
+<img width=710px src="https://github.com/gridcontrol/gridcontrol/raw/master/logo.png">
 </div>
 
 5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
