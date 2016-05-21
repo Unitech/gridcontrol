@@ -1,8 +1,9 @@
 'use strict';
-const request = require('request');
-const crypto  = require('crypto');
-const debug   = require('debug')('lb');
+const request  = require('request');
+const crypto   = require('crypto');
+const debug    = require('debug')('lb');
 const bluebird = require('bluebird')
+const Tools    = require('./lib/tools.js');
 
 /**
  * Load balancer
@@ -13,10 +14,9 @@ const LoadBalancer = function(opts) {
   this.processing_tasks = {};
 };
 
-
 /**
  * Method to find suitable peer
- * for now it only checks if peer is SYNCHRONIZED
+ * for now it only checks if peer is SYNCHRONIZED + TASKS have been started
  * @param req {object} Express req object
  */
 LoadBalancer.prototype.findSuitablePeer = function(req) {
@@ -62,13 +62,13 @@ LoadBalancer.prototype.route = function(req, res, next) {
   }
 
   this.findSuitablePeer(req)
-  .then((peer) => {
-    console.log(peer);
+    .then((peer) => {
+
+      if (req.task_manager.taskExists(task_id) == false) {
+        return res.send({err : Tools.safeClone(new Error('Task file ' + task_id.split('.')[0] + ' does not exists'))});
+      }
+
     // @todo: do stats on task processing (invokation, errors...)
-    // + Log running tasks for smarter load balancing in the future
-    // + link with HealthCheck regular data to know load
-    // if (!that.stats_tasks[task_id])
-    //
     this.processing_tasks[uuid] = {
       started_at : new Date(),
       peer_info  : peer.identity,

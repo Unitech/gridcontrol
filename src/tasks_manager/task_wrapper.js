@@ -12,14 +12,14 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
   res.send({
     task_path : process.env.TASK_PATH,
     task_port : process.env.TASK_PORT
   });
 });
 
-app.post('/', function (req, res) {
+app.post('/', (req, res) => {
   let data    = req.body.data;
   let context = req.body.context;
 
@@ -50,11 +50,11 @@ app.post('/', function (req, res) {
   }
 });
 
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   res.status(500);
   res.send({err: Tools.safeClone(err), data : null});
 });
 
-app.listen(process.env.TASK_PORT, '127.0.0.1', function () {
+app.listen(process.env.TASK_PORT, '127.0.0.1', () => {
   console.log('Task: %s exposed on port %d', process.env.TASK_PATH, process.env.TASK_PORT);
 });

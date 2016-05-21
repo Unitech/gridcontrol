@@ -85,7 +85,7 @@ var GridControl = function(opts) {
    * Task manager initialization
    */
   var task_manager_opts = {
-    port_offset : that.peer_api_port + 1
+    port_offset : parseInt(that.peer_api_port) + 1
   };
 
   if (opts.task_manager && opts.task_manager.task_meta) {

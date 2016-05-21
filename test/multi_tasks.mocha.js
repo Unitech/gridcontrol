@@ -104,7 +104,7 @@ describe('Multi Tasks test', function() {
       });
     });
 
-    it.skip('should get an error module.exports is not a function', function(done) {
+    it('should get an error module.exports is not a function', function(done) {
       request.post('http://localhost:10000/tasks/lb_trigger_single', {
         form : {
           task_id : 'handleras'
@@ -112,7 +112,7 @@ describe('Multi Tasks test', function() {
       }, function(err, res, body) {
         should(err).be.null();
         body = JSON.parse(body);
-        should.ok(body.err.message.indexOf('does not export any') > -1);
+        should.ok(body.err.message.indexOf('Task file') > -1);
         done();
       });
     });
