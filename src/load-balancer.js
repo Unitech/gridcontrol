@@ -51,7 +51,7 @@ LoadBalancer.prototype.findSuitablePeer = function(req) {
  */
 LoadBalancer.prototype.route = function(req, res, next) {
   let task_id   = req.body.task_id;
-  let task_data = req.body.data;
+  let task_data = req.body.data || null;
   let task_opts = req.body.opts || {};
   let uuid      = crypto.randomBytes(32).toString('hex');
 

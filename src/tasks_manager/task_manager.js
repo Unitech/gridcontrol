@@ -269,13 +269,15 @@ TaskManager.prototype.triggerTask = function(opts) {
           return reject(e);
         }
 
+        debug('status=action_success task=%s', script);
+
         delete opts.retry_count
         resolve(body);
       });
     })
     .catch(function(err) {
       if (err.code == 'ECONNREFUSED') {
-        debug('status=action_retry msg=script not online yet task:%s', script);
+        debug('status=action_retry msg=script not online yet task=%s', script);
         return bluebird.delay(200).then(() => that.triggerTask(opts))
       }
 
