@@ -59,7 +59,7 @@ var GridControl = function(opts) {
   var that = this;
 
   this.peer_name        = opts.peer_name || Moniker.choose();
-  this.namespace        = process.env.GRID || opts.namespace || 'pm2:fs';
+  this.namespace        = process.env.GRID || opts.namespace || defaults.GRID_NAME;
   this.private_ip       = InternalIp.v4();
   this.peer_api_port    = opts.peer_api_port  || 10000;
   this.processing_tasks = [];
@@ -192,7 +192,7 @@ GridControl.prototype.startDiscovery = function(ns) {
 
   this.namespace = ns;
 
-  var key = new Buffer(this.namespace + ':square-node:unik');
+  var key = new Buffer(this.namespace + defaults.GRID_NAME_SUFFIX);
 
   this.Interplanetary = Interplanetary({
     dht : {

@@ -1,6 +1,7 @@
 'use strict'
 const request    = require('request');
 const debug      = require('debug')('tasks');
+const defaults   = require('../constants.js');
 
 const Controller = {};
 
@@ -27,8 +28,7 @@ Controller.clear_all_tasks = function(req, res, next) {
 
 Controller.init_task_group = function(req, res, next) {
   let base_folder = req.body.base_folder;
-  //@TODO config default tasks ?
-  let task_folder = req.body.task_folder || 'tasks';
+  let task_folder = req.body.task_folder || defaults.TASK_FOLDER;
   let instances   = req.body.instances;
   let json_conf   = req.body.json_conf;
   let env         = req.body.env || {};
