@@ -1,10 +1,12 @@
+'use strict';
 
+process.env.NODE_ENV='test'
 process.env.GRID='test:namespace:two';
-process.env.DEBUG='network,api,lb,tasks';
+process.env.DEBUG='gc:*';
 
 var should  = require('should');
 var Plan    = require('./plan.js');
-var NetFunctions = require('gridcontrol');
+var Gridcontrol = require('gridcontrol');
 
 describe('Client test', function() {
   this.timeout(7000);
@@ -46,12 +48,12 @@ describe('Client test', function() {
     });
   });
 
-  it('should start a node', function(done) {
-    n1 = new NetFunctions({
+  it('should start a node', function() {
+    n1 = new Gridcontrol({
       peer_api_port : 10000
     });
 
-    n1.start(done);
+    return n1.start();
   });
 
   it('should buffer query and receive ready event', function(done) {
@@ -59,12 +61,11 @@ describe('Client test', function() {
 
     client.init({
       task_folder : 'test/fixtures/app1/tasks',
-      instances   : 2,
+      instances   : 1,
       env         : {
         NODE_ENV : 'production'
       }
     });
-
 
     client.exec('echo', { name : 'heya' }, function(err, data) {
       should(data.hello).eql('heya');

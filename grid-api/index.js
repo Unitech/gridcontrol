@@ -11,15 +11,18 @@ var EventEmitter    = require('events').EventEmitter;
  * @param opts.env
  */
 var Client = function() {
-  // Singleton
   this.base_url    = 'http://localhost:10000';
 };
+
+/**
+ * This module is a SINGLETON
+ * Everywhere the module is required, it will be the same instance
+ */
+module.exports = new Client;
 
 Client.prototype.__proto__ = EventEmitter.prototype;
 
 Client.prototype.init = function(opts, cb) {
-  var that = this;
-
   EventEmitter.call(this);
 
   this.task_folder = opts.task_folder;
@@ -35,12 +38,19 @@ Client.prototype.init = function(opts, cb) {
       base_folder : process.cwd(),
       env         : this.env
     }
-  }, function(err, res, body) {
+  }, (err, res, body) => {
+    if (err && err.code === 'ECONNREFUSED') {
+      var msg = new Error('Cannot connect to local Gridcontrol, please install: pm2 install gridcontrol');
+      this.emit('error', msg);
+      return cb ? cb(msg) : false;
+    }
+
     if (err) {
-      that.emit('error', err);
+      this.emit('error', err);
       return cb ? cb(err) : false;
     }
-    that.emit('ready');
+
+    this.emit('ready');
     return cb ? cb(null, body) : false;
   });
   return this;
@@ -138,8 +148,7 @@ function parseBody(data) {
     ret = JSON.parse(data);
   } catch(e) {
     console.error('Error while parsing', e.message);
+    ret = data;
   }
   return ret;
 }
-
-module.exports = new Client;

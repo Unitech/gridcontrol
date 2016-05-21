@@ -1,4 +1,4 @@
-# Cloud function client
+# Gridcontrol API
 
 ```javascript
 var grid = require('gridcontrol').init({
@@ -33,7 +33,10 @@ setInterval(function() {
   }, {
     timeout : 5000
   }, function(err, response, server_meta) {
-    console.log('From server %s:%s', server.name, server.ip);
+    if (err) {
+      return console.error(err.message);
+    }
+    console.log('From server %s:%s', server.name, server.public_ip);
     console.log('Got response %s', data);
   });
 ```
