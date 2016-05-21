@@ -173,7 +173,6 @@ GridControl.prototype.start = function() {
     fmt.field('Private IP', this.private_ip);
     fmt.field('Local API port', this.peer_api_port);
     fmt.field('Network port', this.network_port);
-    fmt.field('DSS port', defaults.DSS_FS_PORT);
     fmt.field('Joined Namespace', this.namespace);
     fmt.field('Created at', new Date());
     fmt.sep();

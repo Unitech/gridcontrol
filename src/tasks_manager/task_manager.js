@@ -203,20 +203,20 @@ TaskManager.prototype.startTask = function(task_file_path) {
   }
 
   return pm2.startAsync(pm2_opts)
-  .then((procs) => {
-    this.addTask(task_id, {
-      port     : task_port,
-      task_id  : task_id,
-      pm2_name : task_pm2_name,
-      path     : task_file_path
-    })
+    .then((procs) => {
+      this.addTask(task_id, {
+        port     : task_port,
+        task_id  : task_id,
+        pm2_name : task_pm2_name,
+        path     : task_file_path
+      })
 
-    return Promise.resolve(procs);
-  })
-  .catch((err) => {
-    debug('Task id: %s, pm2_name: %s, exposed on port: %d', task_id, task_pm2_name, task_port);
-    return Promise.reject(err)
-  });
+      debug('status=task_started id=%s pm2_name=%s', task_id, task_pm2_name);
+      return Promise.resolve(procs);
+    })
+    .catch((err) => {
+      return Promise.reject(err)
+    });
 }
 
 /**
@@ -275,7 +275,7 @@ TaskManager.prototype.triggerTask = function(opts) {
     })
     .catch(function(err) {
       if (err.code == 'ECONNREFUSED') {
-        debug('Econnrefused, script not online yet, retrying');
+        debug('status=action_retry msg=script not online yet task:%s', script);
         return bluebird.delay(200).then(() => that.triggerTask(opts))
       }
 
