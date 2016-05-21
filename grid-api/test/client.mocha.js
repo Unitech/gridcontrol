@@ -83,9 +83,25 @@ describe('Client test', function() {
     });
   });
 
+  it('should be able to dispatch action without data param', function(done) {
+    client.exec('echo', {}, function(err, data) {
+      should(err).be.null();
+      should(data.hello).eql('Anonymous');
+      done();
+    });
+  });
+
+  it('should be able to dispatch action without data param', function(done) {
+    client.exec('echo', function(err, data) {
+      should(err).be.null();
+      should(data.hello).eql('Anonymous');
+      done();
+    });
+  });
+
   it('should list 1 networked hosts', function(done) {
-    client.listHosts(function(e, hosts) {
-      should(e).be.null;
+    client.listHosts(function(err, hosts) {
+      should(err).be.null();
       should(hosts.length).eql(1);
       done();
     });
@@ -93,7 +109,7 @@ describe('Client test', function() {
 
   it('should list 5 tasks', function(done) {
     client.listTasks(function(e, tasks) {
-      should(e).be.null;
+      should(e).be.null();
       should(tasks.length).eql(5);
       done();
     });

@@ -64,6 +64,12 @@ Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = fu
     opts = {};
   }
 
+  if (typeof(data) == 'function') {
+    cb   = data;
+    data = null;
+    opts = {};
+  }
+
   request.post(this.base_url + '/tasks/lb_trigger_single', {
     form : {
       task_id : task_name,
