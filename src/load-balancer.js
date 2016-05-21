@@ -22,7 +22,7 @@ const LoadBalancer = function(opts) {
 LoadBalancer.prototype.findSuitablePeer = function(req) {
   let promise = (retry) => {
     if(retry++ > 100) {
-      return reject(new Error('To many retries on route request while searching for a suitable peer')) ;
+      return Promise.reject(new Error('To many retries on route request while searching for a suitable peer')) ;
     }
 
     let peer_list = req.net_manager.getPeerList();
