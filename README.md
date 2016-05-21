@@ -1,6 +1,6 @@
 
 <div align="center">
-<img width=710px src="https://github.com/gridcontrol/gridcontrol/raw/master/logo.png">
+<img width=610px src="https://github.com/gridcontrol/gridcontrol/raw/master/logo.png">
 </div>
 
 # GridControl
