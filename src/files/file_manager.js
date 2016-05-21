@@ -1,4 +1,4 @@
-var debug           = require('debug')('filesmanager');
+var debug           = require('debug')('gc:filemanager');
 var fs              = require('fs');
 var crypto          = require('crypto');
 var Compress        = require('./compress.js');
@@ -38,6 +38,7 @@ FilesManagement.prototype.prepareSync = function(base_folder, cb) {
   var that = this;
   var file_changed = false;
 
+  debug('creating %s tarball', base_folder);
   // Create tarball
   Compress.pack(base_folder, defaults.SYNC_FILE, function(e) {
     if (e) return (e);

@@ -1,6 +1,6 @@
 
 if (!process.env.DEBUG)
-  process.env.DEBUG="api,network,tasks,filesmanager,tools,main,lb";
+  process.env.DEBUG="gc:*";
 
 var GridControl = require('./src/');
 

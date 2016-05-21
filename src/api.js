@@ -10,7 +10,7 @@ const bodyParser = require('body-parser');
 const http       = require('http');
 const https      = require('https');
 const fmt        = require('fmt');
-const debug      = require('debug')('api');
+const debug      = require('debug')('gc:api');
 
 /**
  * Set API default values

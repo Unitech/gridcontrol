@@ -1,7 +1,7 @@
 'use strict';
 const request  = require('request');
 const crypto   = require('crypto');
-const debug    = require('debug')('lb');
+const debug    = require('debug')('gc:load-balancer');
 const bluebird = require('bluebird')
 const Tools    = require('./lib/tools.js');
 

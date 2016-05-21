@@ -2,7 +2,7 @@
 const async      = require('async');
 const p          = require('path');
 const request    = require('request');
-const debug      = require('debug')('tasks');
+const debug      = require('debug')('gc:tasks');
 const Controller = require('./task_controller.js');
 const Tools      = require('../lib/tools.js');
 const extend     = require('util')._extend;
@@ -112,7 +112,7 @@ TaskManager.prototype.initTaskGroup = function(opts) {
   })
   .then((procs) => {
     this.can_accept_queries = true;
-    return Promise.resolve(procs) 
+    return Promise.resolve(procs)
   });
 };
 
@@ -161,7 +161,7 @@ TaskManager.prototype.startTasks = function(opts, tasks_files) {
     return bluebird.map(tasks_files, (task_file) => this.startTask(task_file), {concurrency: 5})
   })
   .then(() => {
-    return Promise.resolve(this.getTasks()) 
+    return Promise.resolve(this.getTasks())
   });
 };
 

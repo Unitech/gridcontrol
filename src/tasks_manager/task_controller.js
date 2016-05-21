@@ -1,6 +1,6 @@
 'use strict'
 const request    = require('request');
-const debug      = require('debug')('tasks');
+const debug      = require('debug')('gc:tasks');
 const defaults   = require('../constants.js');
 
 const Controller = {};
@@ -33,6 +33,8 @@ Controller.init_task_group = function(req, res, next) {
   let json_conf   = req.body.json_conf;
   let env         = req.body.env || {};
 
+  debug('new application initialialization request for app %s', base_folder);
+
   if (!base_folder)
     return next(new Error('base_folder is missing'));
 
@@ -47,8 +49,7 @@ Controller.init_task_group = function(req, res, next) {
     instances   : instances,
     json_conf   : json_conf,
     env         : env
-  })
-  .then((procs) => {
+  }).then((procs) => {
     req.file_manager.prepareSync(base_folder, function(e, infos) {
       if (e) {
         console.error('Got error while preparing to sync peers');

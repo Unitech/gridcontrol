@@ -1,5 +1,5 @@
 'use strict';
-const debug           = require('debug')('network');
+const debug           = require('debug')('gc:main');
 const fs              = require('fs');
 const path            = require('path');
 const EventEmitter    = require('events').EventEmitter;
