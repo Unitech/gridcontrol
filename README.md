@@ -1,4 +1,8 @@
 
+<div align="center">
+<img width=710px src="https://github.com/gridcontrol/gridcontrol/raw/master/logo.png">
+</div>
+
 # GridControl
 
 GridControl provision and links multiple servers togethers to form a **Grid**.
@@ -10,10 +14,6 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 <div align="center">
 <b>Welcome to the Grid</b>
 <br/>
-</div>
-
-<div align="center">
-<img width=710px src="https://github.com/gridcontrol/gridcontrol/raw/master/logo.png">
 </div>
 
 5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
