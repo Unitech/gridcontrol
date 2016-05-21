@@ -21,21 +21,19 @@ const LoadBalancer = function(opts) {
  */
 LoadBalancer.prototype.findSuitablePeer = function(req) {
   let promise = (retry) => {
-    return new Promise((resolve, reject) => {
-      if(retry++ > 100) {
-        return reject(new Error('To many retries on route request while searching for a suitable peer')) ;
-      }
+    if(retry++ > 100) {
+      return reject(new Error('To many retries on route request while searching for a suitable peer')) ;
+    }
 
-      let peer_list = req.net_manager.getPeerList();
-      let target = peer_list[this._rri++ % peer_list.length];
+    let peer_list = req.net_manager.getPeerList();
+    let target = peer_list[this._rri++ % peer_list.length];
 
-      //@todo take monitoring data into account
-      if (target.identity.synchronized == false) {
-        return bluebird.delay(100).then(() => promise(retry));
-      }
+    //@todo take monitoring data into account
+    if (target.identity.synchronized == false) {
+      return bluebird.delay(100).then(() => promise(retry));
+    }
 
-      return resolve(target)
-    })
+    return Promise.resolve(target)
   }
 
   return promise(0)
