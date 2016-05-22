@@ -60,14 +60,16 @@ Archiver.prototype._recursiveReaddir = function(root, options) {
 Archiver.prototype._createArchive = function(key) {
   let opts = {
     file: (name, options) => {
-      console.log(this.root, name);
+      console.log('Creating file %s', this.root + name);
       return raf(p.join(this.root, name))
     }
   }
 
-  let archive = key ? this.drive.createArchive(key, opts) : this.drive.createArchive(opts)
+  let archive = key ? this.drive.createArchive(new Buffer(key, 'hex'), opts) : this.drive.createArchive(opts)
 
   archive.append = bluebird.promisify(archive.append)
+  archive.download = bluebird.promisify(archive.download)
+  archive.list = bluebird.promisify(archive.list)
   archive.finalize = bluebird.promisify(archive.finalize)
 
   return archive
@@ -92,20 +94,21 @@ Archiver.prototype.archive = function(directory, options = {}) {
  })
 }
 
-Archiver.prototype.spread = function(archive) {
-  if (this.link)
+Archiver.prototype.spread = function(archive, replicate = true) {
+  if (this.link) {
+    console.log('Leave %s', this.link);
     this.interplanetary.leave(this.link)
+  }
 
   this.link = archive.key.toString('hex')
 
+  console.log('Join %s', this.link);
+  this.interplanetary.join(this.link)
+
   this.interplanetary._stream = function() {
     // this is how the swarm and hyperdrive interface
-    console.log('new peer stream')
     return archive.replicate()
   }
-
-  console.log('spread %s', this.link);
-  this.interplanetary.join(this.link)
 
   return Promise.resolve(this.link)
 }
@@ -115,10 +118,13 @@ Archiver.prototype.download = function(link) {
 
   return this.spread(archive)
   .then(link => {
-    console.log(link);
-    // archive.list(function(err, list) {
-    //   console.log(list);
-    // // return archive.finalize()
-    // })
+    return bluebird.map(archive.list(), function(e, i) {
+      console.log(e.name);
+      return archive.download(i) 
+    })
+  })
+  .then(() => {
+    console.log('done download');
+    return Promise.resolve()
   })
 }

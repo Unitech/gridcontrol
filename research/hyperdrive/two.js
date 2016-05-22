@@ -29,7 +29,7 @@ const hub = signalhub('test', ['http://localhost:8080'])
 
 var swarm = Swarm({
   id: drive.core.id,
-  dns: {server: DEFAULT_DISCOVERY, domain: DAT_DOMAIN, interval: 5000},
+  dns: {server: DEFAULT_DISCOVERY, domain: DAT_DOMAIN, interval: 1000},
   dht: false,
 })
 
@@ -52,13 +52,27 @@ archiver.archive('./sharethis')
 })
 
 setTimeout(function() {
-  archiver.archive('./sharethat')
-  .then(archive => {
-    return archiver.spread(archive)
-  })
-  .then(link => {
-    hub.broadcast('sync', link, function() {
-      console.log('broadcasted %s', link)
+  swarm.destroy(function() {
+
+    var swarm = Swarm({
+      id: drive.core.id,
+      dns: {server: DEFAULT_DISCOVERY, domain: DAT_DOMAIN, interval: 1000},
+      dht: false,
+    })
+
+    swarm.listen()
+
+    archiver.interplanetary = swarm
+
+    archiver.archive('./sharethat')
+    .then(archive => {
+      return archiver.spread(archive)
+    })
+    .then(link => {
+      hub.broadcast('sync', link, function() {
+        console.log('broadcasted %s', link)
+      })
     })
   })
+
 }, 2000)

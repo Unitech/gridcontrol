@@ -29,7 +29,7 @@ const hub = signalhub('test', ['http://localhost:8080'])
 
 var swarm = Swarm({
   id: drive.core.id,
-  dns: {server: DEFAULT_DISCOVERY, domain: DAT_DOMAIN, interval: 5000},
+  dns: {server: DEFAULT_DISCOVERY, domain: DAT_DOMAIN, interval: 1000},
   dht: false,
 })
 
