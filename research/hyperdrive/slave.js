@@ -56,10 +56,11 @@ swarm.on('connection', function(peer) {
     if (pckt.cmd == 'sync') {
       var link = pckt.link;
 
+      var start = new Date();
       console.log('Downloading file on link %s', link);
       archiver.download(link)
         .then(() => {
-          console.log('Download finished');
+          console.log('Download finished, took %ds', (new Date() - start) / 1000);
         })
     }
     else {
