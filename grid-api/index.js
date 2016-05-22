@@ -29,15 +29,23 @@ Client.prototype.init = function(opts, cb) {
   this.env         = opts.env;
   this.instances   = opts.instances || 0;
   this.base_url    = 'http://localhost:' + (opts.port || 10000);
+  this.skip_grid   = opts.skip_grid || false;
+
+  var meta = {
+    task_folder : this.task_folder,
+    instances   : this.instances,
+    base_folder : process.cwd(),
+    env         : this.env
+  };
+
+  if (this.skip_grid) {
+    this.emit('ready');
+    return cb ? cb(null, { local : true }) : false;
+  }
 
   request.post({
-    url : this.base_url + '/tasks/init',
-    json : {
-      task_folder : this.task_folder,
-      instances   : this.instances,
-      base_folder : process.cwd(),
-      env         : this.env
-    }
+    url  : this.base_url + '/tasks/init',
+    json : meta
   }, (err, res, body) => {
     if (err && err.code === 'ECONNREFUSED') {
       var msg = new Error('Cannot connect to local Gridcontrol, please install: pm2 install gridcontrol');
@@ -69,6 +77,8 @@ Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = fu
     data = null;
     opts = {};
   }
+
+  console.log(task_name, data, opts);
 
   request.post(this.base_url + '/tasks/lb_trigger_single', {
     form : {
