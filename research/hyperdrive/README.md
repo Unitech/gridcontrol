@@ -3,11 +3,11 @@
 
 ```bash
 # Start a "file slave"
-$ node one.js
+$ node slave.js
 # Start a second "file slave"
-$ node one.js
-# Start the "file master"
-$ node two.js
+$ node slave.js
+# Start the "file actor" (the one that initiate sync command)
+$ node actor.js
 ```
 
 - [ ] Pas de tarball (on transfere que les fichiers modifiés?)

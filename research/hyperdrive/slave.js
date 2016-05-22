@@ -1,5 +1,5 @@
 'use strict';
-var Swarm      = require('discovery-swarm')
+var Swarm      = require('./interplanetary.js')
 var Hyperdrive = require('hyperdrive')
 var Level      = require('memdb')
 var raf        = require('random-access-file')

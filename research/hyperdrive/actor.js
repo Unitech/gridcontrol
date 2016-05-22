@@ -1,7 +1,6 @@
 'use strict';
 
-const signalhub = require('signalhub')
-var Swarm       = require('discovery-swarm')
+var Swarm       = require('./interplanetary.js')
 var Hyperdrive  = require('hyperdrive')
 var Level       = require('memdb')
 var raf         = require('random-access-file')
@@ -49,6 +48,7 @@ var fileSwarm = Swarm({
 swarm.on('connection', function(peer) {
   // If neew peer is connected, ask peer to SYNC
   if (current_link) {
+    console.log('Send link to neew peer');
     peer.write(JSON.stringify({
       cmd : 'sync',
       link : current_link
