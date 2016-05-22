@@ -64,7 +64,7 @@ let archiver = new Archiver({
   interplanetary : fileSwarm
 })
 
-archiver.archive('./sharethis')
+archiver.archive(process.argv[2] || './sharedfolder')
   .then(archive => {
     return archiver.spread(archive)
   })
