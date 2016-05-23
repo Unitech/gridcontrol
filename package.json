@@ -32,7 +32,6 @@
     "discovery-channel": "^5.0.0",
     "express": "*",
     "fmt": "*",
-    "dns-discovery" : "*",
     "length-prefixed-message": "^3.0.3",
     "moniker": "*",
     "ms": "~0.6.1",

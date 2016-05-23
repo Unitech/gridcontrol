@@ -194,9 +194,11 @@ GridControl.prototype.startDiscovery = function(ns) {
   var key = new Buffer(this.namespace + defaults.GRID_NAME_SUFFIX);
 
   this.Interplanetary = Interplanetary({
-    dht : {
-      interval : 15000
-    }
+    dns : {
+      server : defaults.DNS_SERVERS,
+      interval : 1000
+    },
+    dht : false
   });
 
   this.Interplanetary.listen(0);
