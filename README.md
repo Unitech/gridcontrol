@@ -71,39 +71,42 @@ $ grid list
 To execute/install a software on each Grid's Node just do:
 
 ```bash
-$ grid multissh <COMMAND>
+$ grid spread <COMMAND>
 ```
 
 ### Interact with the Grid
 
-Now let's use the Grid.
+Now let's play with the Grid.
 
-We have to create a project with this structure:
+We have to create a project with this basic structure:
 
 ```
 .
 ├── index.js
 ├── package.json
 └── tasks
-    ├── task_1.js
-    ├── task_2.js
-    └── request.js
+    └── getURL.js
 ```
 
-Let's look at the content of `tasks/request.js`:
+Let's look at the content of `tasks/getUrl.js`:
 
 ```javascript
 var request = require('request');
 
+// this function, called 'getUrl.myHandler', is now exposed over the wire
 exports.myHandler = function(data, cb) {
+
+  // Get the HTML content of the specified url
   request.get(data.url, function(err, res, body) {
     if (err) return cb(err);
+
+    // Then return the result
     cb(null, { response : body });
   });
 };
 ```
 
-Now let's add some orchestration code into `index.js`:
+Now let's call this function from our main file, `index.js`:
 
 ```javascript
 var grid = require('grid-api');
@@ -120,9 +123,9 @@ grid.init({
 
 setInterval(function() {
 
-  // Dispatch action <filename>.<handler> into the grid
+  // Dispatch the action <filename>.<handler> into the grid
   // and retrieve response
-  grid.dispatch('request.myHandler', {
+  grid.dispatch('getUrl.myHandler', {
     url : 'http://google.com/'
   }, function(err, data, server_meta) {
     console.log('From server %s:%s', server.name, server.public_ip);
@@ -132,7 +135,7 @@ setInterval(function() {
 }, 1000);
 ```
 
-*For more documentation about the api please refer to grid-api/README.md
+*For more documentation about the api please refer to grid-api/README.md*
 
 Start the main application:
 
@@ -140,7 +143,22 @@ Start the main application:
 $ node index.js
 ```
 
-## More...
+If the grid has 4 Nodes (including local) you will get this result:
+
+```
+From server alor-vital:88.123.12.21
+Got response $HTML
+From server xtreme-ventage:5.10.123.144
+Got response $HTML
+From server veolia-graphia:88.125.120.20
+Got response $HTML
+From server hector-castor:120.12.1.145
+Got response $HTML
+```
+
+Distributed processing, on-premise!
+
+## Advanced management
 
 Display each Node connected to the grid:
 
@@ -172,7 +190,7 @@ Move all Nodes to another Grid:
 $ grid move <new_grid_name>
 ```
 
-## Contributing/Tests/API Documentation
+## Contributing
 
 Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)
 
