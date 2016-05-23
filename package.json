@@ -2,6 +2,9 @@
   "name": "gridcontrol",
   "version": "0.3.14",
   "description": "",
+  "engines": {
+    "node": ">=4.0"
+  },
   "main": "index.js",
   "apps": [
     {
