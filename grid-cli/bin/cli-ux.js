@@ -9,7 +9,7 @@ var CliUX = {};
 CliUX.status = function(peers) {
 }
 
-CliUX.displayHosts = function(peers) {
+CliUX.displayHosts = function(peers, cb) {
   // instantiate
   var table = new Table({
     head: ['peer name', 'public ip', 'private ip', 'grid version', 'hostname', 'synchronized', 'namespace', 'files master', 'ssh'],
@@ -37,6 +37,8 @@ CliUX.displayHosts = function(peers) {
   if (peers[0]) {
     console.log(chalk.bold('Grid name: ') + chalk.bold.blue(peers[0].ns));
   }
+
+  setTimeout(cb, 70);
 };
 
 CliUX.displayHostsWatch = function(peers) {

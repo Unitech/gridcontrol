@@ -24,3 +24,11 @@ function ispec {
   [ $RET -ne 0 ] || fail "$1"
   success "$1"
 }
+
+function pm2should {
+    sleep 0.5
+    pm2 prettylist > /tmp/tmp_out.txt
+    OUT=`cat /tmp/tmp_out.txt | grep -o "$2" | wc -l`
+    [ $OUT -eq $3 ] || fail "$1"
+    success "$1"
+}

@@ -13,6 +13,7 @@ const cliux        = require('./cli-ux.js');
 const multissh     = require('multissh');
 const ora          = require('ora');
 const shelljs      = require('shelljs');
+const Common       = require('../lib/common.js');
 
 program
   .version(package.version);
@@ -29,7 +30,7 @@ program
     if (program.watch === true)
       cliux.displayHostsWatch();
     else
-      displayHosts();
+      Common.displayHosts();
   });
 
 program
@@ -65,6 +66,10 @@ program
   .command('unprovision')
   .description('Uninstall grid control on all nodes')
   .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      return execCmd('pm2 uninstall gridcontrol', server_list);
+    });
   });
 
 program
@@ -72,71 +77,7 @@ program
   .alias('install')
   .description('Install a local Gridcontrol Node')
   .action(function(grid_name) {
-
-    const inquirer     = require('inquirer');
-    // Display banner
-    var a = fs.readFileSync(__dirname + '/../pres/ascii2')
-    console.log(a.toString());
-
-    new Promise((resolve, reject) => {
-      // Determine grid name
-      if (grid_name)
-        return resolve(grid_name);
-      return inquirer.prompt([{
-        message :'Grid name?',
-        type : 'input',
-        name : 'grid_name'
-      }]).then(answers => {
-        return resolve(answers.grid_name);
-      });
-    }).then(function(grid_name) {
-      // Install PM2
-      console.log(chalk.bold('Initializing Grid: ' + grid_name));
-
-      return new Promise((resolve, reject) => {
-        var spinner = ora({
-          text : chalk.bold('Installing Process Manager PM2'),
-          spinner: 'arrow3'
-        });
-
-        spinner.start();
-
-        if (shelljs.which('pm2')) {
-          spinner.stop();
-          return resolve(grid_name);
-        }
-        var cmd = 'npm install pm2 -g';
-
-        shelljs.exec(cmd, { silent : true}, (code, stdout, stderr) => {
-          spinner.stop();
-          if (code != 0) return reject(stderr);
-          return resolve(grid_name);
-        });
-      });
-
-    }).then(function(grid_name) {
-      // Install Gridcontrol
-      return new Promise((resolve, reject) => {
-        var spinner = ora({
-          text : chalk.bold('Installing Network layer'),
-          spinner: 'arrow3'
-        });
-
-        spinner.start();
-        var cmd = 'GRID=' + grid_name + ' pm2 install gridcontrol';
-
-        shelljs.exec(cmd, {silent:true}, (code, stdout, stderr) => {
-          spinner.stop();
-          if (code != 0) return reject(stderr);
-          return resolve();
-        })
-      });
-    }).then(function() {
-      displayHosts();
-    }).catch(function(e) {
-      console.error(chalk.bold.red('Error while initializing:'));
-      console.error(e);
-    });
+    require('../workflows/init.js')(grid_name);
   });
 
 program
@@ -245,49 +186,24 @@ program
   .action(function() {
     var shelljs = require('shelljs');
 
-    shelljs.exec('pm2 restart gridcontrol', function() {
-      exitSuccess();
+    shelljs.exec('pm2 restart gridcontrol', { silent : true }, function(code, stderr, stdout) {
+
+      if (code != 0) {
+        console.error(stderr);
+        return exitError();
+      }
+
+      Common.displayHosts(function() {
+        exitSuccess()
+      });
     });
   });
 
 function execCmd(cmd, server_list) {
   multissh.start(cmd, server_list, function() {
-    displayHosts();
-    setTimeout(function() {
-      process.exit(0);
-    }, 40);
-  });
-};
-
-function displayHosts(cb) {
-  var retry_count = 0;
-
-  function disp(cb) {
-    grid.listHosts(function(err, hosts) {
-      if (err && cb) return cb(new Error('cannot connect'));
-      if (err) exitError(err);
-      return cliux.displayHosts(hosts);
+    Common.displayHosts(function() {
+      exitSuccess()
     });
-  }
-
-  function retry() {
-    setTimeout(function() {
-      retry_count++;
-
-      if (retry_count > 20) {
-        return exitError(new Error('Cannot connect to local gridcontrol'));
-      }
-      disp(function(err) {
-        if (!err)
-          return setTimeout(function() { exitSuccess() }, 150);
-        return retry();
-      });
-    }, 200);
-  }
-
-  disp(function(err) {
-    if (err) return retry();
-    return setTimeout(function() { exitSuccess() }, 150);
   });
 };
 
