@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-var program      = require('commander');
-var fs           = require('fs');
-var path         = require('path');
-var package      = require('../package.json');
-var sshexec      = require('ssh-exec');
-var chalk        = require('chalk');
-var cliSpinners  = require('cli-spinners');
-var async        = require('async');
-var grid         = require('grid-api');
-var cliux        = require('./cli-ux.js');
-var multissh     = require('multissh');
-var ora          = require('ora');
-var shelljs      = require('shelljs');
+const program      = require('commander');
+const fs           = require('fs');
+const path         = require('path');
+const package      = require('../package.json');
+const sshexec      = require('ssh-exec');
+const chalk        = require('chalk');
+const cliSpinners  = require('cli-spinners');
+const async        = require('async');
+const grid         = require('grid-api');
+const cliux        = require('./cli-ux.js');
+const multissh     = require('multissh');
+const ora          = require('ora');
+const shelljs      = require('shelljs');
 
 program
   .version(package.version);
@@ -29,10 +29,7 @@ program
     if (program.watch === true)
       cliux.displayHostsWatch();
     else
-      grid.listHosts(function(err, hosts) {
-        if (err) return exitError(err);
-        return cliux.displayHosts(hosts);
-      });
+      displayHosts();
   });
 
 program
@@ -71,53 +68,74 @@ program
   });
 
 program
-  .command('init <grid_name>')
+  .command('init [grid_name]')
   .alias('install')
   .description('Install a local Gridcontrol Node')
   .action(function(grid_name) {
-    var spinner = ora({
-      text : chalk.bold('Installing Process Manager PM2'),
-      spinner: 'arrow3'
-    });
-    spinner.start();
 
-    shelljs.exec('npm install pm2 -g', function(err) {
-      spinner.stop();
-      if (err)
-        return exitError(err);
+    const inquirer     = require('inquirer');
+    // Display banner
+    var a = fs.readFileSync(__dirname + '/../pres/ascii2')
+    console.log(a.toString());
 
-      var spinner2 = ora({
-        text : chalk.bold('Installing Network layer'),
-        spinner: 'arrow3'
+    new Promise((resolve, reject) => {
+      // Determine grid name
+      if (grid_name)
+        return resolve(grid_name);
+      return inquirer.prompt([{
+        message :'Grid name?',
+        type : 'input',
+        name : 'grid_name'
+      }]).then(answers => {
+        return resolve(answers.grid_name);
       });
+    }).then(function(grid_name) {
+      // Install PM2
+      console.log(chalk.bold('Initializing Grid: ' + grid_name));
 
-      spinner2.start();
-
-      shelljs.exec('GRID=' + grid_name + ' pm2 install gridcontrol', function(err) {
-        spinner2.stop();
-        if (err)
-          return exitError(err);
-
-        console.log('----------- Welcome to the grid ------------');
-
-        var spinner3 = ora({
-          text : chalk.bold('Connecting to local node...'),
+      return new Promise((resolve, reject) => {
+        var spinner = ora({
+          text : chalk.bold('Installing Process Manager PM2'),
           spinner: 'arrow3'
         });
 
+        spinner.start();
 
-        // var t = setInterval(function() {
-        //   displayHosts(function(err) {
-        //     if (!err) {
-        //       clearInterval(t);
-        //       setTimeout(function() { exitSuccess() }, 150);
-        //     }
-        //   });
-        // }, 200);
+        if (shelljs.which('pm2')) {
+          spinner.stop();
+          return resolve(grid_name);
+        }
+        var cmd = 'npm install pm2 -g';
 
-
+        shelljs.exec(cmd, { silent : true}, (code, stdout, stderr) => {
+          spinner.stop();
+          if (code != 0) return reject(stderr);
+          return resolve(grid_name);
+        });
       });
 
+    }).then(function(grid_name) {
+      // Install Gridcontrol
+      return new Promise((resolve, reject) => {
+        var spinner = ora({
+          text : chalk.bold('Installing Network layer'),
+          spinner: 'arrow3'
+        });
+
+        spinner.start();
+        var cmd = 'GRID=' + grid_name + ' pm2 install gridcontrol';
+
+        shelljs.exec(cmd, {silent:true}, (code, stdout, stderr) => {
+          spinner.stop();
+          if (code != 0) return reject(stderr);
+          return resolve();
+        })
+      });
+    }).then(function() {
+      displayHosts();
+    }).catch(function(e) {
+      console.error(chalk.bold.red('Error while initializing:'));
+      console.error(e);
     });
   });
 
@@ -242,10 +260,34 @@ function execCmd(cmd, server_list) {
 };
 
 function displayHosts(cb) {
-  grid.listHosts(function(err, hosts) {
-    if (err && cb) return cb(new Error('cannot connect'));
-    if (err) exitError(err);
-    return cliux.displayHosts(hosts);
+  var retry_count = 0;
+
+  function disp(cb) {
+    grid.listHosts(function(err, hosts) {
+      if (err && cb) return cb(new Error('cannot connect'));
+      if (err) exitError(err);
+      return cliux.displayHosts(hosts);
+    });
+  }
+
+  function retry() {
+    setTimeout(function() {
+      retry_count++;
+
+      if (retry_count > 20) {
+        return exitError(new Error('Cannot connect to local gridcontrol'));
+      }
+      disp(function(err) {
+        if (!err)
+          return setTimeout(function() { exitSuccess() }, 150);
+        return retry();
+      });
+    }, 200);
+  }
+
+  disp(function(err) {
+    if (err) return retry();
+    return setTimeout(function() { exitSuccess() }, 150);
   });
 };
 
@@ -265,7 +307,6 @@ function listServerForMulti(cb) {
     return cb(null, server_list);
   });
 }
-
 
 /**
  * Generics
