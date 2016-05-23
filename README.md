@@ -51,13 +51,15 @@ On your local machine:
 $ grid init <GRID_NAME>
 ```
 
+*This will install PM2 and Gridcontrol module*
+
 To provision remote machines:
 
 ```bash
 $ grid provision <USERNAME> <IP> <GRID_NAME>
 ```
 
-This will SSH onto the server and will install and configure GridControl.
+*This will SSH onto the server and will install and configure GridControl with the specified GRID NAME*
 *GRID_NAME* is a common identifier for each node to link themselves.
 
 Provision as many server as needed, then to list Nodes connected to the Grid:
@@ -66,7 +68,7 @@ Provision as many server as needed, then to list Nodes connected to the Grid:
 $ grid list
 ```
 
-To execute/install a software on each Grid's Node do:
+To execute/install a software on each Grid's Node just do:
 
 ```bash
 $ grid multissh <COMMAND>
@@ -104,7 +106,7 @@ exports.myHandler = function(data, cb) {
 Now let's add some orchestration code into `index.js`:
 
 ```javascript
-var grid = require('gridcontrol');
+var grid = require('grid-api');
 
 // Initialize the grid
 grid.init({
