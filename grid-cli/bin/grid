@@ -46,12 +46,9 @@ program
   });
 
 program
-  .command('setup-key <hostfile>')
-  .alias('setup-keys')
-  .option('--key <public ssh key>')
+  .command('setup-key <hostfile> [custom ssh key]')
   .description('Setup key (default to $HOME/.ssh/id_rsa.pub)')
-  .action(function(hostfile, opts) {
-
+  .action(function(hostfile, custom_key) {
     var path = require('path');
 
     try {
@@ -68,11 +65,13 @@ program
 
       var cmd = ssh_copy_id;
 
-      if (opts.key) {
-        cmd += ' -i ' + opts.key;
+      if (custom_key) {
+        cmd += ' -i ' + custom_key;
       }
 
-      cmd += ' ' + hosts[0];
+      cmd += ' ' + host.split(':')[0] + '@' + host.split(':')[1];
+
+      console.log(cmd);
 
       shelljs.exec(cmd, function(code, stdout, stderr) {
         next();
@@ -80,6 +79,33 @@ program
     }, e => {
       process.exit(0);
     });
+  });
+
+program
+  .command('genssh <name>')
+  .description('Generate public and private key')
+  .action(function(name) {
+
+    var keypair = require('keypair');
+
+    console.log(chalk.bold('Generating, it can take some time (~10secs)'));
+
+    var pair = keypair({
+      bits :2048
+    });
+
+    console.log(chalk.bold('Done.\n'));
+
+    fs.writeFileSync(name + '.pub', pair.public);
+    fs.writeFileSync(name, pair.private);
+
+    console.log('Public key:');
+    console.log(chalk.grey('./' + name + '.pub'));
+    console.log('Private key:');
+    console.log(chalk.grey('./' + name));
+    console.log('Copy to target hosts:');
+    console.log(chalk.grey('$ grid setup-key <hostfile> ' + name + '.pub'));
+
   });
 
 program

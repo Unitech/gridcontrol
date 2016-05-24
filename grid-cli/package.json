@@ -25,7 +25,8 @@
     "clear" :"*",
     "async" : "*",
     "cli-spinners" : "*",
-    "multissh" : "*"
+    "multissh" : "*",
+    "keypair" : "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ISC"
