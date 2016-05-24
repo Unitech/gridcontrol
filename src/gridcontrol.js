@@ -22,6 +22,10 @@ const Interplanetary  = require('./network/interplanetary.js');
 const InternalIp      = require('./network/internal-ip.js');
 const SocketPool      = require('./network/socket-pool.js');
 
+const Hyperdrive      = require('hyperdrive')
+const Level           = require('memdb')
+const Archiver        = require('./archiver.js')
+
 /**
  * Main entry point of GridControl
  * once object instancied, call .start()
@@ -71,15 +75,18 @@ var GridControl = function(opts) {
   /**
    * File manager initialization
    */
-  var file_manager_opts = {
-    dest_file   : defaults.TMP_FILE,
-    dest_folder : defaults.TMP_FOLDER
-  };
+  // var file_manager_opts = {
+  //   dest_file   : defaults.TMP_FILE,
+  //   dest_folder : defaults.TMP_FOLDER
+  // };
+  //
+  // if (opts.file_manager)
+  //   file_manager_opts = opts.file_manager;
+  //
+  // this.file_manager = new FilesManagement(file_manager_opts);
 
-  if (opts.file_manager)
-    file_manager_opts = opts.file_manager;
-
-  this.file_manager = new FilesManagement(file_manager_opts);
+  let db = Level('./drive.db')
+  this.drive = Hyperdrive(db)
 
   /**
    * Task manager initialization
@@ -110,7 +117,7 @@ var GridControl = function(opts) {
   this.api = new API({
     load_balancer: that.load_balancer,
     task_manager : that.task_manager,
-    file_manager : that.file_manager,
+    // file_manager : that.file_manager,
     net_manager  : this,
     port         : that.peer_api_port
   });
@@ -129,7 +136,7 @@ GridControl.prototype.close = function(cb) {
   this.Interplanetary.close();
   this.socket_pool.close();
   this.task_manager.terminate();
-  this.file_manager.clear(cb);
+  // this.file_manager.clear(cb);
 };
 
 /**
@@ -141,7 +148,7 @@ GridControl.prototype.serialize = function() {
     peer_name    : this.peer_name,
     namespace    : this.namespace,
     peer_api_port: this.peer_api_port,
-    file_manager : this.file_manager.serialize(),
+    // file_manager : this.file_manager.serialize(),
     task_manager : this.task_manager.serialize()
   };
 };
@@ -194,6 +201,7 @@ GridControl.prototype.startDiscovery = function(ns) {
   var key = new Buffer(this.namespace + defaults.GRID_NAME_SUFFIX);
 
   this.Interplanetary = Interplanetary({
+    id: this.drive.id,
     dns : {
       server : defaults.DNS_SERVERS,
       interval : 1000
@@ -205,6 +213,12 @@ GridControl.prototype.startDiscovery = function(ns) {
   this.Interplanetary.join(key.toString('hex'));
 
   this.Interplanetary.on('connection', this.onNewPeer.bind(this));
+
+  this.archiver = new Archiver({
+    drive: this.drive,
+    interplanetary: this.Interplanetary,
+    root: process.cwd()
+  })
 
   return new Promise((resolve, reject) => {
     this.Interplanetary.on('error', (e) => {
@@ -248,14 +262,14 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
    * When a new peer connect and req is received to master && is synced
    * tell the new peer to synchronize with the current peer
    */
-  if (this.file_manager.isFileMaster() && this.file_manager.hasFileToSync()) {
+  // if (this.file_manager.isFileMaster() && this.file_manager.hasFileToSync()) {
     setTimeout(() => {
       this.askPeerToSync(router);
     }, 1500)
-  }
+  // }
 
   router.on('clear', (data) => {
-    this.file_manager.clear();
+    // this.file_manager.clear();
   });
 
   router.on('trigger', (packet, cb) => {
@@ -276,55 +290,61 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
    * Received by master once the peer has been synchronized
    */
   router.on('sync:done', (data) => {
-    if (data.synced_md5 == this.file_manager.getCurrentMD5()) {
-      debug('Peer [%s] successfully synchronized with up-to-date sync file',
-            router.identity.name);
-      router.identity.synchronized = true;
-    }
+    // if (data.synced_md5 == this.file_manager.getCurrentMD5()) {
+    //   debug('Peer [%s] successfully synchronized with up-to-date sync file',
+    //         router.identity.name);
+    router.identity.synchronized = true;
+    // }
   });
 
   /**
    * Task to synchronize this node
    */
-  router.on('sync', (data, file) => {
-    console.log('[%s] Incoming sync req from priv_ip=%s pub_ip=%s for MD5 [%s]',
+  router.on('sync', (options, link) => {
+    console.log('[%s] Incoming sync req from priv_ip=%s pub_ip=%s link %s',
                 this.peer_name,
                 data.private_ip,
                 data.public_ip,
-                data.curr_md5);
+                link);
 
+    archiver.download(link)
+    .then(() => {
+      this.socket_pool.broadcast('sync:done', {
+        link: link
+      });
+    })
     // Write received file to destination file
-    this.file_manager.synchronize(data, file, (err, meta) => {
-      if (err)
-        return console.error('Error while synchronizing file', err);
-
-      // Set unpacked file path as base folder
-      data.meta.base_folder = meta.dest_folder;
-
-      // Set task meta (env, task folder)
-      this.task_manager.setTaskMeta(data.meta);
-
-      this.emit('files:synchronized', {
-        file : this.file_manager.getFilePath()
-      });
-
-      if (process.env.NODE_ENV == 'test') {
-        // Do not try to start tasks on peers if test env
-        return this.socket_pool.broadcast('sync:done', {
-          synced_md5 : data.curr_md5
-        });
-      }
-
-      this.task_manager.initTaskGroup(data.meta)
-      .then(() => {
-        // Notify master that current peer
-        // has sync with this MD5 (to be sure is synced on right
-        // files project)
-        this.socket_pool.broadcast('sync:done', {
-          synced_md5 : data.curr_md5
-        });
-      });
-    });
+    // this.file_manager.synchronize(data, file, (err, meta) => {
+    //   if (err)
+    //     return console.error('Error while synchronizing file', err);
+    //
+    //   // Set unpacked file path as base folder
+    //   data.meta.base_folder = meta.dest_folder;
+    //
+    //   // Set task meta (env, task folder)
+    //   this.task_manager.setTaskMeta(data.meta);
+    //
+    //   this.emit('files:synchronized', {
+    //     file : this.file_manager.getFilePath()
+    //   });
+    //
+    //   if (process.env.NODE_ENV == 'test') {
+    //     // Do not try to start tasks on peers if test env
+    //     return this.socket_pool.broadcast('sync:done', {
+    //       synced_md5 : data.curr_md5
+    //     });
+    //   }
+    //
+    //   this.task_manager.initTaskGroup(data.meta)
+    //   .then(() => {
+    //     // Notify master that current peer
+    //     // has sync with this MD5 (to be sure is synced on right
+    //     // files project)
+    //     this.socket_pool.broadcast('sync:done', {
+    //       synced_md5 : data.curr_md5
+    //     });
+    //   });
+    // });
   });
 };
 
@@ -380,7 +400,7 @@ GridControl.prototype.getLocalIdentity = function() {
     hostname     : os.hostname(),
     platform     : os.platform(),
     ns           : this.namespace,
-    files_master : this.file_manager.isFileMaster(),
+    // files_master : this.file_manager.isFileMaster(),
     user         : process.env.USER,
     grid_version : pkg.version,
     uptime       : process.uptime()
@@ -433,12 +453,18 @@ GridControl.prototype.askPeerToSync = function(router) {
     console.log(router)
     return;
   }
-  router.send('sync', {
-    public_ip  : this.public_ip,
-    private_ip : this.private_ip,
-    meta       : this.task_manager.getTaskMeta(),
-    curr_md5   : this.file_manager.getCurrentMD5()
-  }, this.file_manager.current_file_buff);
+
+  this.archiver.archive('.')
+  .then((archive) => {
+    return this.archiver.spread(archive) 
+  })
+  .then((link) => {
+    router.send('sync', {
+      public_ip  : this.public_ip,
+      private_ip : this.private_ip,
+      meta       : this.task_manager.getTaskMeta(),
+    }, link);
+  })
 };
 
 module.exports = GridControl;
