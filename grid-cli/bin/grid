@@ -46,9 +46,106 @@ program
   });
 
 program
-  .command('recover')
-  .description('SSH to all machines')
-  .action(function() {
+  .command('setup-key <hostfile>')
+  .alias('setup-keys')
+  .option('--key <public ssh key>')
+  .description('Setup key (default to $HOME/.ssh/id_rsa.pub)')
+  .action(function(hostfile, opts) {
+
+    var path = require('path');
+
+    try {
+      var content = fs.readFileSync(path.join(process.cwd(), hostfile)).toString()
+    } catch(e) {
+      if (e) return exitError(e);
+    }
+    var hosts = content.trim().split('\n');
+
+    var ssh_copy_id = path.join(__dirname, '..', 'ssh-copy-id');
+
+    async.forEachLimit(hosts, 1, (host, next) => {
+      console.log(chalk.blue.bold('===> Copying key to : %s'), host);
+
+      var cmd = ssh_copy_id;
+
+      if (opts.key) {
+        cmd += ' -i ' + opts.key;
+      }
+
+      cmd += ' ' + hosts[0];
+
+      shelljs.exec(cmd, function(code, stdout, stderr) {
+        next();
+      });
+    }, e => {
+      process.exit(0);
+    });
+  });
+
+program
+  .command('recover <hostfile> <gridname>')
+  .description('Force all nodes (via SSH) to recover')
+  .action(function(hostfile, gridname) {
+    var hosts = fs.readFileSync(hostfile).toString().trim().split('\n');
+
+    async.forEachLimit(hosts, 1, function(host, next) {
+      var cmd = "PS1='$ ' source ~/.bashrc; GRID=" + gridname + " pm2 restart gridcontrol";
+      var user = host.split(':')[0] + '@' + host.split(':')[1];
+
+
+      try {
+        var stream = sshexec(cmd, user);
+      } catch(e) {
+      }
+
+      stream.on('error', function(e) {
+        console.log('Got error', e.message || e);
+        next();
+      });
+
+      stream.on('data', function(dt) {
+        process.stdout.write(dt.toString());
+      });
+
+      stream.on('warn', function(dt) {
+        process.stdout.write(dt.toString());
+      });
+
+
+      stream.on('finish', function() {
+        next();
+      });
+
+    }, function(err) {
+      console.log('end');
+      shelljs.exec('GRID=' + gridname + ' pm2 restart gridcontrol', function() {
+        console.log('done');
+      });
+
+    });
+  });
+
+program
+  .command('dump <filename>')
+  .description('Save all hosts connected to a hostfile')
+  .action(function(filename) {
+    listServerForMulti(function(err, node_list) {
+      if (err) return exitError(err);
+      try {
+        fs.unlinkSync(filename);
+      } catch(e) {}
+      node_list.forEach(function(node) {
+        fs.appendFileSync(filename, node.user + ':' + node.ip + '\n');
+      });
+      console.log(chalk.bold.blue(filename + ' hostfile content:'));
+      shelljs.exec('cat ' + filename);
+      console.log('');
+      console.log(chalk.bold('To setup new SSH key:'))
+      console.log(chalk.grey('$ grid setup-key ' + filename + ' --key <key_file>'));
+      console.log(chalk.bold('To recover the grid:'))
+      console.log(chalk.grey('$ grid recover ' + filename));
+      process.exit(0);
+    });
   });
 
 program
