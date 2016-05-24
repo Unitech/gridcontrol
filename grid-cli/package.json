@@ -1,6 +1,6 @@
 {
   "name": "grid-cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "engines": {
@@ -26,7 +26,11 @@
     "async" : "*",
     "cli-spinners" : "*",
     "multissh" : "*",
-    "keypair" : "*"
+    "ssh-keygen2" : "*"
+  },
+  "devDependencies" : {
+    "should" : "*",
+    "mocha"  : "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ISC"

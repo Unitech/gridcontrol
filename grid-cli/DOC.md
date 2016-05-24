@@ -48,6 +48,21 @@ $ grid move <new_grid_name>
 $ grid spread <bash_command>
 ```
 
+## Auth/Recovery
+
+```
+# Generate a hostfile with user:ip of each node
+$ grid dump <hostfile>
+
+# Generate SSH keypair (RSA2048)
+$ grid keygen <key_name>
+
+# Copy <key_name>.pub to all hosts listed in dump file
+$ grid keycopy <hostfile>
+
+# Recover the whole grid
+$ grid recover <hostfile> <NEW_GRID_NAME> --key <key_name>.pub
+```
 
 ## Features
 

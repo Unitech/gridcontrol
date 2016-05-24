@@ -6,14 +6,11 @@ source "${SRC}/include.sh"
 node="`type -P node`"
 grid="`type -P node` `pwd`/bin/grid"
 
-GRID_NAME="asdksaldk"
+GRID_NAME="TEST-GRID-TEST"
 
 $grid init $GRID_NAME
 spec "should init grid"
 
-
-# PM2 is Armed
-# pm2="`type -P node` `pwd`/bin/pm2"
 source "${SRC}/include.sh"
 
 pm2should 'pm2 have 1 app running' 'online' 1
@@ -23,10 +20,7 @@ $grid list
 pm2should 'pm2 has process restarted 0 time' 'restart_time: 0' 1
 
 # RESTART GRID
-$grid restart &
-PID=$!
-sleep 2
-kill $PID
+$grid restart
 
 pm2should 'pm2 has process restarted 1 time' 'restart_time: 1' 1
 
@@ -63,12 +57,21 @@ sleep 2
 kill $PID
 spec "Should list tasks"
 
-# # UPGRADE
-# $grid upgrade &
-# PID=$!
-# sleep 2
-# kill $PID
-# spec "Should list tasks"
+# SSH key generation
+$grid keygen testkeyset --no-chmod
+ls testkeyset
+spec "Private key should exists"
+
+ls testkeyset.pub
+spec "Public key should exists"
+
+rm testkeyset testkeyset.pub
+
+# Dump
+$grid dump grid-test
+HOSTFILE=`cat grid-test | wc -l`
+[ $HOSTFILE -eq 1 ] || fail "$1"
+success "File contain right dump data"
 
 # UNPROVISION
 echo 'uninstall gridcontrol'
