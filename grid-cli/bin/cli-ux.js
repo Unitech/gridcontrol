@@ -1,7 +1,7 @@
 
-var inquirer = require('inquirer');
-var Table    = require('cli-table2');
-var chalk = require('chalk');
+var inquirer     = require('inquirer');
+var Table        = require('cli-table2');
+var chalk        = require('chalk');
 var netfunctions = require('grid-api');
 
 var CliUX = {};
@@ -15,6 +15,7 @@ CliUX.displayHosts = function(peers, cb) {
     head: ['peer name', 'public ip', 'private ip', 'grid version', 'hostname', 'synchronized', 'namespace', 'files master', 'ssh'],
     style : {
       head : ['cyan', 'bold'],
+      border : ['cyan'],
       compact : true
     }
   });
