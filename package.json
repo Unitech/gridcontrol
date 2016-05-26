@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -48,5 +48,30 @@
     "to-buffer": "^1.0.1"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
-  "license": "ApacheV2"
+  "license": "ApacheV2",
+  "bundledDependencies": [
+    "amp",
+    "amp-message",
+    "async",
+    "bluebird",
+    "body-parser",
+    "buffer-equals",
+    "chalk",
+    "connections",
+    "debug",
+    "discovery-channel",
+    "express",
+    "fmt",
+    "length-prefixed-message",
+    "moniker",
+    "ms",
+    "network-address",
+    "pm2",
+    "pmx",
+    "public-ip",
+    "pump",
+    "request",
+    "tar-fs",
+    "to-buffer"
+  ]
 }

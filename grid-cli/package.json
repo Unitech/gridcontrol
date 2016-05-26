@@ -1,6 +1,6 @@
 {
   "name": "grid-cli",
-  "version": "0.2.0",
+  "version": "0.2.4",
   "description": "",
   "main": "index.js",
   "engines": {
@@ -12,27 +12,44 @@
   "bin": {
     "grid": "./bin/grid"
   },
-  "dependencies" : {
-    "grid-api" : "latest",
-    "request" : "*",
-    "commander" : "*",
-    "cli-table2" : "*",
-    "shelljs" : "*",
-    "inquirer" : "*",
-    "chalk" : "*",
-    "ssh-exec" : "*",
-    "ora" : "*",
-    "clear" :"*",
-    "async" : "*",
-    "cli-spinners" : "*",
-    "multissh" : "*",
-    "ssh-keygen2" : "*",
+  "dependencies": {
+    "grid-api": "latest",
+    "request": "*",
+    "commander": "*",
+    "cli-table2": "*",
+    "shelljs": "*",
+    "inquirer": "*",
+    "chalk": "*",
+    "ssh-exec": "*",
+    "ora": "*",
+    "clear": "*",
+    "async": "*",
+    "cli-spinners": "*",
+    "multissh": "*",
+    "ssh-keygen2": "*",
     "public-ip": "*"
   },
-  "devDependencies" : {
-    "should" : "*",
-    "mocha"  : "*"
+  "devDependencies": {
+    "should": "*",
+    "mocha": "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
-  "license": "ISC"
+  "license": "ISC",
+  "bundledDependencies": [
+    "async",
+    "chalk",
+    "clear",
+    "cli-spinners",
+    "cli-table2",
+    "commander",
+    "grid-api",
+    "inquirer",
+    "multissh",
+    "ora",
+    "public-ip",
+    "request",
+    "shelljs",
+    "ssh-exec",
+    "ssh-keygen2"
+  ]
 }
