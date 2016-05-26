@@ -41,7 +41,7 @@
     "moniker": "*",
     "ms": "~0.6.1",
     "network-address": "*",
-    "pm2": "*",
+    "pm2": "Unitech/pm2#development",
     "pmx": "*",
     "public-ip": "*",
     "pump": "^1.0.1",

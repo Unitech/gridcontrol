@@ -21,19 +21,20 @@ describe('Pack/Unpack folder', function() {
     }, 100);
   });
 
-  it.skip('should not fail on error', function(done) {
-    Compress.pack('/tmp/asdsad', dst_gzip, function(err) {
-      should(err).not.be.null;
-      done();
-    });
+  it('should fail on unknow error', function(done) {
+    Compress.pack('/tmp/asdsad', dst_gzip)
+      .catch(e => {
+        should(e.code).eql('ENOENT')
+        done();
+      });
   });
 
-  it('should pack folder', function(done) {
-    Compress.pack(src_folder, dst_gzip, done);
+  it('should pack folder', function() {
+    return Compress.pack(src_folder, dst_gzip)
   });
 
-  it('should unpack folder', function(done) {
-    Compress.unpack(dst_gzip, dst_folder, done);
+  it('should unpack folder', function() {
+    return Compress.unpack(dst_gzip, dst_folder);
   });
 
   it('should list same number of files', function(done) {

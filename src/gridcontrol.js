@@ -10,7 +10,7 @@ const chalk           = require('chalk');
 const fmt             = require('fmt');
 const pkg             = require('../package.json');
 const defaults        = require('./constants.js');
-const FilesManagement = require('./files/file_manager.js');
+const FilesManagement = require('./file_manager/file_manager.js');
 const TaskManager     = require('./tasks_manager/task_manager.js');
 
 const Tools           = require('./lib/tools.js');
@@ -21,10 +21,6 @@ const Wait            = require('./lib/wait.js');
 const Interplanetary  = require('./network/interplanetary.js');
 const InternalIp      = require('./network/internal-ip.js');
 const SocketPool      = require('./network/socket-pool.js');
-
-const Hyperdrive      = require('hyperdrive')
-const Level           = require('memdb')
-const Archiver        = require('./archiver.js')
 
 /**
  * Main entry point of GridControl
@@ -49,9 +45,6 @@ const Archiver        = require('./archiver.js')
  * @param opts.task_meta.env                 {object} default location of sync data
  *
  * @fires GridControl#ready
- * @fires GridControl#ip:ready
- * @fires GridControl#discovery:ready
- * @fires GridControl#api:ready
  * @fires GridControl#files:synchronized
  * @fires GridControl#peer:synchronize
  * @fires GridControl#new:peer
@@ -75,18 +68,23 @@ var GridControl = function(opts) {
   /**
    * File manager initialization
    */
-  // var file_manager_opts = {
-  //   dest_file   : defaults.TMP_FILE,
-  //   dest_folder : defaults.TMP_FOLDER
-  // };
-  //
-  // if (opts.file_manager)
-  //   file_manager_opts = opts.file_manager;
-  //
-  // this.file_manager = new FilesManagement(file_manager_opts);
 
-  let db = Level('./drive.db')
-  this.drive = Hyperdrive(db)
+  this.file_swarm = Interplanetary({
+    dns : {
+      server : defaults.DNS_SERVERS,
+      interval : 1000
+    },
+    dht : false
+  });
+
+  if (!opts.file_manager)
+    opts.file_manager = {};
+
+  this.file_manager = new FilesManagement({
+    interplanetary : this.file_swarm,
+    root_folder : opts.file_manager.root_folder,
+    app_folder : opts.file_manager.app_folder
+  });
 
   /**
    * Task manager initialization
@@ -117,7 +115,7 @@ var GridControl = function(opts) {
   this.api = new API({
     load_balancer: that.load_balancer,
     task_manager : that.task_manager,
-    // file_manager : that.file_manager,
+    file_manager : that.file_manager,
     net_manager  : this,
     port         : that.peer_api_port
   });
@@ -133,7 +131,7 @@ GridControl.prototype.__proto__ = EventEmitter.prototype;
 GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
   this.api.close();
-  this.Interplanetary.close();
+  this.command_swarm.close();
   this.socket_pool.close();
   this.task_manager.terminate();
   // this.file_manager.clear(cb);
@@ -159,33 +157,30 @@ GridControl.prototype.serialize = function() {
 GridControl.prototype.start = function() {
 
   return Promise.all([this.api.start(), publicIp.v4()])
-  .then(values => {
-    this.public_ip = values[1]
-    this.emit('api:ready');
-    this.emit('ip:ready');
+    .then(values => {
+      this.public_ip = values[1]
 
-    return this.startDiscovery(this.namespace)
-  })
-  .then(() => {
-    this.emit('discovery:ready');
-    this.emit('ready');
+      return this.startDiscovery(this.namespace)
+    })
+    .then(() => {
+      this.emit('ready');
 
-    if (process.env.NODE_ENV != 'test')
-      Tools.writeConf(this.serialize());
+      if (process.env.NODE_ENV != 'test')
+        Tools.writeConf(this.serialize());
 
-    // Form
-    fmt.title('Peer ready');
-    fmt.field('Name', this.peer_name);
-    fmt.field('Public IP', this.public_ip);
-    fmt.field('Private IP', this.private_ip);
-    fmt.field('Local API port', this.peer_api_port);
-    fmt.field('Network port', this.network_port);
-    fmt.field('Joined Namespace', this.namespace);
-    fmt.field('Created at', new Date());
-    fmt.sep();
+      // Form
+      fmt.title('Peer ready');
+      fmt.field('Name', this.peer_name);
+      fmt.field('Public IP', this.public_ip);
+      fmt.field('Private IP', this.private_ip);
+      fmt.field('Local API port', this.peer_api_port);
+      fmt.field('Network port', this.network_port);
+      fmt.field('Joined Namespace', this.namespace);
+      fmt.field('Created at', new Date());
+      fmt.sep();
 
-    return Promise.resolve()
-  })
+      return Promise.resolve()
+    })
 };
 
 /**
@@ -200,8 +195,7 @@ GridControl.prototype.startDiscovery = function(ns) {
 
   var key = new Buffer(this.namespace + defaults.GRID_NAME_SUFFIX);
 
-  this.Interplanetary = Interplanetary({
-    id: this.drive.id,
+  this.command_swarm = Interplanetary({
     dns : {
       server : defaults.DNS_SERVERS,
       interval : 1000
@@ -209,26 +203,20 @@ GridControl.prototype.startDiscovery = function(ns) {
     dht : false
   });
 
-  this.Interplanetary.listen(0);
-  this.Interplanetary.join(key.toString('hex'));
+  this.command_swarm.listen(0);
+  this.command_swarm.join(key.toString('hex'));
 
-  this.Interplanetary.on('connection', this.onNewPeer.bind(this));
-
-  this.archiver = new Archiver({
-    drive: this.drive,
-    interplanetary: this.Interplanetary,
-    root: process.cwd()
-  })
+  this.command_swarm.on('connection', this.onNewPeer.bind(this));
 
   return new Promise((resolve, reject) => {
-    this.Interplanetary.on('error', (e) => {
-      console.error('Interplanetary got error');
+    this.command_swarm.on('error', (e) => {
+      console.error('command_swarm got error');
       console.error(e.message);
       reject(e);
     });
 
-    this.Interplanetary.on('listening', () => {
-      that.network_port = this.Interplanetary._tcp.address().port;
+    this.command_swarm.on('listening', () => {
+      that.network_port = this.command_swarm._tcp.address().port;
       resolve();
     });
   });
@@ -241,8 +229,8 @@ GridControl.prototype.startDiscovery = function(ns) {
  */
 GridControl.prototype.stopDiscovery = function(cb) {
   return new Promise((resolve, reject) => {
-    this.Interplanetary.once('close', () => resolve())
-    this.Interplanetary.close();
+    this.command_swarm.once('close', () => resolve())
+    this.command_swarm.close();
   })
 };
 
@@ -252,37 +240,27 @@ GridControl.prototype.stopDiscovery = function(cb) {
  * @public
  */
 GridControl.prototype.onNewPeer = function(sock, remoteId) {
-  const router = this.socket_pool.add(sock);
+  var router = this.socket_pool.add(sock);
+  var that = this;
 
   this.emit('new:peer', sock);
 
   router.send('identity', this.getLocalIdentity());
 
-  /**
-   * When a new peer connect and req is received to master && is synced
-   * tell the new peer to synchronize with the current peer
-   */
-  // if (this.file_manager.isFileMaster() && this.file_manager.hasFileToSync()) {
+  // When new peer connects, master share the link for data
+  if (this.file_manager.isFileMaster) {
     setTimeout(() => {
       this.askPeerToSync(router);
-    }, 1500)
-  // }
+    }, 1500);
+  }
 
-  router.on('clear', (data) => {
-    // this.file_manager.clear();
-  });
-
-  router.on('trigger', (packet, cb) => {
-    let task_id    = packet.task_id;
-    let task_data  = packet.data;
-    let task_opts  = packet.opts;
-
-    debug('Received a trigger action: %s', task_id);
+  router.on('trigger', (msg, cb) => {
+    debug('Received a trigger action: %s', msg.task_id);
 
     this.task_manager.triggerTask({
-      task_id  : task_id,
-      task_data: task_data,
-      task_opts: task_opts
+      task_id  : msg.task_id,
+      task_data: msg.task_data,
+      task_opts: msg.task_opts
     }).then(cb);
   });
 
@@ -290,61 +268,40 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
    * Received by master once the peer has been synchronized
    */
   router.on('sync:done', (data) => {
-    // if (data.synced_md5 == this.file_manager.getCurrentMD5()) {
-    //   debug('Peer [%s] successfully synchronized with up-to-date sync file',
-    //         router.identity.name);
+    // if data.link == current_link == OK
     router.identity.synchronized = true;
-    // }
   });
 
   /**
-   * Task to synchronize this node
+   * Task to synchronize this current node
    */
-  router.on('sync', (options, link) => {
+  router.on('sync', (sync_meta) => {
     console.log('[%s] Incoming sync req from priv_ip=%s pub_ip=%s link %s',
                 this.peer_name,
-                data.private_ip,
-                data.public_ip,
-                link);
+                sync_meta.private_ip,
+                sync_meta.public_ip,
+                sync_meta.link);
 
-    archiver.download(link)
-    .then(() => {
-      this.socket_pool.broadcast('sync:done', {
-        link: link
+    this.file_manager.downloadAndExpand(sync_meta.link)
+      .then(() => {
+
+        if (process.env.NODE_ENV == 'test')
+          return this.socket_pool.broadcast('sync:done', {
+            link : sync_meta.link
+          });
+
+        this.task_manager.initTasks(sync_meta.meta)
+          .then(() => {
+            this.socket_pool.broadcast('sync:done', {
+              link : sync_meta.link
+            });
+          });
+      })
+      .catch(e => {
+        this.socket_pool.broadcast('sync:error', {
+          error : e
+        });
       });
-    })
-    // Write received file to destination file
-    // this.file_manager.synchronize(data, file, (err, meta) => {
-    //   if (err)
-    //     return console.error('Error while synchronizing file', err);
-    //
-    //   // Set unpacked file path as base folder
-    //   data.meta.base_folder = meta.dest_folder;
-    //
-    //   // Set task meta (env, task folder)
-    //   this.task_manager.setTaskMeta(data.meta);
-    //
-    //   this.emit('files:synchronized', {
-    //     file : this.file_manager.getFilePath()
-    //   });
-    //
-    //   if (process.env.NODE_ENV == 'test') {
-    //     // Do not try to start tasks on peers if test env
-    //     return this.socket_pool.broadcast('sync:done', {
-    //       synced_md5 : data.curr_md5
-    //     });
-    //   }
-    //
-    //   this.task_manager.initTaskGroup(data.meta)
-    //   .then(() => {
-    //     // Notify master that current peer
-    //     // has sync with this MD5 (to be sure is synced on right
-    //     // files project)
-    //     this.socket_pool.broadcast('sync:done', {
-    //       synced_md5 : data.curr_md5
-    //     });
-    //   });
-    // });
   });
 };
 
@@ -431,40 +388,30 @@ GridControl.prototype.setAllPeersAsSynced = function() {
  * Send command to all peers to synchronize
  */
 GridControl.prototype.askAllPeersToSync = function() {
-  this.socket_pool.getRouters().forEach((router) => {
-    router.identity.synchronized = false;
-    this.askPeerToSync(router);
-  });
+  setTimeout(() => {
+    this.socket_pool.getRouters().forEach((router) => {
+      this.askPeerToSync(router);
+    });
+  }, 1000);
 };
 
-/**
- * Send peer to synchronize
- * it sends the file buffer and meta on the same command
- * (see that.file_manager.current_file_buff argument)
- * @param router {object} router object
- */
 GridControl.prototype.askPeerToSync = function(router) {
   this.emit('peer:synchronize');
 
-  try {
-    debug('Asking %s[%s] to sync', router.identity.public_ip, router.identity.name);
-  } catch(e) {
-    console.log('Critical, trying to route to unidentified socket');
-    console.log(router)
-    return;
+  if (!router.identity) {
+    return console.error('Identity is not attached to router?');
   }
 
-  this.archiver.archive('.')
-  .then((archive) => {
-    return this.archiver.spread(archive) 
-  })
-  .then((link) => {
-    router.send('sync', {
-      public_ip  : this.public_ip,
-      private_ip : this.private_ip,
-      meta       : this.task_manager.getTaskMeta(),
-    }, link);
-  })
+  debug('Asking %s[%s] to sync',
+        router.identity.public_ip,
+        router.identity.name);
+
+  router.send('sync', {
+    public_ip  : this.public_ip,
+    private_ip : this.private_ip,
+    meta       : this.task_manager.getTaskMeta(),
+    link       : this.file_manager.currentLink
+  });
 };
 
 module.exports = GridControl;

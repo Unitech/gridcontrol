@@ -13,7 +13,7 @@ function Archiver(options) {
   if(!options.root) throw new ReferenceError('Provide a root directory')
   if(!options.interplanetary) throw new ReferenceError('Provide Interplanetary')
 
-  this.drive = options.drive 
+  this.drive = options.drive
   this.root = options.root
   this.interplanetary = options.interplanetary
 }
@@ -41,12 +41,12 @@ Archiver.prototype._recursiveReaddir = function(root, options) {
       let depth = root.replace(options.root, '').split(p.sep).length
 
       if (depth > options.maxDepth) {
-        console.error('MaxDepth (%s) reached on %s recursive readDir', options.maxDepth, options.root) 
+        console.error('MaxDepth (%s) reached on %s recursive readDir', options.maxDepth, options.root)
         return options.onFile ? options.onFile(path, stat) : Promise.resolve(path)
       }
 
       if (stat.isDirectory()) {
-        return this._recursiveReaddir(path, options) 
+        return this._recursiveReaddir(path, options)
       }
 
       return options.onFile ? options.onFile(path, stat) : Promise.resolve(path)
@@ -60,7 +60,6 @@ Archiver.prototype._recursiveReaddir = function(root, options) {
 Archiver.prototype._createArchive = function(key) {
   let opts = {
     file: (name, options) => {
-      console.log('Creating file %s', this.root + name);
       return raf(p.join(this.root, name))
     }
   }
@@ -75,8 +74,27 @@ Archiver.prototype._createArchive = function(key) {
   return archive
 }
 
-Archiver.prototype.archive = function(directory, options = {}) {
+Archiver.prototype.archiveSolo = function(file) {
+  let archive = this.drive.createArchive();
+  var stream = archive.createFileWriteStream('current-sync.tar.gz');
+
+  return new Promise((resolve, reject) => {
+
+    var file_stream = fs.createReadStream(file);
+    file_stream.pipe(stream);
+
+    archive.finalize(function(e, d) {
+      if (e) return reject(e);
+      resolve(archive);
+    });
+  })
+}
+
+Archiver.prototype.archive = function(directory, options) {
   let archive = this._createArchive()
+
+  if (typeof(options) === 'undefined')
+    options = {};
 
   directory = p.resolve(this.root, directory)
 
@@ -89,7 +107,7 @@ Archiver.prototype.archive = function(directory, options = {}) {
    }
  })
  .then(function() {
-    return archive.finalize() 
+   return archive.finalize()
     .then(() => Promise.resolve(archive))
  })
 }
@@ -102,7 +120,6 @@ Archiver.prototype.spread = function(archive) {
 
   this.link = archive.key.toString('hex')
 
-  console.log('Join %s', this.link);
   this.interplanetary.join(this.link)
 
   this.interplanetary._stream = function() {
@@ -117,14 +134,12 @@ Archiver.prototype.download = function(link) {
   let archive = this._createArchive(link)
 
   return this.spread(archive)
-  .then(link => {
-    return bluebird.map(archive.list(), function(e, i) {
-      console.log(e.name);
-      return archive.download(i) 
+    .then(link => {
+      return bluebird.map(archive.list(), function(e, i) {
+        return archive.download(i)
+      })
     })
-  })
-  .then(() => {
-    console.log('done download');
-    return Promise.resolve()
-  })
+    .then(() => {
+      return Promise.resolve()
+    })
 }
