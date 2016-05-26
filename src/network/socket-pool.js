@@ -1,5 +1,5 @@
 
-var debug           = require('debug')('gc:network');
+var debug           = require('debug')('g:network');
 var socketrouter = require('./socket-router.js');
 
 var SocketPool = function() {

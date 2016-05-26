@@ -1,8 +1,9 @@
 'use strict';
-const raf = require('random-access-file')
+const debug    = require('debug')('gc:archiver');
+const raf      = require('random-access-file')
 const bluebird = require('bluebird')
-const fs = bluebird.promisifyAll(require('fs'))
-const p = require('path')
+const fs       = bluebird.promisifyAll(require('fs'))
+const p        = require('path')
 
 module.exports = Archiver
 
@@ -16,8 +17,7 @@ function Archiver(options) {
   this.drive = options.drive
   this.root = options.root
   this.interplanetary = options.interplanetary
-}
-
+};
 
 /**
  * @param root root path
@@ -74,18 +74,26 @@ Archiver.prototype._createArchive = function(key) {
   return archive
 }
 
-Archiver.prototype.archiveSolo = function(file) {
+/**
+ * Only archive one file
+ */
+Archiver.prototype.archiveSolo = function(file, identifier) {
   let archive = this.drive.createArchive();
-  var stream = archive.createFileWriteStream('current-sync.tar.gz');
+  var stream  = archive.createFileWriteStream(identifier);
 
   return new Promise((resolve, reject) => {
-
     var file_stream = fs.createReadStream(file);
-    file_stream.pipe(stream);
 
-    archive.finalize(function(e, d) {
-      if (e) return reject(e);
-      resolve(archive);
+    file_stream.on('error', reject);
+    file_stream.on('close', resolve);
+
+    file_stream.pipe(stream);
+  }).then(() => {
+    return new Promise((resolve, reject) => {
+      archive.finalize(function(e, d) {
+        if (e) return reject(e);
+        resolve(archive);
+      });
     });
   })
 }
@@ -121,6 +129,14 @@ Archiver.prototype.spread = function(archive) {
   this.link = archive.key.toString('hex')
 
   this.interplanetary.join(this.link)
+
+  archive.on('upload', function() {
+    debug('uploading');
+  });
+
+  archive.on('download', function() {
+    debug('downloading');
+  });
 
   this.interplanetary._stream = function() {
     // this is how the swarm and hyperdrive interface

@@ -139,10 +139,14 @@ describe('Network', function() {
 
         n1.task_manager.getTasks().echo.port.should.eql(10001);
 
-        // Wait 2 seconds before starting to process msg
-        setTimeout(done, 2000);
+        done();
       });
     });
+
+    it('should n2 synchronized', function(done) {
+      n2.on('synchronized', done);
+    });
+
 
     it('should RESTART all fixtures tasks', function(done) {
       this.timeout(5000);
@@ -238,8 +242,8 @@ describe('Network', function() {
   });
 
   describe('Third node', function() {
-    it('should connect THIRD node', function(done) {
-      this.timeout(10000);
+    it('should connect THIRD node and wait for file to be sync', function(done) {
+      this.timeout(7000);
 
       n3 = new network({
         peer_api_port  : 12000,
@@ -249,14 +253,10 @@ describe('Network', function() {
         }
       });
 
-      n3.on('ready', function() {
-        setTimeout(done, 2000);
-      });
-      n3.start();
+      // Wait for n3 to be sync
+      n3.on('synchronized', done);
 
-      // n3.on('files:ok', function(data) {
-      //   setTimeout(done, 500);
-      // });
+      n3.start();
     });
 
     it('should now N1 retrieve three hosts connected', function(done) {

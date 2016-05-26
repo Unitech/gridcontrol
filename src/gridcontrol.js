@@ -32,11 +32,9 @@ const SocketPool      = require('./network/socket-pool.js');
  * @param opts.namespace                     {string} grid name for discovery
  * @param opts.peer_api_port                 {integer} API port (then task p+1++)
  * @param opts.file_manager                  {object} default location of sync data
- * @param opts.file_manager.dest_file        {string} default location of sync data
- * @param opts.file_manager.dest_folder      {string} default location of sync data
+ * @param opts.file_manager.app_folder
+ * @param opts.file_manager.root_folder
  * @param opts.file_manager.is_file_master   {string} default location of sync data
- * @param opts.file_manager.has_file_to_sync {string} default location of sync data
- * @param opts.file_manager.tmp_folder       {string} default location of folder uncomp
  * @param opts.task_manager                  {object} default location of sync data
  * @param opts.task_meta                     {object} default location of sync data
  * @param opts.task_meta.instances           {integer} default location of sync data
@@ -62,28 +60,22 @@ var GridControl = function(opts) {
   this.processing_tasks = [];
   this.peer_list        = [];
 
-
   this.socket_pool      = new SocketPool();
 
   /**
    * File manager initialization
    */
 
-  this.file_swarm = Interplanetary({
-    dns : {
-      server : defaults.DNS_SERVERS,
-      interval : 1000
-    },
-    dht : false
-  });
+  this.file_swarm = Interplanetary(defaults.DISCOVERY_SETTINGS);
+  this.file_swarm.listen(0);
 
   if (!opts.file_manager)
     opts.file_manager = {};
 
   this.file_manager = new FilesManagement({
     interplanetary : this.file_swarm,
-    root_folder : opts.file_manager.root_folder,
-    app_folder : opts.file_manager.app_folder
+    root_folder    : opts.file_manager.root_folder,
+    app_folder     : opts.file_manager.app_folder
   });
 
   /**
@@ -134,6 +126,7 @@ GridControl.prototype.close = function(cb) {
   this.command_swarm.close();
   this.socket_pool.close();
   this.task_manager.terminate();
+  process.nextTick(cb);
   // this.file_manager.clear(cb);
 };
 
@@ -195,13 +188,7 @@ GridControl.prototype.startDiscovery = function(ns) {
 
   var key = new Buffer(this.namespace + defaults.GRID_NAME_SUFFIX);
 
-  this.command_swarm = Interplanetary({
-    dns : {
-      server : defaults.DNS_SERVERS,
-      interval : 1000
-    },
-    dht : false
-  });
+  this.command_swarm = Interplanetary(defaults.DISCOVERY_SETTINGS);
 
   this.command_swarm.listen(0);
   this.command_swarm.join(key.toString('hex'));
@@ -285,10 +272,16 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
     this.file_manager.downloadAndExpand(sync_meta.link)
       .then(() => {
 
-        if (process.env.NODE_ENV == 'test')
+        this.emit('synchronized');
+
+        /**
+         * If tests, do not launch Tasks
+         */
+        if (process.env.NODE_ENV == 'test') {
           return this.socket_pool.broadcast('sync:done', {
             link : sync_meta.link
           });
+        }
 
         this.task_manager.initTasks(sync_meta.meta)
           .then(() => {

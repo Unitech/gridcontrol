@@ -59,7 +59,7 @@ class FilesManagement {
         }
       })
       .then(() => {
-        return this.archiver.archiveSolo(defaults.TMP_FILE);
+        return this.archiver.archiveSolo(defaults.TMP_FILE, defaults.SYNC_FILE);
       })
       .then((archive) => {
         this.current_link = archive.key.toString('hex');
@@ -79,12 +79,6 @@ class FilesManagement {
               this.app_folder);
 
         return Compress.unpack(dest_file, this.app_folder)
-      })
-      .then(() => {
-        console.log('Broadcasting about successfull sync');
-        this.socket_pool.broadcast('sync:done', {
-          link: link
-        });
       })
   }
 
