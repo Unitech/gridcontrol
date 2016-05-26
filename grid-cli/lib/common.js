@@ -1,6 +1,6 @@
 
 const grid         = require('grid-api');
-const cliux        = require('../bin/cli-ux.js');
+const cliux        = require('./cli-ux.js');
 
 function exitError(err) {
   console.error(err);
@@ -33,7 +33,7 @@ exports.displayHosts = function displayHosts(cb) {
       retry_count++;
 
       if (retry_count > 20) {
-        return cb(new Error('Cannot connect to local gridcontrol'));
+        return cb(new Error('Cannot connect to local gridcontrol, please install via `grid init`'));
       }
       disp(function(err) {
         if (!err)

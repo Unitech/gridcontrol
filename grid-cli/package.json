@@ -26,7 +26,8 @@
     "async" : "*",
     "cli-spinners" : "*",
     "multissh" : "*",
-    "ssh-keygen2" : "*"
+    "ssh-keygen2" : "*",
+    "public-ip": "*"
   },
   "devDependencies" : {
     "should" : "*",

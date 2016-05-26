@@ -9,11 +9,12 @@ const chalk        = require('chalk');
 const cliSpinners  = require('cli-spinners');
 const async        = require('async');
 const grid         = require('grid-api');
-const cliux        = require('./cli-ux.js');
+const cliux        = require('../lib/cli-ux.js');
 const multissh     = require('multissh');
 const shelljs      = require('shelljs');
 const Common       = require('../lib/common.js');
 const SSH          = require('../workflows/ssh.js');
+const publicIp     = require('public-ip');
 
 program
   .version(package.version);
@@ -41,6 +42,9 @@ program
   .command('dump <filename>')
   .description('Save all hosts connected to a hostfile')
   .action(function(filename) {
+
+    filename = filename + '.hostfile';
+
     listServerForMulti(function(err, node_list) {
       if (err) return exitError(err);
       try {
@@ -63,8 +67,9 @@ program
   });
 
 /**
- * These commands uses directly SSH
+ * These following commands uses directly SSH
  */
+
 program
   .command('keygen <filename>')
   .option('--no-chmod')
@@ -72,12 +77,12 @@ program
   .action(function(name, opts) {
     console.log(chalk.bold('Generating, it can take some time (~10secs)'));
 
-    // Call SSH method
     SSH.generate_keypair(name)
       .then((keypair) => {
         console.log(chalk.bold('Done.\n'));
 
         var public_key = name + '.pub';
+
         fs.writeFileSync(public_key, keypair.public);
         fs.writeFileSync(name, keypair.private);
 
@@ -140,19 +145,25 @@ program
   .command('import <hostfile> <gridname> [public_key]')
   .description('Force all nodes (via SSH) to recover')
   .action(function(hostfile, gridname, public_key) {
+
     var p_hosts = fs.readFileSync(hostfile).toString().trim().split('\n');
     var server_list = [];
+
     p_hosts.forEach(function(host) {
       var dt = {
         user : host.split(':')[0],
-        ip : host.split(':')[1]
+        ip   : host.split(':')[1]
       }
       if (public_key)
         dt.key = path.join(process.cwd(), public_key)
       server_list.push(dt);
     });
 
-    execCmd('GRID=' + gridname + ' pm2 restart gridcontrol', server_list);
+    execCmd({
+      cmd : 'GRID=' + gridname + ' pm2 restart gridcontrol',
+      server_list : server_list,
+      title : 'Moving Nodes to new grid name'
+    });
   });
 
 
@@ -182,7 +193,13 @@ program
   .action(function() {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      execCmd('pm2 delete all ; pm2 restart gridcontrol', server_list);
+
+      execCmd({
+        cmd : 'pm2 delete all ; pm2 restart gridcontrol',
+        server_list : server_list,
+        title : 'Clearing all tasks and restarting GC'
+      });
+
     });
   });
 
@@ -192,7 +209,13 @@ program
   .action(function() {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      return execCmd('pm2 uninstall gridcontrol', server_list);
+
+      execCmd({
+        cmd : 'pm2 uninstall gridcontrol',
+        server_list : server_list,
+        title : 'Unprovisioning Gridcontrol'
+      });
+
     });
   });
 
@@ -210,7 +233,12 @@ program
   .action(function(new_grid_name) {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      return execCmd('GRID="' + new_grid_name + '" pm2 restart gridcontrol', server_list);
+
+      execCmd({
+        cmd         : 'GRID="' + new_grid_name + '" pm2 restart gridcontrol',
+        server_list : server_list,
+        title       : 'Moving current grid to new one'
+      });
     });
   });
 
@@ -221,7 +249,12 @@ program
   .action(function() {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      execCmd('pm2 ls', server_list);
+
+      execCmd({
+        cmd         : 'pm2 ls',
+        server_list : server_list,
+        title       : 'List all tasks'
+      });
     });
   });
 
@@ -232,7 +265,13 @@ program
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
       grid.listHosts(function(err, hosts) {
-        execCmd('GRID=' + hosts[0].ns + ' pm2 install gridcontrol', server_list);
+
+        execCmd({
+          cmd         : 'GRID=' + hosts[0].ns + ' pm2 install gridcontrol',
+          server_list : server_list,
+          title       : 'Upgrading Gridcontrol to latest'
+        });
+
       })
     });
   });
@@ -243,7 +282,11 @@ program
   .action(function(bash_command) {
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
-      execCmd(bash_command, server_list);
+
+      execCmd({
+        cmd         : bash_command,
+        server_list : server_list
+      });
     });
   });
 
@@ -255,7 +298,13 @@ program
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
       var cmd = 'pm2 logs' + (task_name ? ' ' + task_name : '');
-      execCmd(cmd, server_list);
+
+      execCmd({
+        cmd         : cmd,
+        server_list : server_list,
+        title       : 'Displaying logs'
+      });
+
     });
   });
 
@@ -266,7 +315,12 @@ program
     listServerForMulti(function(err, server_list) {
       if (err) return exitError(err);
       var cmd = 'pm2 link ' + secret + ' ' + public;
-      execCmd(cmd, server_list);
+
+      execCmd({
+        cmd         : cmd,
+        server_list : server_list,
+        title       : 'Monitoring Nodes with Keymetrics'
+      });
     });
   });
 
@@ -317,9 +371,14 @@ if (!process.argv.slice(2).length) {
   program.outputHelp();
 }
 
-
-function execCmd(cmd, server_list) {
-  multissh.start(cmd, server_list, function() {
+/**
+ * @param {Object}   opts
+ * @param {String}   opts.cmd command to execute
+ * @param {Object[]} opts.server_list Server list (ip, user, local)
+ * @param {String}   [opts.title="MultiSSH] Optional window title
+ */
+function execCmd(opts) {
+  multissh.start(opts, function() {
     Common.displayHosts(function() {
       exitSuccess()
     });

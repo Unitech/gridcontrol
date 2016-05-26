@@ -80,9 +80,9 @@ var SSH = {
       var strssh = username + '@' + ip;
 
       if (opts.key)
-        scp_copy_command = 'scp -i ' + opts.key + ' ' + __dirname + '/../install.sh ' + strssh + ':/tmp';
+        scp_copy_command = 'scp -i ' + opts.key + ' ' + __dirname + '/../lib/install.sh ' + strssh + ':/tmp';
       else
-        scp_copy_command = 'scp ' + __dirname + '/../install.sh ' + strssh + ':/tmp';
+        scp_copy_command = 'scp ' + __dirname + '/../lib/install.sh ' + strssh + ':/tmp';
 
       var child = shelljs.exec(scp_copy_command);
 

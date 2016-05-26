@@ -6,10 +6,17 @@ const shelljs      = require('shelljs');
 const ora          = require('ora');
 const Common       = require('../lib/common.js');
 
+/**
+ * Init workflow
+ *
+ * 1/ Install PM2
+ * 2/ Install Gridcontrol
+ * 3/ Display hosts
+ */
 module.exports = function(grid_name) {
   // Welcome banner
-  var a = fs.readFileSync(__dirname + '/../pres/ascii2')
-  console.log(a.toString());
+  //var a = fs.readFileSync(__dirname + '/../pres/ascii2')
+  //console.log(a.toString());
 
   new Promise((resolve, reject) => {
     // Determine grid name
@@ -40,7 +47,7 @@ module.exports = function(grid_name) {
       }
       var cmd = 'npm install pm2 -g';
 
-      shelljs.exec(cmd, { silent : true}, (code, stdout, stderr) => {
+      shelljs.exec(cmd, { silent : true }, (code, stdout, stderr) => {
         spinner.stop();
         if (code != 0) return reject(stderr);
         return resolve(grid_name);
@@ -70,5 +77,4 @@ module.exports = function(grid_name) {
     console.error(chalk.bold.red('Error while initializing:'));
     console.error(e);
   });
-
 }
