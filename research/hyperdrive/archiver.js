@@ -13,7 +13,7 @@ function Archiver(options) {
   if(!options.root) throw new ReferenceError('Provide a root directory')
   if(!options.interplanetary) throw new ReferenceError('Provide Interplanetary')
 
-  this.drive = options.drive 
+  this.drive = options.drive
   this.root = options.root
   this.interplanetary = options.interplanetary
 }
@@ -41,12 +41,12 @@ Archiver.prototype._recursiveReaddir = function(root, options) {
       let depth = root.replace(options.root, '').split(p.sep).length
 
       if (depth > options.maxDepth) {
-        console.error('MaxDepth (%s) reached on %s recursive readDir', options.maxDepth, options.root) 
+        console.error('MaxDepth (%s) reached on %s recursive readDir', options.maxDepth, options.root)
         return options.onFile ? options.onFile(path, stat) : Promise.resolve(path)
       }
 
       if (stat.isDirectory()) {
-        return this._recursiveReaddir(path, options) 
+        return this._recursiveReaddir(path, options)
       }
 
       return options.onFile ? options.onFile(path, stat) : Promise.resolve(path)
@@ -75,8 +75,11 @@ Archiver.prototype._createArchive = function(key) {
   return archive
 }
 
-Archiver.prototype.archive = function(directory, options = {}) {
+Archiver.prototype.archive = function(directory, options) {
   let archive = this._createArchive()
+
+  if (!options)
+    options = {};
 
   directory = p.resolve(this.root, directory)
 
@@ -89,12 +92,15 @@ Archiver.prototype.archive = function(directory, options = {}) {
    }
  })
  .then(function() {
-    return archive.finalize() 
-    .then(() => Promise.resolve(archive))
+   return archive.finalize()
+     .then(() => Promise.resolve(archive))
  })
 }
 
-Archiver.prototype.spread = function(archive) {
+Archiver.prototype.spread = function(archive, replicate) {
+  if (typeof(replicate) === 'undefined')
+    replicate = true;
+
   if (this.link) {
     console.log('Leave %s', this.link);
     this.interplanetary.leave(this.link)
@@ -120,7 +126,7 @@ Archiver.prototype.download = function(link) {
   .then(link => {
     return bluebird.map(archive.list(), function(e, i) {
       console.log(e.name);
-      return archive.download(i) 
+      return archive.download(i)
     })
   })
   .then(() => {
