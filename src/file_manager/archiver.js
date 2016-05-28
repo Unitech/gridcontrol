@@ -1,8 +1,9 @@
 'use strict';
-const raf = require('random-access-file')
+const debug    = require('debug')('gc:archiver');
+const raf      = require('random-access-file')
 const bluebird = require('bluebird')
-const fs = bluebird.promisifyAll(require('fs'))
-const p = require('path')
+const fs       = bluebird.promisifyAll(require('fs'))
+const p        = require('path')
 
 module.exports = Archiver
 
@@ -13,11 +14,10 @@ function Archiver(options) {
   if(!options.root) throw new ReferenceError('Provide a root directory')
   if(!options.interplanetary) throw new ReferenceError('Provide Interplanetary')
 
-  this.drive = options.drive 
+  this.drive = options.drive
   this.root = options.root
   this.interplanetary = options.interplanetary
-}
-
+};
 
 /**
  * @param root root path
@@ -41,12 +41,12 @@ Archiver.prototype._recursiveReaddir = function(root, options) {
       let depth = root.replace(options.root, '').split(p.sep).length
 
       if (depth > options.maxDepth) {
-        console.error('MaxDepth (%s) reached on %s recursive readDir', options.maxDepth, options.root) 
+        console.error('MaxDepth (%s) reached on %s recursive readDir', options.maxDepth, options.root)
         return options.onFile ? options.onFile(path, stat) : Promise.resolve(path)
       }
 
       if (stat.isDirectory()) {
-        return this._recursiveReaddir(path, options) 
+        return this._recursiveReaddir(path, options)
       }
 
       return options.onFile ? options.onFile(path, stat) : Promise.resolve(path)
@@ -60,7 +60,6 @@ Archiver.prototype._recursiveReaddir = function(root, options) {
 Archiver.prototype._createArchive = function(key) {
   let opts = {
     file: (name, options) => {
-      console.log('Creating file %s', this.root + name);
       return raf(p.join(this.root, name))
     }
   }
@@ -75,8 +74,44 @@ Archiver.prototype._createArchive = function(key) {
   return archive
 }
 
-Archiver.prototype.archive = function(directory, options = {}) {
+/**
+ * Only archive one file
+ */
+Archiver.prototype.archiveSolo = function(file, identifier) {
+  let archive = this.drive.createArchive({
+    file: (name, options) => {
+      // If you are receiving a file in multiple pieces in a distributed system
+      // it can be useful to write these pieces to disk one by one in various places
+      // throughout the file without having to open and close a file descriptor all the time.
+      // => raf (random-access-file)
+      return raf(p.join(this.root, name))
+    }
+  });
+
+  var stream  = archive.createFileWriteStream(identifier);
+
+  return new Promise((resolve, reject) => {
+    var file_stream = fs.createReadStream(file);
+
+    file_stream.on('error', reject);
+    file_stream.on('close', resolve);
+
+    file_stream.pipe(stream);
+  }).then(() => {
+    return new Promise((resolve, reject) => {
+      archive.finalize(function(e, d) {
+        if (e) return reject(e);
+        resolve(archive);
+      });
+    });
+  })
+}
+
+Archiver.prototype.archive = function(directory, options) {
   let archive = this._createArchive()
+
+  if (typeof(options) === 'undefined')
+    options = {};
 
   directory = p.resolve(this.root, directory)
 
@@ -89,7 +124,7 @@ Archiver.prototype.archive = function(directory, options = {}) {
    }
  })
  .then(function() {
-    return archive.finalize() 
+   return archive.finalize()
     .then(() => Promise.resolve(archive))
  })
 }
@@ -102,8 +137,11 @@ Archiver.prototype.spread = function(archive) {
 
   this.link = archive.key.toString('hex')
 
-  console.log('Join %s', this.link);
   this.interplanetary.join(this.link)
+
+  // archive.on('upload', function(data) {
+  //   debug('uploading', data.length);
+  // });
 
   this.interplanetary._stream = function() {
     // this is how the swarm and hyperdrive interface
@@ -113,18 +151,41 @@ Archiver.prototype.spread = function(archive) {
   return Promise.resolve(this.link)
 }
 
+function bytesToSize(bytes) {
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes == 0) return '0 Byte';
+  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+  return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+};
+
 Archiver.prototype.download = function(link) {
   let archive = this._createArchive(link)
 
   return this.spread(archive)
-  .then(link => {
-    return bluebird.map(archive.list(), function(e, i) {
-      console.log(e.name);
-      return archive.download(i) 
+    .then(file_list => {
+
+      // var acc = 0;
+      // var total = 0;
+
+      // archive.on('download', function(data) {
+      //   acc += data.length;
+      //   if (acc > (total/2))
+      //     console.log('50%');
+      // });
+
+      // archive.get(0, function(err, stat) {
+      //   if (err) console.error(err);
+      //   // get lenght
+      //   total = stat.length;
+      // });
+
+      console.log(file_list);
+      return bluebird.map(archive.list(), function(e, i) {
+        debug('Downloading a file of size %s', bytesToSize(e.length));
+        return archive.download(i)
+      })
     })
-  })
-  .then(() => {
-    console.log('done download');
-    return Promise.resolve()
-  })
+    .then(() => {
+      return Promise.resolve()
+    })
 }

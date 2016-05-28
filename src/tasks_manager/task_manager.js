@@ -93,7 +93,7 @@ TaskManager.prototype.addTask = function(task_id, task) {
  * @param {string} opts.json_conf Not used yet
  * @return Promise
  */
-TaskManager.prototype.initTaskGroup = function(opts) {
+TaskManager.prototype.initTasks = function(opts) {
   if (!opts.env)
     opts.env = {};
 
@@ -107,13 +107,13 @@ TaskManager.prototype.initTaskGroup = function(opts) {
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);
 
   return this.getAllTasksInFolder(fullpath_task)
-  .then((tasks_files) => {
-    return this.startTasks(opts, tasks_files)
-  })
-  .then((procs) => {
-    this.can_accept_queries = true;
-    return Promise.resolve(procs)
-  });
+    .then((tasks_files) => {
+      return this.startAllTasks(opts, tasks_files)
+    })
+    .then((procs) => {
+      this.can_accept_queries = true;
+      return Promise.resolve(procs)
+    });
 };
 
 TaskManager.prototype.listAllPM2Tasks = function() {
@@ -152,12 +152,12 @@ TaskManager.prototype.deleteAllPM2Tasks = function() {
  * @param {array} tasks_files array of files (tasks)
  * @return Promise
  */
-TaskManager.prototype.startTasks = function(opts, tasks_files) {
+TaskManager.prototype.startAllTasks = function(opts, tasks_files) {
   let ret_procs = [];
 
   // First delete all process with a name starting with task:
   return this.deleteAllPM2Tasks()
-  .then(() => {
+    .then(() => {
     return bluebird.map(tasks_files, (task_file) => this.startTask(task_file), {concurrency: 5})
   })
   .then(() => {

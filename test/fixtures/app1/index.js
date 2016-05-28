@@ -27,27 +27,3 @@ client.exec('echo', {
 }, function(err, data) {
   console.log(data);
 });
-
-client.exec('echo', {
-  name : 'hey'
-}, function(err, data) {
-  console.log(data);
-});
-
-client.exec('echo', {
-  name : 'hey'
-}, function(err, data) {
-  console.log(data);
-});
-
-client.exec('echo', {
-  name : 'hey'
-}, function(err, data) {
-  console.log(data);
-});
-
-client.exec('echo', {
-  name : 'hey'
-}, function(err, data) {
-  console.log(data);
-});

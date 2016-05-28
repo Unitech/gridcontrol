@@ -38,44 +38,27 @@ Controller.init_task_group = function(req, res, next) {
   if (!base_folder)
     return next(new Error('base_folder is missing'));
 
-  // 1# Set all peers as not synchronized
   req.net_manager.setAllPeersAsNotSynced();
 
-  // 2# Find all tasks in local node in task_folder
-  // 3# Start all tasks with PM2
-  req.task_manager.initTaskGroup({
+  req.task_manager.initTasks({
     base_folder : base_folder,
     task_folder : task_folder,
     instances   : instances,
     json_conf   : json_conf,
     env         : env
-  }).then((procs) => {
-    req.file_manager.prepareSync(base_folder, function(e, infos) {
-      if (e) {
-        console.error('Got error while preparing to sync peers');
-        return next(e);
-      }
-
-      console.log('Sync file generated for folder=%s target=%s',
-                  infos.folder,
-                  infos.target);
-
-      if (infos.file_changed == true) {
-        // 6.0# Send to each peer the file + metadata
-        req.net_manager.askAllPeersToSync();
-      } else {
-        // 6.1# Tarball has not changed
-        debug('Tarball MD5 has not changed. Set peers synchronized');
-        req.net_manager.setAllPeersAsSynced();
-      }
-    });
-
-    res.send(procs);
   })
-  .catch((err) => {
-    console.error('Got error while generating Syncro package. Please retry init.');
-    next(err)
-  });
+    .then(() => {
+      return req.file_manager.initializeAndSpread(base_folder);
+    })
+    .then(link => {
+      req.net_manager.askAllPeersToSync();
+      res.send(link);
+    })
+    .catch(e => {
+      req.net_manager.setAllPeersAsSynced();
+      res.send();
+    });
 };
+
 
 module.exports = Controller;
