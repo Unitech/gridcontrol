@@ -72,7 +72,9 @@ module.exports = function(grid_name) {
       })
     });
   }).then(function() {
-    Common.displayHosts();
+    setTimeout(function() {
+      Common.displayHosts();
+    }, 1200);
   }).catch(function(e) {
     console.error(chalk.bold.red('Error while initializing:'));
     console.error(e);

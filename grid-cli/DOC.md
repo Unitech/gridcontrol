@@ -5,6 +5,8 @@ CLI for Gridcontrol distributed computing project.
 
 ## Install
 
+-> export GRID_NAME GRID_PASS in env for easier plays
+
 ```bash
 $ npm install grid-cli -g
 ```

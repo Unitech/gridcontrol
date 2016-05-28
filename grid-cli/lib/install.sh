@@ -59,7 +59,8 @@ function install_pm2 {
     already PM2
   else
     installing PM2
-    npm install -g pm2@latest
+    # Remove warn messages
+    npm install pm2@latest -g 2> /dev/null
     . ~/.nvm/nvm.sh
     pm2 update
     success PM2
