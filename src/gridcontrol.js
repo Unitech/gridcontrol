@@ -123,7 +123,10 @@ GridControl.prototype.__proto__ = EventEmitter.prototype;
 GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
   this.api.close();
-  this.command_swarm.close();
+  if (this.command_swarm)
+    this.command_swarm.close();
+  if (this.file_swarm)
+    this.file_swarm.close();
   this.socket_pool.close();
   this.task_manager.terminate();
   process.nextTick(cb);

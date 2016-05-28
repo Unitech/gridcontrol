@@ -36,7 +36,7 @@ describe('Task Manager', function() {
 
   it('should start all tasks in fixture folder', function() {
     this.timeout(8000);
-    return task_manager.initTaskGroup({
+    return task_manager.initTasks({
       task_folder : 'tasks',
       base_folder : sample_app_path,
       instances   : 2
