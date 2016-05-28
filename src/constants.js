@@ -7,14 +7,8 @@ module.exports = {
   GRID_NAME                : 'pm2:fs',
   GRID_NAME_SUFFIX         : ':square-node:unik',
   FIND_SUITABLE_PEER_RETRY : 100,
-  DISCOVERY_SETTINGS : {
-    dns : {
-      server : [
-        'discovery1.publicbits.org',
-        'discovery2.publicbits.org'
-      ],
-      interval : 1000
-    },
-    dht : false
-  }
+  DNS_DISCOVERY : [
+    'discovery1.publicbits.org',
+    'discovery2.publicbits.org'
+  ]
 };

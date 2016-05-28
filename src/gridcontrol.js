@@ -66,9 +66,6 @@ var GridControl = function(opts) {
    * File manager initialization
    */
 
-  this.file_swarm = Interplanetary(defaults.DISCOVERY_SETTINGS);
-  this.file_swarm.listen(0);
-
   if (!opts.file_manager)
     opts.file_manager = {};
 
@@ -191,7 +188,13 @@ GridControl.prototype.startDiscovery = function(ns) {
 
   var key = new Buffer(this.namespace + defaults.GRID_NAME_SUFFIX);
 
-  this.command_swarm = Interplanetary(defaults.DISCOVERY_SETTINGS);
+  this.command_swarm = Interplanetary({
+    dns : {
+      server : defaults.DNS_DISCOVERY,
+      interval : 1000
+    },
+    dht : false
+  });
 
   this.command_swarm.listen(0);
   this.command_swarm.join(key.toString('hex'));
@@ -206,7 +209,9 @@ GridControl.prototype.startDiscovery = function(ns) {
     });
 
     this.command_swarm.on('listening', () => {
-      that.network_port = this.command_swarm._tcp.address().port;
+      let port = this.command_swarm._tcp.address().port;
+      debug('Command swarm listening on port %d', port);
+      that.network_port = port;
       resolve();
     });
   });

@@ -78,7 +78,16 @@ Archiver.prototype._createArchive = function(key) {
  * Only archive one file
  */
 Archiver.prototype.archiveSolo = function(file, identifier) {
-  let archive = this.drive.createArchive();
+  let archive = this.drive.createArchive({
+    file: (name, options) => {
+      // If you are receiving a file in multiple pieces in a distributed system
+      // it can be useful to write these pieces to disk one by one in various places
+      // throughout the file without having to open and close a file descriptor all the time.
+      // => raf (random-access-file)
+      return raf(p.join(this.root, name))
+    }
+  });
+
   var stream  = archive.createFileWriteStream(identifier);
 
   return new Promise((resolve, reject) => {
@@ -130,13 +139,9 @@ Archiver.prototype.spread = function(archive) {
 
   this.interplanetary.join(this.link)
 
-  archive.on('upload', function() {
-    debug('uploading');
-  });
-
-  archive.on('download', function() {
-    debug('downloading');
-  });
+  // archive.on('upload', function(data) {
+  //   debug('uploading', data.length);
+  // });
 
   this.interplanetary._stream = function() {
     // this is how the swarm and hyperdrive interface
@@ -146,12 +151,37 @@ Archiver.prototype.spread = function(archive) {
   return Promise.resolve(this.link)
 }
 
+function bytesToSize(bytes) {
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes == 0) return '0 Byte';
+  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+  return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+};
+
 Archiver.prototype.download = function(link) {
   let archive = this._createArchive(link)
 
   return this.spread(archive)
-    .then(link => {
+    .then(file_list => {
+
+      // var acc = 0;
+      // var total = 0;
+
+      // archive.on('download', function(data) {
+      //   acc += data.length;
+      //   if (acc > (total/2))
+      //     console.log('50%');
+      // });
+
+      // archive.get(0, function(err, stat) {
+      //   if (err) console.error(err);
+      //   // get lenght
+      //   total = stat.length;
+      // });
+
+      console.log(file_list);
       return bluebird.map(archive.list(), function(e, i) {
+        debug('Downloading a file of size %s', bytesToSize(e.length));
         return archive.download(i)
       })
     })

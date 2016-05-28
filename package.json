@@ -13,7 +13,7 @@
     }
   ],
   "scripts": {
-    "test": "NODE_ENV='test' ./node_modules/.bin/mocha test/*.mocha.js -b",
+    "test": "NODE_ENV='test' DEBUG='gc:*' ./node_modules/.bin/mocha test/*.mocha.js -b",
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
   "devDependencies": {

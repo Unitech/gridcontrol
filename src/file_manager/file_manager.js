@@ -11,6 +11,8 @@ const Hyperdrive      = require('hyperdrive')
 const Level           = require('memdb')
 const Archiver        = require('./archiver.js')
 
+const Interplanetary  = require('../network/interplanetary.js');
+
 const exec            = require('child_process').exec;
 
 class FilesManagement {
@@ -23,11 +25,24 @@ class FilesManagement {
 
     let db = Level('./drive.db')
 
-    this.drive = Hyperdrive(db)
+    var drive = Hyperdrive(db)
+
+    this.drive = drive;
+
+    this.file_swarm = Interplanetary({
+      id: drive.core.id,
+      dns : {
+        server : defaults.DNS_DISCOVERY,
+        interval : 1000
+      },
+      dht : false
+    });
+
+    this.file_swarm.listen(0);
 
     this.archiver = new Archiver({
       drive          : this.drive,
-      interplanetary : opts.interplanetary,
+      interplanetary : this.file_swarm,
       root           : this.root_folder
     })
 
@@ -68,13 +83,15 @@ class FilesManagement {
   }
 
   downloadAndExpand(link) {
-    console.log('Downloading link %s into %s', link, this.root_folder);
+    debug('Joining swarm link [%s...] to sync folder [%s]', link.substring(0, 5), this.root_folder);
 
     return this.archiver.download(link)
       .then(() => {
+        // @todo delete or close previous archive once download is finished?
+        debug('Download finished');
         var dest_file = path.join(this.root_folder, defaults.SYNC_FILE);
 
-        console.log('Uncompressing file %s into %s',
+        debug('Uncompressing file %s into %s',
               dest_file,
               this.app_folder);
 
