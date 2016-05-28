@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.3.17",
+  "version": "0.4.0",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -65,7 +65,9 @@
     "discovery-channel",
     "express",
     "fmt",
+    "hyperdrive",
     "length-prefixed-message",
+    "memdb",
     "moniker",
     "ms",
     "network-address",
@@ -73,6 +75,7 @@
     "pmx",
     "public-ip",
     "pump",
+    "random-access-file",
     "request",
     "tar-fs",
     "to-buffer"
