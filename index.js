@@ -1,15 +1,11 @@
 
 if (!process.env.DEBUG)
-  process.env.DEBUG="gc:*";
+  process.env.DEBUG = "gc:*";
 
 var GridControl = require('./src/');
 
 if (require.main === module) {
-
-  //var Tools = require('./src/lib/tools.js');
-
-  //Tools.readConf(function(err, conf) {
-  var conf = {}
+  var conf = {};
 
   if (process.env.GRID)
     conf.namespace = process.env.GRID;
@@ -17,10 +13,13 @@ if (require.main === module) {
     conf.peer_api_port = process.env.API_PORT;
 
   var grid = new GridControl(conf);
+
   grid.start();
-  //});
 }
 
 module.exports = GridControl;
 
 module.exports.client = require('./grid-api/');
+
+//var Tools = require('./src/lib/tools.js');
+//Tools.readConf(function(err, conf) {

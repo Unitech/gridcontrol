@@ -162,24 +162,26 @@ Archiver.prototype.download = function(link) {
   let archive = this._createArchive(link)
 
   return this.spread(archive)
-    .then(file_list => {
+    .then(() => {
 
-      // var acc = 0;
-      // var total = 0;
+      var acc = 0;
+      var total = 0;
 
-      // archive.on('download', function(data) {
-      //   acc += data.length;
-      //   if (acc > (total/2))
-      //     console.log('50%');
-      // });
+      archive.on('download', function(data) {
+        acc += data.length;
 
-      // archive.get(0, function(err, stat) {
-      //   if (err) console.error(err);
-      //   // get lenght
-      //   total = stat.length;
-      // });
+        var ratio = Math.floor((acc / total) * 100)
 
-      console.log(file_list);
+        if (ratio % 20 == 0) {
+          console.log('Download progress: %d%', ratio);
+        }
+      });
+
+      archive.get(0, function(err, stat) {
+        if (err) return console.error(err);
+        total = stat.length;
+      });
+
       return bluebird.map(archive.list(), function(e, i) {
         debug('Downloading a file of size %s', bytesToSize(e.length));
         return archive.download(i)

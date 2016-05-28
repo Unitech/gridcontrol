@@ -330,10 +330,10 @@ program
   .action(function() {
     var shelljs = require('shelljs');
 
-    shelljs.exec('pm2 restart gridcontrol', { silent : true }, function(code, stderr, stdout) {
+    shelljs.exec('pm2 restart gridcontrol', { silent : true }, function(code, stdout, stderr) {
 
       if (code != 0) {
-        return exitError(new Error('Gridcontrol is not launched'));
+        return exitError(new Error('Gridcontrol is not being managed by PM2'));
       }
 
       Common.displayHosts(function() {
