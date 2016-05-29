@@ -47,6 +47,7 @@
     "pump": "^1.0.1",
     "random-access-file": "^1.2.0",
     "request": "*",
+    "rimraf": "^2.5.2",
     "tar-fs": "*",
     "to-buffer": "^1.0.1"
   },
