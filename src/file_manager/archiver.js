@@ -4,6 +4,7 @@ const raf      = require('random-access-file')
 const bluebird = require('bluebird')
 const fs       = bluebird.promisifyAll(require('fs'))
 const p        = require('path')
+const progress = require('progress-bar')
 
 module.exports = Archiver
 
@@ -64,31 +65,23 @@ Archiver.prototype._createArchive = function(key) {
     }
   }
 
-  let archive = key ? this.drive.createArchive(new Buffer(key, 'hex'), opts) : this.drive.createArchive(opts)
+  let archive = key ? this.drive.createArchive(new Buffer(key, 'hex'), opts) : this.drive.createArchive(opts);
 
-  archive.append = bluebird.promisify(archive.append)
-  archive.download = bluebird.promisify(archive.download)
-  archive.list = bluebird.promisify(archive.list)
-  archive.finalize = bluebird.promisify(archive.finalize)
+  archive.append = bluebird.promisify(archive.append);
+  archive.download = bluebird.promisify(archive.download);
+  archive.list = bluebird.promisify(archive.list);
+  archive.finalize = bluebird.promisify(archive.finalize);
 
-  return archive
+  return archive;
 }
 
 /**
  * Only archive one file
+ * @TODO used?
  */
 Archiver.prototype.archiveSolo = function(file, identifier) {
-  let archive = this.drive.createArchive({
-    file: (name, options) => {
-      // If you are receiving a file in multiple pieces in a distributed system
-      // it can be useful to write these pieces to disk one by one in various places
-      // throughout the file without having to open and close a file descriptor all the time.
-      // => raf (random-access-file)
-      return raf(p.join(this.root, name))
-    }
-  });
-
-  var stream  = archive.createFileWriteStream(identifier);
+  let archive = this._createArchive(null);
+  let stream  = archive.createFileWriteStream(identifier);
 
   return new Promise((resolve, reject) => {
     var file_stream = fs.createReadStream(file);
@@ -97,14 +90,13 @@ Archiver.prototype.archiveSolo = function(file, identifier) {
     file_stream.on('close', resolve);
 
     file_stream.pipe(stream);
-  }).then(() => {
-    return new Promise((resolve, reject) => {
-      archive.finalize(function(e, d) {
-        if (e) return reject(e);
-        resolve(archive);
-      });
-    });
   })
+  .then(() => {
+    return archive.finalize();
+  })
+  .then(() => {
+    return Promise.resolve(archive);
+  });
 }
 
 Archiver.prototype.archive = function(directory, options) {
@@ -164,22 +156,19 @@ Archiver.prototype.download = function(link) {
   return this.spread(archive)
     .then(() => {
 
-      var acc = 0;
-      var total = 0;
+      let acc = 0;
+      let total = 0;
+      let bar
 
       archive.on('download', function(data) {
         acc += data.length;
-
-        var ratio = Math.floor((acc / total) * 100)
-
-        if (ratio % 20 == 0) {
-          console.log('Download progress: %d%', ratio);
-        }
+        bar.update(acc / total)
       });
 
-      archive.get(0, function(err, stat) {
+      archive.get(0, (err, stat) => {
         if (err) return console.error(err);
         total = stat.length;
+        bar = progress.create(process.stdout, 40)
       });
 
       return bluebird.map(archive.list(), function(e, i) {
