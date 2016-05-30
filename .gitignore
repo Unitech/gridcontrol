@@ -4,3 +4,6 @@ npm-debug.log
 *.tar.gz
 apidocs
 test/sync.tar.gz
+*.tgz
+*.zip
+*.tar
