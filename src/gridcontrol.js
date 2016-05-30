@@ -4,7 +4,7 @@ const fs              = require('fs');
 const path            = require('path');
 const EventEmitter    = require('events').EventEmitter;
 const Moniker         = require('moniker');
-const publicIp        = require('public-ip');
+const publicIp        = require('./network/public-ip.js');
 const os              = require('os');
 const chalk           = require('chalk');
 const fmt             = require('fmt');
@@ -149,9 +149,9 @@ GridControl.prototype.serialize = function() {
  */
 GridControl.prototype.start = function() {
 
-  return Promise.all([this.api.start(), publicIp.v4()])
+  return Promise.all([this.api.start(), publicIp()])
     .then(values => {
-      this.public_ip = values[1]
+      this.public_ip = values[1][0]
 
       return this.startDiscovery(this.namespace)
     })
@@ -199,7 +199,26 @@ GridControl.prototype.startDiscovery = function(ns) {
   this.command_swarm.listen(0);
   this.command_swarm.join(key.toString('hex'));
 
-  this.command_swarm.on('connection', this.onNewPeer.bind(this));
+  /**
+   * Action when a new socket connection has been established
+   */
+  this.command_swarm.on('connection', (socket) => {
+    this.emit('new:peer');
+    /**
+     * Exchange ciphering keys, authenticate and identify Peer
+     */
+    this.socket_pool.add(socket, this.getLocalIdentity())
+      .then(router => {
+        this.emit('confirmed:peer');
+        this.mountActions(router);
+      })
+      .catch(e => {
+        console.error('Socket failed to authenticate');
+        console.error(e.message || e);
+        // @todo: .close() ? .end()
+        socket.close();
+      });
+  });
 
   return new Promise((resolve, reject) => {
     this.command_swarm.on('error', (e) => {
@@ -218,36 +237,15 @@ GridControl.prototype.startDiscovery = function(ns) {
 };
 
 /**
- * Stop discovery
- * @param cb {callback
- * @public
- */
-GridControl.prototype.stopDiscovery = function(cb) {
-  return new Promise((resolve, reject) => {
-    this.command_swarm.once('close', () => resolve())
-    this.command_swarm.close();
-  })
-};
-
-/**
  * Handle peer when connected
  * @param sock {object} socket object
  * @public
  */
-GridControl.prototype.onNewPeer = function(sock, remoteId) {
-  var router = this.socket_pool.add(sock);
-  var that = this;
-
-  this.emit('new:peer', sock);
-
-  router.send('identity', this.getLocalIdentity());
+GridControl.prototype.mountActions = function(router) {
 
   // When new peer connects, master share the link for data
-  if (this.file_manager.isFileMaster) {
-    setTimeout(() => {
-      this.askPeerToSync(router);
-    }, 1500);
-  }
+  if (this.file_manager.isFileMaster)
+    this.askPeerToSync(router);
 
   router.on('trigger', (msg, cb) => {
     debug('Received a trigger action: %s', msg.task_id);
@@ -279,7 +277,6 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
 
     this.file_manager.downloadAndExpand(sync_meta.link)
       .then(() => {
-
         this.emit('synchronized');
 
         /**
@@ -299,11 +296,24 @@ GridControl.prototype.onNewPeer = function(sock, remoteId) {
           });
       })
       .catch(e => {
+        console.log('synchro ERROR', e.stack);
         this.socket_pool.broadcast('sync:error', {
           error : e
         });
       });
   });
+};
+
+/**
+ * Stop discovery
+ * @param cb {callback
+ * @public
+ */
+GridControl.prototype.stopDiscovery = function(cb) {
+  return new Promise((resolve, reject) => {
+    this.command_swarm.once('close', () => resolve())
+    this.command_swarm.close();
+  })
 };
 
 /**

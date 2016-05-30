@@ -31,6 +31,8 @@ describe('Network', function() {
     });
 
     it('should connect second client', function(done) {
+      var plan = new Plan(3, done);
+
       n2 = new network({
         peer_api_port  : 11000,
         file_manager : {
@@ -39,7 +41,18 @@ describe('Network', function() {
         }
       });
 
-      n2.on('ready', done);
+      n2.once('ready', () => {
+        plan.ok(true)
+      });
+
+      n1.once('confirmed:peer', () => {
+        plan.ok(true)
+      });
+
+      n2.once('confirmed:peer', () => {
+        plan.ok(true)
+      });
+
       n2.start();
     });
 
@@ -243,6 +256,8 @@ describe('Network', function() {
 
   describe('Third node', function() {
     it('should connect THIRD node and wait for file to be sync', function(done) {
+      var plan = new Plan(4, done);
+
       this.timeout(7000);
 
       n3 = new network({
@@ -253,10 +268,33 @@ describe('Network', function() {
         }
       });
 
-      // Wait for n3 to be sync
-      n3.on('synchronized', done);
+      // N1 should detect N3
+      n1.once('confirmed:peer', function() {
+        plan.ok(true);
+      });
+
+      // N2 should detect N3
+      n2.once('confirmed:peer', function() {
+        plan.ok(true);
+      });
+
+      // N3 should detect N1
+      n3.once('confirmed:peer', function() {
+        plan.ok(true);
+      });
+
+      // N3 should detect N2
+      n3.once('confirmed:peer', function() {
+        plan.ok(true);
+      });
 
       n3.start();
+    });
+
+    it('should receive notification file sync finished', function(done) {
+      n3.once('synchronized', function() {
+        done();
+      });
     });
 
     it('should now N1 retrieve three hosts connected', function(done) {
