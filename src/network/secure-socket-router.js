@@ -1,4 +1,11 @@
 /**
+ * Copyright 2014 tj
+ * 2016 Edited by @Unitech
+ * http://github.com/tj/node-actorify
+ * Licence MIT
+ */
+
+/**
  * Module dependencies.
  */
 

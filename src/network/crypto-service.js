@@ -1,3 +1,7 @@
+/**
+ * Inspired by https://github.com/Mostafa-Samir/klyng/
+ */
+
 var crypto = require('crypto');
 
 /*
