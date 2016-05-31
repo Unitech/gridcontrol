@@ -4668,6 +4668,11 @@
         }
       }
     },
+    "progress-bar": {
+      "version": "0.1.1",
+      "from": "progress-bar@>=0.1.1 <0.2.0",
+      "resolved": "https://registry.npmjs.org/progress-bar/-/progress-bar-0.1.1.tgz"
+    },
     "public-ip": {
       "version": "2.0.1",
       "from": "public-ip@*",

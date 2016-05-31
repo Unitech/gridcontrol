@@ -335,7 +335,7 @@ describe('Network', function() {
     });
   });
 
-  describe.skip('End commands', function() {
+  describe('End commands', function() {
     it('should clear all tasks', function(done) {
       request.delete('http://localhost:10000/tasks/clear', function(err, raw, body) {
         done();
