@@ -162,13 +162,16 @@ Archiver.prototype.download = function(link) {
 
       archive.on('download', function(data) {
         acc += data.length;
-        bar.update(acc / total)
+        bar && bar.update(acc / total)
       });
 
       archive.get(0, (err, stat) => {
         if (err) return console.error(err);
         total = stat.length;
-        bar = progress.create(process.stdout, 40)
+
+        if (process.stdout.isTTY) {
+          bar = progress.create(process.stdout, 40)
+        }
       });
 
       return bluebird.map(archive.list(), function(e, i) {
