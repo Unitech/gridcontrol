@@ -2,6 +2,7 @@
 
 ## Ideas
 
+- [ ] Add password to grid provision
 - [ ] LB implement broadcast strategy
 - [ ] keep counter of invokations, errors
 - [~] Grid upgrade = dont keep namespace

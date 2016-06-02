@@ -18,20 +18,21 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 
 5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
 
-*Behind the scene: GridControl is a network layer built on top of PM2 to allow file synchronization, that adds an opionated PUB/SUB system and a wide-range discovery system over... the whole internet*
+*Behind the scene: GridControl is a network layer built on top of PM2 to allow file synchronization, that adds an opionated PUB/SUB system and a wide-range discovery*
 
 ## Features
 
-- **0 conf** Auto discovery system via Bittorent DHT and DNS multicast
-- **0 conf** Pandemic style application source sharing with dependencies and consistency checks
-- **Ecosystem** Complete toolbox for Grid management (grid CLI, provisioning, multissh)
+- **0 conf** Auto discovery system via multiple DNS
+- **0 conf** P2P application source sharing
+- **Ecosystem** Grid management toolbox (CLI, provisioning, Logs, Monitoring)
+- **Secure** Diffie Hellman key exchange and password authentication
 - **Decentralized** Each Nodes can trigger actions executed by another Nodes
 - **Fast** Grid interconnected via TCP sockets
-- **Fast** Services are started once, then stay alive waiting for inputs. This saves non-negligible startup time.
+- **Fast** Services are started once, then stay alive waiting for inputs. This saves non-negligible startup time
 - **Polyglot** Services can be wrotte in any language
 - **Compatible** with Amazon Lambda, Google Cloud Functions
 - **Rock Solid** [PM2](https://github.com/Unitech/pm2) behind the scene for process management and cluster capabilities
-- And a lot more like Buffering, Security, Retry on Failure...
+- And a lot more like Buffering, Retry on Failure...
 
 ## Quick start
 
