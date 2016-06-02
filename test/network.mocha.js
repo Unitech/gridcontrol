@@ -1,16 +1,17 @@
 
-process.env.NODE_ENV='test';
-process.env.DEBUG='gc:*';
-process.env.GRID='vla:test:namespace';
+process.env.NODE_ENV  = 'test';
+process.env.DEBUG     = 'gc:*';
+process.env.GRID      = 'grid:name';
+//process.env.GRID_AUTH = '123456';
 
-var fs      = require('fs');
-var network = require('../index.js');
-var should  = require('should');
-var path    = require('path');
-var request = require('request');
-var Plan    = require('./plan.js');
+var fs          = require('fs');
+var gridcontrol = require('../index.js');
+var should      = require('should');
+var path        = require('path');
+var request     = require('request');
+var Plan        = require('./plan.js');
 
-describe('Network', function() {
+describe('Gridcontrol', function() {
   this.timeout(5000);
 
   var n1, n2, n3;
@@ -18,7 +19,7 @@ describe('Network', function() {
 
   describe('Init', function() {
     it('should create a first client', function() {
-      n1 = new network({
+      n1 = new gridcontrol({
         peer_api_port : 10000
       });
 
@@ -33,7 +34,7 @@ describe('Network', function() {
     it('should connect second client', function(done) {
       var plan = new Plan(3, done);
 
-      n2 = new network({
+      n2 = new gridcontrol({
         peer_api_port  : 11000,
         file_manager : {
           root_folder     : '/tmp/n2/',
@@ -81,7 +82,7 @@ describe('Network', function() {
     });
 
     it('should reinitialize n1 with same previous params', function() {
-      n1 = new network(serial);
+      n1 = new gridcontrol(serial);
 
       return n1.start();
     });
@@ -260,7 +261,7 @@ describe('Network', function() {
 
       this.timeout(7000);
 
-      n3 = new network({
+      n3 = new gridcontrol({
         peer_api_port  : 12000,
         file_manager : {
           root_folder     : '/tmp/n3/',

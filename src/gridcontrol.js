@@ -4,10 +4,10 @@ const fs              = require('fs');
 const path            = require('path');
 const EventEmitter    = require('events').EventEmitter;
 const Moniker         = require('moniker');
-const publicIp        = require('./network/public-ip.js');
 const os              = require('os');
 const chalk           = require('chalk');
 const fmt             = require('fmt');
+
 const pkg             = require('../package.json');
 const defaults        = require('./constants.js');
 const FilesManagement = require('./file_manager/file_manager.js');
@@ -18,8 +18,9 @@ const LoadBalancer    = require('./load-balancer.js');
 const API             = require('./api.js');
 const Wait            = require('./lib/wait.js');
 
+const publicIp        = require('./lib/public-ip.js');
+const InternalIp      = require('./lib/internal-ip.js');
 const Interplanetary  = require('./network/interplanetary.js');
-const InternalIp      = require('./network/internal-ip.js');
 const SocketPool      = require('./network/socket-pool.js');
 
 /**
@@ -27,25 +28,27 @@ const SocketPool      = require('./network/socket-pool.js');
  * once object instancied, call .start()
  * @constructor
  * @this {GridControl}
- * @param opts                               {object} options
- * @param opts.peer_name                     {string} host name
- * @param opts.namespace                     {string} grid name for discovery
- * @param opts.peer_api_port                 {integer} API port (then task p+1++)
- * @param opts.file_manager                  {object} default location of sync data
- * @param opts.file_manager.app_folder
- * @param opts.file_manager.root_folder
- * @param opts.file_manager.is_file_master   {string} default location of sync data
- * @param opts.task_manager                  {object} default location of sync data
- * @param opts.task_meta                     {object} default location of sync data
- * @param opts.task_meta.instances           {integer} default location of sync data
- * @param opts.task_meta.json_conf           {object} default location of sync data
- * @param opts.task_meta.task_folder         {string} default location of sync data
- * @param opts.task_meta.env                 {object} default location of sync data
+ * @param {object}  opts                              options
+ * @param {string}  opts.peer_name
+ * @param {string}  opts.namespace                    grid name for discovery
+ * @param {integer} opts.password                     grid password
+ * @param {integer} opts.peer_api_port                API port (then task p+1++)
+ * @param {object}  opts.file_manager                 file manager options
+ * @param {string}  opts.file_manager.app_folder
+ * @param {string}  opts.file_manager.root_folder
+ * @param {string}  opts.file_manager.is_file_master
+ * @param {object}  opts.task_manager
+ * @param {object}  opts.task_meta
+ * @param {integer} opts.task_meta.instances
+ * @param {object}  opts.task_meta.json_conf
+ * @param {string}  opts.task_meta.task_folder
+ * @param {object}  opts.task_meta.env
  *
- * @fires GridControl#ready
- * @fires GridControl#files:synchronized
- * @fires GridControl#peer:synchronize
- * @fires GridControl#new:peer
+ * @fires GridControl#ready                  when this peer is ready
+ * @fires GridControl#synchronized           when this peer is synchronized
+ * @fires GridControl#peer:synchronize       when this peer send synchronize cmd
+ * @fires GridControl#peer:confirmed         when peer is authenticated
+ * @fires GridControl#new:peer               when new potencial peer is detected
  */
 var GridControl = function(opts) {
   if (!(this instanceof GridControl))
@@ -53,10 +56,11 @@ var GridControl = function(opts) {
 
   var that = this;
 
-  this.peer_name        = opts.peer_name || Moniker.choose();
-  this.namespace        = process.env.GRID || opts.namespace || defaults.GRID_NAME;
+  this.peer_name        = opts.peer_name        || Moniker.choose();
+  this.namespace        = process.env.GRID      || opts.namespace || defaults.GRID_NAME;
+  this.password         = process.env.GRID_AUTH || opts.password || null;
+  this.peer_api_port    = opts.peer_api_port    || 10000;
   this.private_ip       = InternalIp.v4();
-  this.peer_api_port    = opts.peer_api_port  || 10000;
   this.processing_tasks = [];
   this.peer_list        = [];
 
@@ -118,7 +122,7 @@ GridControl.prototype.__proto__ = EventEmitter.prototype;
  * @TODO promise.all([]) + wait for clean close
  */
 GridControl.prototype.close = function(cb) {
-  debug(chalk.red('[SHUTDOWN]') + '[%s] Closing whole server', this.peer_name);
+  debug(chalk.red('[SHUTDOWN]') + '[%s] Terminating local peer', this.peer_name);
   this.api.close();
   if (this.command_swarm)
     this.command_swarm.close();
@@ -126,8 +130,8 @@ GridControl.prototype.close = function(cb) {
     this.file_swarm.close();
   this.socket_pool.close();
   this.task_manager.terminate();
+  this.file_manager.clear();
   process.nextTick(cb);
-  // this.file_manager.clear(cb);
 };
 
 /**
@@ -139,7 +143,6 @@ GridControl.prototype.serialize = function() {
     peer_name    : this.peer_name,
     namespace    : this.namespace,
     peer_api_port: this.peer_api_port,
-    // file_manager : this.file_manager.serialize(),
     task_manager : this.task_manager.serialize()
   };
 };
@@ -163,12 +166,13 @@ GridControl.prototype.start = function() {
 
       // Form
       fmt.title('Peer ready');
+      fmt.field('Linked to Grid name', this.namespace);
+      fmt.field('Password secured', this.password ? chalk.green('Yes') : chalk.red('No'));
       fmt.field('Name', this.peer_name);
       fmt.field('Public IP', this.public_ip);
       fmt.field('Private IP', this.private_ip);
       fmt.field('Local API port', this.peer_api_port);
       fmt.field('Network port', this.network_port);
-      fmt.field('Joined Namespace', this.namespace);
       fmt.field('Created at', new Date());
       fmt.sep();
 
@@ -203,20 +207,24 @@ GridControl.prototype.startDiscovery = function(ns) {
    * Action when a new socket connection has been established
    */
   this.command_swarm.on('connection', (socket) => {
-    this.emit('new:peer');
+    this.emit('new:peer', socket);
     /**
      * Exchange ciphering keys, authenticate and identify Peer
      */
-    this.socket_pool.add(socket, this.getLocalIdentity())
+    this.socket_pool
+      .add({
+        socket         : socket,
+        local_identity : this.getLocalIdentity(),
+        password       : this.password
+      })
       .then(router => {
         this.emit('confirmed:peer');
         this.mountActions(router);
       })
       .catch(e => {
-        console.error('Socket failed to authenticate');
+        this.emit('rejected', e);
         console.error(e.message || e);
-        // @todo: .close() ? .end()
-        socket.close();
+        socket.destroy();
       });
   });
 

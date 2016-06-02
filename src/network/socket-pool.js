@@ -1,6 +1,6 @@
+'use strict';
 
 var debug              = require('debug')('gc:network');
-var socketrouter       = require('./socket-router.js');
 var securesocketrouter = require('./secure-socket-router.js');
 var cs                 = require('./crypto-service.js');
 
@@ -18,25 +18,25 @@ var SocketPool = function() {
  * @param {Object} local_identity Local node identity (via .getLocalIdentity())
  * @return Promise
  */
-SocketPool.prototype.add = function(socket, local_identity) {
-  var peer = securesocketrouter(socket);
+SocketPool.prototype.add = function(opts) {
   var that = this;
+  let socket = opts.socket;
+  let password = opts.password;
+  let local_identity = opts.local_identity;
+  let peer = securesocketrouter(socket);
 
-  // Where this should be put?
-  socket.on('error', function() {
-    if (that._socket_pool[peer.id] && that._socket_pool[peer.id].identity)
-      debug('peer %s errored', that._socket_pool[peer.id].identity.public_ip);
-    else
-      debug('unknow peer errored');
-    delete that._socket_pool[peer.id];
+  socket.on('error', () => {
+    if (this._socket_pool[peer.id] && this._socket_pool[peer.id].identity)
+      debug('peer %s errored', this._socket_pool[peer.id].identity.public_ip);
+    socket.destroy();
+    delete this._socket_pool[peer.id];
   });
 
-  socket.on('close', function() {
-    if (that._socket_pool[peer.id] && that._socket_pool[peer.id].identity)
-      debug('peer %s left', that._socket_pool[peer.id].identity.public_ip);
-    else
-      debug('unknow peer left');
-    delete that._socket_pool[peer.id];
+  socket.on('close', () => {
+    if (this._socket_pool[peer.id] && this._socket_pool[peer.id].identity)
+      debug('peer %s left', this._socket_pool[peer.id].identity.public_ip);
+    socket.destroy();
+    delete this._socket_pool[peer.id];
   });
 
   return new Promise((resolve, reject) => {
@@ -76,15 +76,56 @@ SocketPool.prototype.add = function(socket, local_identity) {
       });
     }
   }).then(meta => {
+    peer.setSecretKey(meta.key);
+    //debug('status=connection secured');
+    return Promise.resolve(meta);
+  }).then(meta => {
+    if (!password)
+      return Promise.resolve(meta);
+
+    return new Promise((resolve, reject) => {
+      if (meta.server) {
+        var loggingTimeout = setTimeout(() => {
+          reject(new Error('Peer timeout while waiting for auth'));
+        }, 2000);
+
+        peer.on('auth', function(data) {
+          clearTimeout(loggingTimeout);
+          if (data.password === password) {
+            debug('status=authenticated');
+            peer.send('auth:status', {
+              success : true
+            });
+            return resolve(meta);
+          }
+          return reject(new Error('Peer tried to connect with wrong pass'));
+        });
+        return false;
+      }
+
+      var sendAgain = setInterval(() => {
+        peer.send('auth', {
+          password : password
+        });
+      }, 500);
+
+      peer.on('auth:status', data => {
+        clearInterval(sendAgain);
+
+        if (data.success === true) {
+          debug('status=authenticated');
+          return resolve(meta);
+        }
+        return reject(new Error('Authentication failed (wrong pass)'));
+      });
+    });
+  }).then(meta => {
     /**
      * Send local identity to remote peer
      * @param {Object}  meta
      * @param {Boolean} meta.server determine if the connection is server like
      * @param {String}  meta.key    unique secret key to exchange data with peer
      */
-    peer.setSecretKey(meta.key);
-    debug('status=connection secured');
-
     return new Promise((resolve, reject) => {
       peer.on('identity', function(data) {
         debug('status=identity meta info from=%s[%s]',

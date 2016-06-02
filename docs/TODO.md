@@ -2,9 +2,11 @@
 
 ## Ideas
 
-- [ ] Grid upgrade = dont keep namespace
-- [ ] Add AUTH via env variable ([X] NS and AUTH/PASS)
-- [ ] grid-cli $ grid status -> print computing powert
+- [ ] LB implement broadcast strategy
+- [ ] keep counter of invokations, errors
+- [~] Grid upgrade = dont keep namespace
+- [X] Add AUTH via env variable ([X] NS and AUTH/PASS)
+- [NOK] grid-cli $ grid status -> print computing powert (CPU usage vary)
 - [ ] blessed-contrib build a dashboard with list of node connected + tasks
 - [x] Integrate multissh with CLI (multissh)
 
@@ -41,9 +43,9 @@ ___
 - X Instead of HTTP /trigger, socket? = add new route /forward or /exec to force local balancing
 - ? Start the main applications on slave node in other peers
 
-- LB implement broadcast strategy
+
 - configuration of tasks (JSON conf (ecosystem)? max memory/timeout?)
-- keep counter of invokations, errors
+
 
 ## Keymetrics
 
