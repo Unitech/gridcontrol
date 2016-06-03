@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.4.2",
+  "version": "0.4.5",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "test": "NODE_ENV='test' DEBUG='gc:*' ./node_modules/.bin/mocha test/*.mocha.js -b",
-    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
+    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r",
+    "install" : "npm rebuild"
   },
   "dependencies": {
     "amp": "0.3.1",
@@ -32,7 +33,7 @@
     "length-prefixed-message": "^3.0.3",
     "memdb": "^1.3.1",
     "moniker": "*",
-    "progress-bar" : "*",
+    "progress-bar": "*",
     "pm2": "Unitech/pm2#development",
     "pmx": "*",
     "pump": "^1.0.1",
@@ -64,6 +65,7 @@
     "moniker",
     "pm2",
     "pmx",
+    "progress-bar",
     "pump",
     "random-access-file",
     "request",
