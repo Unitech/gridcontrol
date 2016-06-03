@@ -12,7 +12,6 @@
 var Emitter       = require('events').EventEmitter;
 var Message       = require('amp-message');
 var fmt           = require('util').format;
-var parse         = require('ms');
 var amp           = require('amp');
 var cs            = require('./crypto-service.js');
 var debug         = require('debug')('socket-router');
@@ -156,7 +155,6 @@ Actor.prototype.send = function(){
 
   return {
     timeout: function(ms){
-      if ('string' == typeof ms) ms = parse(ms);
       timer = setTimeout(function(){
         var err = new Error('message response timeout exceeded');
         err.timeout = ms;
