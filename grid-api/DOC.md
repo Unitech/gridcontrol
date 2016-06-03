@@ -6,7 +6,8 @@ var grid = require('gridcontrol').init({
   instances   : 2,        // Number of instances of each tasks
   env         : {         // Extra environment variables spread on Grid
     EXTRA : "ENV"
-  }
+  },
+  local       : true      // Default to true, allow/disallow local task computation
 });
 
 setInterval(function() {
