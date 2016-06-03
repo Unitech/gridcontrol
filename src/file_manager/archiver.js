@@ -4,7 +4,7 @@ const raf      = require('random-access-file')
 const bluebird = require('bluebird')
 const fs       = bluebird.promisifyAll(require('fs'))
 const p        = require('path')
-const progress = require('progress-bar')
+const progress = require('../lib/progress-bar')
 
 module.exports = Archiver
 

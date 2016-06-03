@@ -41,7 +41,6 @@
     "moniker": "*",
     "pm2": "Unitech/pm2#development",
     "pmx": "*",
-    "progress-bar": "^0.1.1",
     "pump": "^1.0.1",
     "random-access-file": "^1.2.0",
     "request": "*",
