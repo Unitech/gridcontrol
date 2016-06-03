@@ -191,6 +191,13 @@ Move all Nodes to another Grid:
 $ grid move <new_grid_name>
 ```
 
+## Advanced documentation
+
+### Ignoring files for synchronization
+
+Avoid re synchronizing the application in case of some file changes by adding a `.gridignore` file, containing a list of regex/files to ignore separated by a newline.
+
+
 ## Contributing
 
 Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)
