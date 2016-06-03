@@ -156,9 +156,11 @@ SocketPool.prototype.add = function(opts) {
 SocketPool.prototype.close = function() {
   var that = this;
 
-  // Object.keys(this._socket_pool).forEach(function(id) {
-  //   that._socket_pool[id].stream.close();
-  // });
+  debug('Closing all connections');
+
+  Object.keys(this._socket_pool).forEach(function(id) {
+    that._socket_pool[id].stream.end();
+  });
 };
 
 SocketPool.prototype.getRouters = function() {

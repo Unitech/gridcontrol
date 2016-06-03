@@ -109,6 +109,12 @@ FilesManagement.prototype.downloadAndExpand = function(link) {
   })
 }
 
+FilesManagement.prototype.close = function(cb) {
+  if (this.command_swarm)
+    this.command_swarm.close();
+  this.clear(cb);
+}
+
 FilesManagement.prototype.clear = function(cb) {
   if (this.command_swarm)
     this.command_swarm.close();

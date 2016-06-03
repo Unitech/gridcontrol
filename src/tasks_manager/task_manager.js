@@ -51,7 +51,9 @@ TaskManager.prototype.serialize = function() {
 };
 
 TaskManager.prototype.terminate = function() {
+  debug('Terminating all tasks');
   pm2.disconnect();
+  this.deleteAllPM2Tasks();
 };
 
 TaskManager.prototype.getTaskMeta = function() {

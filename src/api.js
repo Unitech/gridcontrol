@@ -64,6 +64,7 @@ API.prototype.start = function() {
  * @public
  */
 API.prototype.close = function() {
+  debug('Terminating API');
   this.server.close();
 };
 

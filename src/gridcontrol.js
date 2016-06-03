@@ -110,6 +110,12 @@ var GridControl = function(opts) {
     net_manager  : this,
     port         : that.peer_api_port
   });
+
+  process.on('SIGINT', () => {
+    this.close(() => {
+      process.exit(0);
+    });
+  });
 };
 
 GridControl.prototype.__proto__ = EventEmitter.prototype;
@@ -125,8 +131,8 @@ GridControl.prototype.close = function(cb) {
   if (this.command_swarm) this.command_swarm.close();
   this.socket_pool.close();
   this.task_manager.terminate();
-  this.file_manager.clear();
-  process.nextTick(cb);
+  this.file_manager.close();
+  setTimeout(cb, 100);
 };
 
 /**
