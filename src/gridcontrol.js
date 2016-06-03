@@ -7,6 +7,7 @@ const Moniker         = require('moniker');
 const os              = require('os');
 const chalk           = require('chalk');
 const fmt             = require('fmt');
+const pmx             = require('pmx');
 
 const pkg             = require('../package.json');
 const defaults        = require('./constants.js');
@@ -164,6 +165,17 @@ GridControl.prototype.start = function() {
 
       if (process.env.NODE_ENV != 'test')
         Tools.writeConf(this.serialize());
+
+      Tools.displayModuleInfo([
+        ['Status', 'Peer is ready'],
+        ['Linked to Grid name', this.namespace],
+        ['Password set', this.password ? 'Yes' : 'No'],
+        ['Peer name', this.peer_name],
+        ['Public IP', this.public_ip],
+        ['Private IP', this.private_ip],
+        ['Local API port', this.peer_api_port],
+        ['Network port', this.network_port]
+      ]);
 
       // Form
       fmt.title('Peer ready');

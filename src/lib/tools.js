@@ -1,9 +1,15 @@
 
-var fs    = require('fs');
-var path  = require('path');
-var debug = require('debug')('tools');
+const fs    = require('fs');
+const path  = require('path');
+const debug = require('debug')('tools');
+const pmx   = require('pmx');
+const Tools = {};
 
-var Tools = {};
+Tools.displayModuleInfo = function(infos) {
+  pmx.configureModule({
+    human_info : infos
+  });
+};
 
 Tools.readConf = function(file, cb) {
   var conf_file;

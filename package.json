@@ -9,7 +9,10 @@
   "apps": [
     {
       "name": "gridcontrol",
-      "script": "index.js"
+      "script": "index.js",
+      "env" : {
+        "PM2_WAIT_FOR_INIT" : 2000
+      }
     }
   ],
   "scripts": {
