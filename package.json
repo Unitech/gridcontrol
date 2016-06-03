@@ -32,7 +32,6 @@
     "chalk": "*",
     "connections": "^1.4.2",
     "debug": "*",
-    "discovery-channel": "^5.1.0",
     "dns-socket": "*",
     "express": "*",
     "fmt": "*",
@@ -41,7 +40,6 @@
     "memdb": "^1.3.1",
     "moniker": "*",
     "ms": "~0.6.1",
-    "network-address": "*",
     "pm2": "Unitech/pm2#development",
     "pmx": "*",
     "progress-bar": "^0.1.1",
@@ -50,37 +48,11 @@
     "request": "*",
     "rimraf": "^2.5.2",
     "tar-fs": "*",
-    "to-buffer": "^1.0.1"
+    "to-buffer": "^1.0.1",
+
+    "dns-discovery": "^5.3.4",
+    "thunky": "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
-  "license": "ApacheV2",
-  "bundledDependencies": [
-    "amp",
-    "amp-message",
-    "async",
-    "bluebird",
-    "body-parser",
-    "buffer-equals",
-    "chalk",
-    "connections",
-    "debug",
-    "discovery-channel",
-    "dns-socket",
-    "express",
-    "fmt",
-    "length-prefixed-message",
-    "memdb",
-    "moniker",
-    "ms",
-    "network-address",
-    "pm2",
-    "pmx",
-    "progress-bar",
-    "pump",
-    "random-access-file",
-    "request",
-    "rimraf",
-    "tar-fs",
-    "to-buffer"
-  ]
+  "license": "ApacheV2"
 }
