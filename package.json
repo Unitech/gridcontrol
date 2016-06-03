@@ -16,12 +16,6 @@
     "test": "NODE_ENV='test' DEBUG='gc:*' ./node_modules/.bin/mocha test/*.mocha.js -b",
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
-  "devDependencies": {
-    "should": "*",
-    "mocha": "*",
-    "jsdoc": "*",
-    "ink-docstrap": "*"
-  },
   "dependencies": {
     "amp": "0.3.1",
     "amp-message": "0.1.1",
@@ -38,6 +32,7 @@
     "length-prefixed-message": "^3.0.3",
     "memdb": "^1.3.1",
     "moniker": "*",
+    "progress-bar" : "*",
     "pm2": "Unitech/pm2#development",
     "pmx": "*",
     "pump": "^1.0.1",
@@ -76,5 +71,11 @@
     "tar-fs",
     "thunky",
     "to-buffer"
-  ]
+  ],
+  "devDependencies": {
+    "should": "*",
+    "mocha": "*",
+    "jsdoc": "*",
+    "ink-docstrap": "*"
+  }
 }
