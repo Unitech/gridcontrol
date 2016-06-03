@@ -11,14 +11,13 @@ var src_folder = path.join(__dirname, 'fixtures');
 var dst_gzip   = path.join(__dirname, 'fixtures.tar.gz');
 
 describe('Pack/Unpack folder', function() {
+
   after(function(done) {
-    setTimeout(function() {
-      Helper.rmdir(dst_folder,function(err,out) {
-        fs.unlink(dst_gzip, function(e) {
-          done();
-        });
+    Helper.rmdir(dst_folder,function(err,out) {
+      fs.unlink(dst_gzip, function(e) {
+        done();
       });
-    }, 100);
+    });
   });
 
   it('should fail on unknow error', function(done) {
@@ -43,5 +42,38 @@ describe('Pack/Unpack folder', function() {
 
     should(c1.length).eql(c2.length);
     done();
+  });
+
+  describe('ignore file', function() {
+    var src = path.join(__dirname, 'fixtures', 'app_with_ignore');
+
+    before(function(done) {
+      Helper.rmdir(dst_folder,function(err,out) {
+        fs.unlink(dst_gzip, function(e) {
+          done();
+        });
+      });
+    });
+
+    it('should compress file taking in account .gridignore', function() {
+      return Compress.pack(src, dst_gzip)
+    });
+
+    it('should unpack', function() {
+      return Compress.unpack(dst_gzip, dst_folder);
+    });
+
+    it('should not contain ignored files', function(done) {
+      var c1 = Helper.walkSync(dst_folder);
+      var c2 = Helper.walkSync(src);
+
+      c1.forEach((filepath) => {
+        if (filepath.indexOf('.md') > -1)
+          done(new Error('File has not been ignored'));
+      });
+
+      should(c1.length).eql(c2.length - 2);
+      done();
+    });
   });
 });

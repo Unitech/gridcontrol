@@ -14,8 +14,7 @@
   ],
   "scripts": {
     "test": "NODE_ENV='test' DEBUG='gc:*' ./node_modules/.bin/mocha test/*.mocha.js -b",
-    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r",
-    "install" : "npm rebuild"
+    "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
   "dependencies": {
     "amp": "0.3.1",
@@ -24,6 +23,7 @@
     "body-parser": "*",
     "buffer-equals": "^1.0.3",
     "chalk": "*",
+    "ignore" : "*",
     "connections": "^1.4.2",
     "debug": "*",
     "dns-socket": "*",
@@ -72,7 +72,8 @@
     "rimraf",
     "tar-fs",
     "thunky",
-    "to-buffer"
+    "to-buffer",
+    "ignore"
   ],
   "devDependencies": {
     "should": "*",
