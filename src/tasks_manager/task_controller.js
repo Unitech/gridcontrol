@@ -50,16 +50,23 @@ Controller.init_task_group = function(req, res, next) {
     local       : local,
     env         : env
   })
-    .then(() => {
-      return req.file_manager.initializeAndSpread(base_folder);
-    })
-    .then(link => {
-      req.net_manager.askAllPeersToSync();
-      res.send(link);
+    .then((started_tasks) => {
+
+      /**
+       * In parallel compress app, spread link and ask peers to sync
+       */
+      req.file_manager.initializeAndSpread(base_folder)
+        .then((link) => {
+          req.net_manager.askAllPeersToSync();
+        })
+        .catch(e => {
+          req.net_manager.setAllPeersAsSynced();
+        });
+
+      res.send(started_tasks);
     })
     .catch(e => {
-      req.net_manager.setAllPeersAsSynced();
-      res.send();
+      next(e);
     });
 };
 

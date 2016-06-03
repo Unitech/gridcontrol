@@ -146,10 +146,10 @@ describe('Gridcontrol', function() {
           }
         }
       }, function(err, res, body) {
-        //var ret = JSON.parse(body);
-        // ret['echo'].task_id.should.eql('echo');
-        // ret['echo'].pm2_name.should.eql('task:echo');
-        // ret['ping'].task_id.should.eql('ping');
+        var ret = JSON.parse(body);
+        ret['echo'].task_id.should.eql('echo');
+        ret['echo'].pm2_name.should.eql('task:echo');
+        ret['ping'].task_id.should.eql('ping');
 
         n1.task_manager.getTasks().echo.port.should.eql(10001);
 
