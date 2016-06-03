@@ -73,7 +73,6 @@ var GridControl = function(opts) {
     opts.file_manager = {};
 
   this.file_manager = new FilesManagement({
-    interplanetary : this.file_swarm,
     root_folder    : opts.file_manager.root_folder,
     app_folder     : opts.file_manager.app_folder
   });
@@ -123,10 +122,7 @@ GridControl.prototype.__proto__ = EventEmitter.prototype;
 GridControl.prototype.close = function(cb) {
   debug(chalk.red('[SHUTDOWN]') + '[%s] Terminating local peer', this.peer_name);
   this.api.close();
-  if (this.command_swarm)
-    this.command_swarm.close();
-  if (this.file_swarm)
-    this.file_swarm.close();
+  if (this.command_swarm) this.command_swarm.close();
   this.socket_pool.close();
   this.task_manager.terminate();
   this.file_manager.clear();

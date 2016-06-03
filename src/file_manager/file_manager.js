@@ -20,12 +20,11 @@ function noop() {}
  * @param {object} opts
  * @param {string} opts.app_folder ?
  * @param {string} opts.root_folder root directory to be shared
- * @param {string} opts.level_db path to level db defaults to './drive.db' (in-memory)
  * @param {boolean} opts.is_file_master is this the file master
  */
 function FilesManagement(opts) {
   if (!(this instanceof FilesManagement)) {
-    return new FilesManagement(opts); 
+    return new FilesManagement(opts);
   }
 
   this.app_folder       = opts.app_folder;
@@ -34,7 +33,7 @@ function FilesManagement(opts) {
   this.current_sync_md5 = null;
   this.current_link     = null;
 
-  let db = Level(opts.level_db || './drive.db')
+  let db = Level('./drive.db')
 
   var drive = Hyperdrive(db)
 
@@ -111,6 +110,8 @@ FilesManagement.prototype.downloadAndExpand = function(link) {
 }
 
 FilesManagement.prototype.clear = function(cb) {
+  if (this.command_swarm)
+    this.command_swarm.close();
   try {
     debug('Deleting %s', this.root_folder);
     rimraf(this.root_folder, cb || noop);
