@@ -5,7 +5,7 @@ const debug      = require('debug')('gc:tasks');
 const Controller = require('./task_controller.js');
 const Tools      = require('../lib/tools.js');
 const extend     = require('util')._extend;
-const bluebird = require('bluebird')
+const bluebird   = require('bluebird')
 const fs         = bluebird.promisifyAll(require('fs'));
 const pm2        = bluebird.promisifyAll(require('pm2'));
 

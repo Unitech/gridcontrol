@@ -16,9 +16,8 @@ const TaskManager     = require('./tasks_manager/task_manager.js');
 const Tools           = require('./lib/tools.js');
 const LoadBalancer    = require('./load-balancer.js');
 const API             = require('./api.js');
-const Wait            = require('./lib/wait.js');
 
-const publicIp        = require('./lib/public-ip.js');
+const PublicIp        = require('./lib/public-ip.js');
 const InternalIp      = require('./lib/internal-ip.js');
 const Interplanetary  = require('./network/interplanetary.js');
 const SocketPool      = require('./network/socket-pool.js');
@@ -152,7 +151,7 @@ GridControl.prototype.serialize = function() {
  */
 GridControl.prototype.start = function() {
 
-  return Promise.all([this.api.start(), publicIp(), this.task_manager.start()])
+  return Promise.all([this.api.start(), PublicIp(), this.task_manager.start()])
     .then(values => {
       this.public_ip = values[1][0]
 

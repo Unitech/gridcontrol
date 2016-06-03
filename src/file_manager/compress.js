@@ -1,8 +1,8 @@
 
-var path = require('path');
-var zlib = require('zlib');
-var tar  = require('tar-fs');
-var fs   = require('fs');
+const path = require('path');
+const zlib = require('zlib');
+const tar  = require('tar-fs');
+const fs   = require('fs');
 
 var Compress = module.exports = {
   pack : function(source_folder, destination, cb) {

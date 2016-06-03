@@ -2,7 +2,7 @@
 /**
  * @file Expose API to CloudFunctions
  * @author Alexandre Strzelewicz
- * @project PM2 CloudFunctions
+ * @project Gridcontrol
  */
 
 const express    = require('express');
