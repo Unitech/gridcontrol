@@ -1,7 +1,6 @@
 'use strict';
 const dgram   = require('dgram');
 const dns     = require('dns-socket');
-const async   = require('async');
 const request = require('request');
 const Promise = require('bluebird');
 const debug   = require('debug')('gc:public-ip');

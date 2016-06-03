@@ -1,5 +1,4 @@
 'use strict';
-const async      = require('async');
 const p          = require('path');
 const request    = require('request');
 const debug      = require('debug')('gc:tasks');
@@ -139,16 +138,13 @@ TaskManager.prototype.listAllPM2Tasks = function() {
 
 TaskManager.prototype.deleteAllPM2Tasks = function() {
   return this.listAllPM2Tasks()
-  .then((tasks_proc) => {
-    return new Promise((resolve, reject) => {
-      async.forEachLimit(tasks_proc, 5, function(proc_name, next) {
-        pm2.delete(proc_name, next);
-      }, function(err) {
-        if(err) { return reject(err); }
-        resolve(tasks_proc);
-      });
-    })
-  });
+    .then((tasks_proc) => {
+      return bluebird.map(tasks_proc, (proc_name) => {
+        return new Promise(resolve => {
+          pm2.delete(proc_name, resolve);
+        })
+      }, {concurrency: 5});
+    });
 };
 
 /**
@@ -162,7 +158,7 @@ TaskManager.prototype.startAllTasks = function(opts, tasks_files) {
   // First delete all process with a name starting with task:
   return this.deleteAllPM2Tasks()
     .then(() => {
-    return bluebird.map(tasks_files, (task_file) => this.startTask(task_file), {concurrency: 5})
+      return bluebird.map(tasks_files, (task_file) => this.startTask(task_file), {concurrency: 5})
   })
   .then(() => {
     return Promise.resolve(this.getTasks())
