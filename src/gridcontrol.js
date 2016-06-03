@@ -152,7 +152,7 @@ GridControl.prototype.serialize = function() {
  */
 GridControl.prototype.start = function() {
 
-  return Promise.all([this.api.start(), publicIp()])
+  return Promise.all([this.api.start(), publicIp(), this.task_manager.start()])
     .then(values => {
       this.public_ip = values[1][0]
 

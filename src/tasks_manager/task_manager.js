@@ -34,11 +34,15 @@ const TaskManager = function(opts) {
   if (opts.task_meta)
     this.task_meta = opts.task_meta;
 
-  pm2.connect(function() {
-    debug('Connected to local PM2');
-  });
-
   this.controller = Controller;
+};
+
+TaskManager.prototype.start = function() {
+  return new Promise(resolve => {
+    return pm2.connect(function() {
+      return resolve();
+    });
+  });
 };
 
 TaskManager.prototype.serialize = function() {
