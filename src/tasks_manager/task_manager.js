@@ -21,6 +21,7 @@ const TaskManager = function(opts) {
   this.port_offset = opts.port_offset ? parseInt(opts.port_offset) : 10001;
   this.task_list   = {};
   this.can_accept_queries = false;
+  this.can_local_compute  = true;
 
   // Defaults values
   this.task_meta   = {
@@ -91,11 +92,12 @@ TaskManager.prototype.addTask = function(task_id, task) {
 
 /**
  * List all tasks and start each of them
- * @param {object} opts options
- * @param {string} opts.base_folder ABSOLUTE project path
- * @param {string} opts.task_folder RELATIVE task folder path
- * @param {string} opts.instances number of instances of each script
- * @param {string} opts.json_conf Not used yet
+ * @param {object}  opts             options
+ * @param {string}  opts.base_folder ABSOLUTE project path
+ * @param {string}  opts.task_folder RELATIVE task folder path
+ * @param {string}  opts.instances   Number of instances of each script
+ * @param {string}  opts.json_conf   Not used yet
+ * @param {boolean} opts.local       Can local also compute tasks?
  * @return Promise
  */
 TaskManager.prototype.initTasks = function(opts) {
@@ -106,7 +108,8 @@ TaskManager.prototype.initTasks = function(opts) {
   this.task_meta.json_conf   = opts.json_conf;
   this.task_meta.task_folder = opts.task_folder;
   this.task_meta.env         = opts.env;
-  this.can_accept_queries = false;
+  this.can_accept_queries    = false;
+  this.can_local_compute     = opts.local;
 
   // base_folder not on task_meta, because on peers path is different
   var fullpath_task = p.join(opts.base_folder, opts.task_folder);

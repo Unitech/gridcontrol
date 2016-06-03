@@ -291,7 +291,7 @@ GridControl.prototype.mountActions = function(router) {
         /**
          * If tests, do not launch Tasks
          */
-        if (process.env.NODE_ENV == 'test') {
+        if (process.env.NODE_ENV == 'test' && !process.env.FORCE_PEER_SYNC) {
           return this.socket_pool.broadcast('sync:done', {
             link : sync_meta.link
           });
@@ -330,21 +330,21 @@ GridControl.prototype.stopDiscovery = function(cb) {
  * - cache a peer_list for loadbalancer to apply round robin algo
  */
 GridControl.prototype.startWorker = function() {
-  var that = this;
+  var cachePeerList = () => {
+    this.peer_list     = [];
 
-  function cachePeerList() {
-    that.peer_list     = [];
-
-    that.peer_list.push({
-      identity : {
-        synchronized : that.task_manager.can_accept_queries
-      },
-      local        : true
-    });
+    if (this.task_manager.can_local_compute == true) {
+      this.peer_list.push({
+        identity : {
+          synchronized : this.task_manager.can_accept_queries
+        },
+        local        : true
+      });
+    }
 
     // route only to local if test environment
     if (process.env.NODE_ENV != 'test')
-      that.peer_list = that.peer_list.concat(that.socket_pool.getRouters());
+      this.peer_list = this.peer_list.concat(this.socket_pool.getRouters());
 
     setTimeout(cachePeerList, 500);
   }

@@ -23,10 +23,16 @@ const LoadBalancer = function(opts) {
 LoadBalancer.prototype.findSuitablePeer = function(req) {
   let promise = (retry) => {
     if (retry++ > defaults.FIND_SUITABLE_PEER_RETRY) {
-      return Promise.reject(new Error('To many retries on route request while searching for a suitable peer')) ;
+      return Promise.reject(new Error('Too many retries on route request while searching for a suitable peer')) ;
     }
 
     let peer_list = req.net_manager.getPeerList();
+
+    if (peer_list.length === 0) {
+      debug('Not any peers is synced (and local compute is not activated)');
+      return bluebird.delay(500).then(() => promise(retry));
+    }
+
     let target = peer_list[this._rri++ % peer_list.length];
 
     //@todo take monitoring data into account

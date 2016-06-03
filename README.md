@@ -215,6 +215,10 @@ $ export GRID='grid_name'
 $ grid restart
 ```
 
+### Disable local tasks computation
+
+To make the head node act as a load balancer only pass the `local : false` in `grid.init` options.
+
 ## Contributing
 
 Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)

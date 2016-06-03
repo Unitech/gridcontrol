@@ -32,6 +32,8 @@ Controller.init_task_group = function(req, res, next) {
   let instances   = req.body.instances;
   let json_conf   = req.body.json_conf;
   let env         = req.body.env || {};
+  // Can local compute tasks?
+  let local       = (typeof(req.body.local) == 'undefined' || req.body.local == null) ? true : req.body.local;
 
   debug('new application initialialization request for app %s', base_folder);
 
@@ -45,6 +47,7 @@ Controller.init_task_group = function(req, res, next) {
     task_folder : task_folder,
     instances   : instances,
     json_conf   : json_conf,
+    local       : local,
     env         : env
   })
     .then(() => {
