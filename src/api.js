@@ -11,6 +11,7 @@ const http       = require('http');
 const https      = require('https');
 const fmt        = require('fmt');
 const debug      = require('debug')('gc:api');
+const Tools      = require('./lib/tools.js');
 
 /**
  * Set API default values
@@ -186,10 +187,10 @@ API.prototype.mountRoutes = function() {
   });
 
   app.get('/conf', function(req, res, next) {
-    res.send({
+    res.send(Tools.safeClone({
       file_manager : req.file_manager,
       task_manager : req.task_manager
-    });
+    }));
   });
 };
 

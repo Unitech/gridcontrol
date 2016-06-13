@@ -7,7 +7,7 @@ const Tools      = require('../lib/tools.js');
 const extend     = require('util')._extend;
 const bluebird   = require('bluebird')
 const fs         = bluebird.promisifyAll(require('fs'));
-const pm2        = bluebird.promisifyAll(require('pm2'));
+const PM2        = bluebird.promisifyAll(require('pm2'));
 
 /**
  * The Task Manager manage all tasks
@@ -22,6 +22,7 @@ const TaskManager = function(opts) {
   this.task_list   = {};
   this.can_accept_queries = false;
   this.can_local_compute  = true;
+  this.pm2 = new PM2();
 
   // Defaults values
   this.task_meta   = {
@@ -39,7 +40,7 @@ const TaskManager = function(opts) {
 
 TaskManager.prototype.start = function() {
   return new Promise(resolve => {
-    return pm2.connect(function() {
+    return this.pm2.connect(function() {
       return resolve();
     });
   });
@@ -51,9 +52,10 @@ TaskManager.prototype.serialize = function() {
   };
 };
 
-TaskManager.prototype.terminate = function() {
+TaskManager.prototype.terminate = function(cb) {
+  if (!cb) cb = function() {};
   debug('Terminating all tasks');
-  pm2.disconnect();
+  this.pm2.disconnect(cb);
   this.deleteAllPM2Tasks();
 };
 
@@ -126,7 +128,7 @@ TaskManager.prototype.initTasks = function(opts) {
 
 TaskManager.prototype.listAllPM2Tasks = function() {
   return new Promise((resolve, reject) => {
-    pm2.list(function(err, proc_list) {
+    this.pm2.list(function(err, proc_list) {
       if (err) return reject(err);
 
       let ret = {};
@@ -146,7 +148,7 @@ TaskManager.prototype.deleteAllPM2Tasks = function() {
     .then((tasks_proc) => {
       return bluebird.map(tasks_proc, (proc_name) => {
         return new Promise(resolve => {
-          pm2.delete(proc_name, resolve);
+          this.pm2.delete(proc_name, resolve);
         })
       }, {concurrency: 5});
     });
@@ -207,18 +209,22 @@ TaskManager.prototype.startTask = function(task_file_path) {
     };
   }
 
-  return pm2.startAsync(pm2_opts)
-    .then((procs) => {
-      this.addTask(task_id, {
-        port     : task_port,
-        task_id  : task_id,
-        pm2_name : task_pm2_name,
-        path     : task_file_path
-      })
-
-      debug('status=task_started id=%s pm2_name=%s', task_id, task_pm2_name);
-      return Promise.resolve(procs);
+  return new Promise((resolve, reject) => {
+    this.pm2.start(pm2_opts, (e, meta) => {
+      if (e) return reject();
+      return resolve();
     })
+  }).then((procs) => {
+    this.addTask(task_id, {
+      port     : task_port,
+      task_id  : task_id,
+      pm2_name : task_pm2_name,
+      path     : task_file_path
+    })
+
+    debug('status=task_started id=%s pm2_name=%s', task_id, task_pm2_name);
+    return Promise.resolve(procs);
+  })
     .catch((err) => {
       return Promise.reject(err)
     });

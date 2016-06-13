@@ -2,7 +2,6 @@
 var TaskManager   = require('../src/tasks_manager/task_manager.js');
 var should        = require('should');
 var path          = require('path');
-var pm2           = require('pm2');
 
 describe('Task Manager', function() {
   var task_manager;
@@ -10,13 +9,11 @@ describe('Task Manager', function() {
   var sample_app_path = path.join(__dirname, 'fixtures', 'app1');
   var APP_NUMBER = 5;
 
-  before(function(done) {
-    pm2.connect(done);
-  });
-
   it('should instanciate new task manager', function() {
     task_manager = new TaskManager();
+    return task_manager.start();
   });
+
 
   it('should have right default meta tasks', function() {
     var meta = task_manager.getTaskMeta();
@@ -62,4 +59,9 @@ describe('Task Manager', function() {
       return Promise.resolve()
     });
   });
+
+  it('should stop task manager', function(done) {
+    task_manager.terminate(done);
+  });
+
 });
