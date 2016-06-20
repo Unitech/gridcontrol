@@ -40,6 +40,7 @@ const SocketPool      = require('./network/socket-pool.js');
  * @param {object}  opts.task_manager
  * @param {object}  opts.task_meta
  * @param {integer} opts.task_meta.instances
+ * @param {integer} opts.task_meta.pm2_home
  * @param {object}  opts.task_meta.json_conf
  * @param {string}  opts.task_meta.task_folder
  * @param {object}  opts.task_meta.env
@@ -131,9 +132,8 @@ GridControl.prototype.close = function(cb) {
   this.api.close();
   if (this.command_swarm) this.command_swarm.close();
   this.socket_pool.close();
-  this.task_manager.terminate();
+  this.task_manager.terminate(cb);
   this.file_manager.close();
-  setTimeout(cb, 100);
 };
 
 /**
@@ -297,20 +297,23 @@ GridControl.prototype.mountActions = function(router) {
                 sync_meta.link);
 
     this.file_manager.downloadAndExpand(sync_meta.link)
-      .then(() => {
+      .then((destination) => {
         this.emit('synchronized');
+
+        sync_meta.meta.base_folder = destination;
 
         /**
          * If tests, do not launch Tasks
          */
-        if (process.env.NODE_ENV == 'test' && !process.env.FORCE_PEER_SYNC) {
-          return this.socket_pool.broadcast('sync:done', {
-            link : sync_meta.link
-          });
-        }
+        // if (process.env.NODE_ENV == 'test' && !process.env.FORCE_PEER_SYNC) {
+        //   return this.socket_pool.broadcast('sync:done', {
+        //     link : sync_meta.link
+        //   });
+        // }
 
         this.task_manager.initTasks(sync_meta.meta)
           .then(() => {
+            this.emit('tasks_started');
             this.socket_pool.broadcast('sync:done', {
               link : sync_meta.link
             });

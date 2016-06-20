@@ -22,7 +22,11 @@ const TaskManager = function(opts) {
   this.task_list   = {};
   this.can_accept_queries = false;
   this.can_local_compute  = true;
-  this.pm2 = new PM2();
+
+  this.pm2 = new PM2({
+    independant : true,
+    daemon_mode : true
+  });
 
   // Defaults values
   this.task_meta   = {
@@ -40,7 +44,7 @@ const TaskManager = function(opts) {
 
 TaskManager.prototype.start = function() {
   return new Promise(resolve => {
-    return this.pm2.connect(function() {
+    return this.pm2.connect((err, meta) => {
       return resolve();
     });
   });
@@ -55,8 +59,8 @@ TaskManager.prototype.serialize = function() {
 TaskManager.prototype.terminate = function(cb) {
   if (!cb) cb = function() {};
   debug('Terminating all tasks');
-  this.pm2.disconnect(cb);
-  this.deleteAllPM2Tasks();
+  this.pm2.destroy(cb);
+  //this.deleteAllPM2Tasks();
 };
 
 TaskManager.prototype.getTaskMeta = function() {

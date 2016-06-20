@@ -42,7 +42,9 @@ var Compress = module.exports = {
         t_pack.on('error', reject);
         compressor.on('error', reject);
         stream.on('error', reject);
-        stream.on('finish', resolve);
+        stream.on('finish', () => {
+          resolve(destination);
+        });
       });
     });
   },
@@ -60,7 +62,9 @@ var Compress = module.exports = {
       //@todo: close all stream if error
       decompressor.on('error', reject);
       b.on('error', reject);
-      b.on('finish', resolve);
+      b.on('finish', () => {
+        resolve(destination_folder);
+      });
     });
   }
 };
