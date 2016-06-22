@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.5.0",
+  "version": "0.5.2",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -50,34 +50,6 @@
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
   "license": "ApacheV2",
-  "bundledDependencies": [
-    "amp",
-    "amp-message",
-    "bluebird",
-    "body-parser",
-    "buffer-equals",
-    "chalk",
-    "connections",
-    "debug",
-    "dns-discovery",
-    "dns-socket",
-    "express",
-    "fmt",
-    "length-prefixed-message",
-    "memdb",
-    "moniker",
-    "pm2",
-    "pmx",
-    "progress-bar",
-    "pump",
-    "random-access-file",
-    "request",
-    "rimraf",
-    "tar-fs",
-    "thunky",
-    "to-buffer",
-    "ignore"
-  ],
   "devDependencies": {
     "should": "*",
     "mocha": "*",

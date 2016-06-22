@@ -23,10 +23,16 @@ const TaskManager = function(opts) {
   this.can_accept_queries = false;
   this.can_local_compute  = true;
 
-  this.pm2 = new PM2({
-    independant : true,
-    daemon_mode : true
-  });
+  var pm2_opts = {};
+
+  if (process.env.NODE_ENV == 'test') {
+    pm2_opts = {
+      independant : true,
+      daemon_mode : true
+    };
+  }
+
+  this.pm2 = new PM2(pm2_opts);
 
   // Defaults values
   this.task_meta   = {
@@ -59,7 +65,9 @@ TaskManager.prototype.serialize = function() {
 TaskManager.prototype.terminate = function(cb) {
   if (!cb) cb = function() {};
   debug('Terminating all tasks');
-  this.pm2.destroy(cb);
+  this.pm2.destroy(() => {
+    cb();
+  });
   //this.deleteAllPM2Tasks();
 };
 
