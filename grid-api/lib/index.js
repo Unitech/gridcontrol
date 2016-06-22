@@ -27,6 +27,11 @@ Client.prototype.init = function(opts, cb) {
 
   this.task_folder = opts.task_folder;
   this.env         = opts.env;
+
+  // Alias
+  if (opts.instances_per_task)
+    this.instances   = opts.instances_per_task;
+
   this.instances   = opts.instances || 0;
   this.base_url    = 'http://localhost:' + (opts.port || 10000);
   this.skip_grid   = opts.skip_grid || false;
@@ -58,7 +63,14 @@ Client.prototype.init = function(opts, cb) {
       return cb ? cb(err) : false;
     }
 
-    this.emit('ready');
+    if (res.statusCode >= 500) {
+      this.emit('error', body);
+      if (!cb)
+        throw new Error(body.msg);
+      return cb(err);
+    }
+
+    this.emit('ready', body);
     return cb ? cb(null, body) : false;
   });
   return this;
