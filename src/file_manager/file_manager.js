@@ -27,8 +27,14 @@ function FilesManagement(opts) {
     return new FilesManagement(opts);
   }
 
-  this.app_folder       = opts.app_folder;
   this.root_folder      = opts.root_folder      || defaults.TMP_FOLDER;
+
+  if (!opts.app_folder) {
+    opts.app_folder = path.join(this.root_folder, 'app');
+  }
+
+  this.app_folder       = opts.app_folder;
+
   this.is_file_master   = opts.is_file_master   || false;
   this.current_sync_md5 = null;
   this.current_link     = null;

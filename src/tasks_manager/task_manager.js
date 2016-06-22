@@ -65,7 +65,12 @@ TaskManager.prototype.serialize = function() {
 TaskManager.prototype.terminate = function(cb) {
   if (!cb) cb = function() {};
   debug('Terminating all tasks');
-  this.pm2.destroy(() => {
+  if (process.env.NODE_ENV == 'test') {
+    return this.pm2.destroy(() => {
+      cb();
+    });
+  }
+  this.pm2.disconnect(() => {
     cb();
   });
   //this.deleteAllPM2Tasks();
