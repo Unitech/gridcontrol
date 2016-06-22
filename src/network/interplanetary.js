@@ -107,7 +107,7 @@ function InterPlanetary (opts) {
     this.on('listening', this._ondiscover);
 
   function onconnection (connection) {
-    var type = this === this._tcp ? 'tcp' : 'utp'
+    var type = this === self._tcp ? 'tcp' : 'utp'
     connection.on('error', onerror)
     self._onconnection(connection, type, null)
   }
@@ -341,13 +341,18 @@ InterPlanetary.prototype._kick = function () {
   }
 }
 
+InterPlanetary.prototype._dropPeer = function (peer) {
+  delete this._peersSeen[peer.id]
+  this.emit('drop', peer)
+};
+
 InterPlanetary.prototype._requeue = function (peer) {
   if (this.destroyed) return
 
   var self = this
   var wait = peer.retries >= RECONNECT_WAIT.length ? 0 : RECONNECT_WAIT[peer.retries++]
   if (wait) setTimeoutUnref(requeue, wait)
-  else this.emit('drop', peer)
+  else this._dropPeer(peer)
 
   function requeue () {
     self._peersQueued.push(peer)

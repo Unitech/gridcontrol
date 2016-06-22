@@ -74,8 +74,8 @@ describe('Multi local Gridcontrol', function() {
     it('should n2 be synchronized', function(done) {
       var plan = new Plan(2, done);
 
-      n2.on('tasks_started', () => plan.ok(true));
-      n2.on('synchronized', () => plan.ok(true));
+      n2.once('tasks_started', () => plan.ok(true));
+      n2.once('synchronized', () => plan.ok(true));
     });
 
   });
@@ -100,8 +100,8 @@ describe('Multi local Gridcontrol', function() {
     it('should n3 get synchronized', function(done) {
       var plan = new Plan(2, done);
 
-      n3.on('tasks_started', () => plan.ok(true));
-      n3.on('synchronized', () => plan.ok(true));
+      n3.once('tasks_started', () => plan.ok(true));
+      n3.once('synchronized', () => plan.ok(true));
     });
   });
 
@@ -109,8 +109,8 @@ describe('Multi local Gridcontrol', function() {
     it('should start all fixtures tasks', function(done) {
       var plan = new Plan(3, done);
 
-      n2.on('synchronized', () => plan.ok(true));
-      n3.on('synchronized', () => plan.ok(true));
+      n2.once('tasks_started', () => plan.ok(true));
+      n3.once('tasks_started', () => plan.ok(true));
 
       var base_folder = path.join(__dirname, 'fixtures', 'app1-modified');
       var task_folder = 'tasks';

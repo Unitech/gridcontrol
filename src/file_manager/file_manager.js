@@ -45,20 +45,8 @@ function FilesManagement(opts) {
 
   this.drive = drive;
 
-  this.file_swarm = Interplanetary({
-    id: drive.core.id,
-    dns : {
-      server : defaults.DNS_DISCOVERY,
-      interval : 1000
-    },
-    dht : false
-  });
-
-  this.file_swarm.listen(0);
-
   this.archiver = new Archiver({
     drive          : this.drive,
-    interplanetary : this.file_swarm,
     root           : this.root_folder
   })
 

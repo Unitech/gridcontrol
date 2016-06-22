@@ -5,6 +5,8 @@ const bluebird = require('bluebird')
 const fs       = bluebird.promisifyAll(require('fs'))
 const p        = require('path')
 const progress = require('progress-bar')
+const Interplanetary  = require('../network/interplanetary.js');
+const defaults        = require('../constants.js');
 
 module.exports = Archiver
 
@@ -13,12 +15,47 @@ function Archiver(options) {
 
   if(!options.drive) throw new ReferenceError('Provide a hyperdrive')
   if(!options.root) throw new ReferenceError('Provide a root directory')
-  if(!options.interplanetary) throw new ReferenceError('Provide Interplanetary')
+  //if(!options.interplanetary) throw new ReferenceError('Provide Interplanetary')
 
   this.drive = options.drive
   this.root = options.root
-  this.interplanetary = options.interplanetary
+  //this.interplanetary = options.interplanetary
 };
+
+Archiver.prototype.join = function(archive, cb) {
+  if (this.link) {
+    console.log('Leave %s', this.link);
+    this.interplanetary.leave(this.link);
+    delete this.interplanetary;
+  }
+
+  var link = archive.key.toString('hex')
+  this.link = link;
+
+  this.interplanetary = Interplanetary({
+    id: this.drive.core.id,
+    dns : {
+      server : defaults.DNS_DISCOVERY,
+      interval : 1000
+    },
+    dht : false,
+    stream : function (peer) {
+      return archive.replicate()
+    }
+  });
+
+  this.interplanetary.on('error', (e) => {
+    console.error(e.stack || e);
+  });
+
+  this.interplanetary.on('connection', () => {
+    console.log('Got new connection');
+  });
+
+  this.interplanetary.on('listening', cb);
+  this.interplanetary.listen(0);
+  this.interplanetary.join(this.link)
+}
 
 /**
  * @param root root path
@@ -122,25 +159,23 @@ Archiver.prototype.archive = function(directory, options) {
 }
 
 Archiver.prototype.spread = function(archive) {
-  if (this.link) {
-    console.log('Leave %s', this.link);
-    this.interplanetary.leave(this.link)
-  }
-
-  this.link = archive.key.toString('hex')
-
-  this.interplanetary.join(this.link)
+  return new Promise((resolve, reject) => {
+    this.join(archive, (err) => {
+      console.log('------------------- JOINED');
+      return resolve(this.link)
+    });
+  });
 
   // archive.on('upload', function(data) {
   //   debug('uploading', data.length);
   // });
 
-  this.interplanetary._stream = function() {
-    // this is how the swarm and hyperdrive interface
-    return archive.replicate()
-  }
+  // this.interplanetary._stream = function() {
+  //   // this is how the swarm and hyperdrive interface
+  //   return archive.replicate()
+  // }
 
-  return Promise.resolve(this.link)
+
 }
 
 function bytesToSize(bytes) {
