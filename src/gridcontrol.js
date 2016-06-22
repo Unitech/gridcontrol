@@ -437,9 +437,10 @@ GridControl.prototype.askPeerToSync = function(router) {
     return console.error('Identity is not attached to router?');
   }
 
-  debug('Asking %s[%s] to sync',
+  debug('Asking %s[%s] to sync with link %s',
         router.identity.public_ip,
-        router.identity.name);
+        router.identity.name,
+        this.file_manager.currentLink);
 
   router.send('sync', {
     public_ip  : this.public_ip,

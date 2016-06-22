@@ -105,4 +105,30 @@ describe('Multi local Gridcontrol', function() {
     });
   });
 
+  describe('Modified application all peers should sync', function() {
+    it('should start all fixtures tasks', function(done) {
+      var plan = new Plan(3, done);
+
+      n2.on('synchronized', () => plan.ok(true));
+      n3.on('synchronized', () => plan.ok(true));
+
+      var base_folder = path.join(__dirname, 'fixtures', 'app1-modified');
+      var task_folder = 'tasks';
+
+      request.post('http://localhost:10000/tasks/init', {
+        form : {
+          base_folder : base_folder,
+          task_folder : task_folder,
+          instances   : 1,
+          env         : {
+            NODE_ENV : 'test'
+          }
+        }
+      }, function(err, res, body) {
+        var ret = JSON.parse(body);
+        plan.ok(true);
+      });
+    });
+  });
+
 })

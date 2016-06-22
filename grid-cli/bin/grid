@@ -333,7 +333,7 @@ program
     shelljs.exec('pm2 restart gridcontrol', { silent : true }, function(code, stdout, stderr) {
 
       if (code != 0) {
-        return exitError(new Error('Gridcontrol is not being managed by PM2'));
+        return exitError(new Error(stderr));
       }
 
       Common.displayHosts(function() {
