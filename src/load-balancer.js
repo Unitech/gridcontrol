@@ -104,7 +104,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
           });
       }
 
-      debug('Routing task %s to %s:%s',
+      debug('status=routing task=%s target=%s port=%s',
             task_id,
             peer.identity.public_ip,
             peer.identity.api_port);
@@ -115,6 +115,8 @@ LoadBalancer.prototype.route = function(req, res, next) {
         opts    : task_opts
       }, function(err, data) {
         delete this.processing_tasks[uuid];
+        console.log('Action remote success');
+        console.log(err, data);
         if (err) {
           if (!data) data = {};
           data.err = err;
