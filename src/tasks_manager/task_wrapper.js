@@ -6,8 +6,6 @@ const Tools      = require('../lib/tools.js');
 
 const task = require('module')._load(process.env.TASK_PATH, null, true);
 
-//const task = require(process.env.TASK_PATH);
-
 var path = require('path');
 
 app.use(bodyParser.urlencoded({
