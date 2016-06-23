@@ -74,16 +74,20 @@ var GridControl = function(opts) {
   if (!opts.file_manager)
     opts.file_manager = {};
 
+  this.root_folder = opts.file_manager.root_folder || defaults.TMP_FOLDER;
+  this.app_folder  = opts.file_manager.app_folder || path.join(this.root_folder, 'app');
+
   this.file_manager = new FilesManagement({
-    root_folder    : opts.file_manager.root_folder,
-    app_folder     : opts.file_manager.app_folder
+    root_folder    : this.root_folder,
+    app_folder     : this.app_folder
   });
 
   /**
    * Task manager initialization
    */
   var task_manager_opts = {
-    port_offset : parseInt(that.peer_api_port) + 1
+    port_offset : parseInt(that.peer_api_port) + 1,
+    app_folder  : this.app_folder
   };
 
   if (opts.task_manager && opts.task_manager.task_meta) {
@@ -113,11 +117,11 @@ var GridControl = function(opts) {
     port         : that.peer_api_port
   });
 
-  process.on('SIGINT', () => {
-    this.close(() => {
-      process.exit(0);
-    });
-  });
+  // process.on('SIGINT', () => {
+  //   this.close(() => {
+  //     process.exit(0);
+  //   });
+  // });
 };
 
 GridControl.prototype.__proto__ = EventEmitter.prototype;

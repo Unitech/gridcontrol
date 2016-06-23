@@ -210,6 +210,8 @@ TaskManager.prototype.startTask = function(task_file_path) {
 
   let pm2_opts = {};
 
+  //process.chdir(path.join(process.env.TASK_PATH, '..'));
+  
   if (p.extname(task_file_path) == '.js') {
     pm2_opts = {
       script    : p.join(__dirname, 'task_wrapper.js'),
