@@ -157,10 +157,12 @@ describe('Gridcontrol', function() {
       });
     });
 
-    it('should n2 synchronized', function(done) {
-      n2.on('synchronized', done);
-    });
+    it('should n2 synchronized and task started', function(done) {
+      var plan = new Plan(2, done);
 
+      n2.once('tasks_started', () => plan.ok(true));
+      n2.once('synchronized', () => plan.ok(true));
+    });
 
     it('should RESTART all fixtures tasks', function(done) {
       this.timeout(5000);
@@ -182,7 +184,7 @@ describe('Gridcontrol', function() {
 
     it('should NS1 retrieve 5 tasks started', function(done) {
       request.get('http://localhost:10000/tasks/list', function(err, res, body) {
-        should(err).be.null;
+        should(err).be.null();
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
         should(tasks.length).eql(5);
@@ -191,9 +193,9 @@ describe('Gridcontrol', function() {
     });
 
     // PM2 is not dameonized by NS2
-    it.skip('should NS2 retrieve 5 tasks started', function(done) {
+    it('should NS2 retrieve 5 tasks started', function(done) {
       request.get('http://localhost:11000/tasks/list', function(err, res, body) {
-        should(err).be.null;
+        should(err).be.null();
         should(res.statusCode).eql(200);
         var tasks = JSON.parse(body);
         should(tasks.length).eql(5);
@@ -234,6 +236,26 @@ describe('Gridcontrol', function() {
         should(res.err).be.null();
         should.exist(res.server);
         res.data.hello.should.eql('yey');
+        should(res.server.name).eql(n1.getLocalIdentity().name);
+        return done();
+      });
+    });
+
+    it('should trigger task', function(done) {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'echo',
+          data : {
+            name : 'yey'
+          }
+        }
+      }, function(err, raw, body) {
+        var res = JSON.parse(body);
+        should(err).be.null();
+        should(res.err).be.null();
+        should.exist(res.server);
+        res.data.hello.should.eql('yey');
+        should(res.server.name).eql(n2.getLocalIdentity().name);
         return done();
       });
     });

@@ -48,9 +48,9 @@ Archiver.prototype.join = function(archive, cb) {
     console.error(e.stack || e);
   });
 
-  this.interplanetary.on('connection', () => {
-    console.log('Got new connection');
-  });
+  // this.interplanetary.on('connection', () => {
+  //   console.log('Got new connection');
+  // });
 
   this.interplanetary.on('listening', cb);
   this.interplanetary.listen(0);
@@ -161,7 +161,6 @@ Archiver.prototype.archive = function(directory, options) {
 Archiver.prototype.spread = function(archive) {
   return new Promise((resolve, reject) => {
     this.join(archive, (err) => {
-      console.log('------------------- JOINED');
       return resolve(this.link)
     });
   });

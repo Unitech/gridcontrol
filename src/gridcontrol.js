@@ -269,13 +269,19 @@ GridControl.prototype.mountActions = function(router) {
     this.askPeerToSync(router);
 
   router.on('trigger', (msg, cb) => {
+    console.log('[%s] Incoming trigger req',
+                this.peer_name);
     debug('Received a trigger action: %s', msg.task_id);
 
     this.task_manager.triggerTask({
       task_id  : msg.task_id,
       task_data: msg.task_data,
       task_opts: msg.task_opts
-    }).then(cb);
+    }).then((data) => {
+      return cb(null, data);
+    }).catch((err) => {
+      return cb(err);
+    });
   });
 
   /**
@@ -357,9 +363,7 @@ GridControl.prototype.startWorker = function() {
       });
     }
 
-    // route only to local if test environment
-    if (process.env.NODE_ENV != 'test')
-      this.peer_list = this.peer_list.concat(this.socket_pool.getRouters());
+    this.peer_list = this.peer_list.concat(this.socket_pool.getRouters());
 
     setTimeout(cachePeerList, 500);
   }

@@ -141,7 +141,8 @@ Actor.prototype.send = function(){
     }
 
     this.callbacks[id] = callback;
-    args.unshift(new Buffer(id));
+    //var buffer = new Buffer(id);
+    args.unshift(id);
   }
 
   if (this.secret_key) {
@@ -191,5 +192,5 @@ function reply(id, args) {
  */
 
 function isId(arg) {
-  return 105 == arg[0] && 58 == arg[1];
+  return 'i' == arg[0] && ':' == arg[1];
 }

@@ -110,13 +110,11 @@ LoadBalancer.prototype.route = function(req, res, next) {
             peer.identity.api_port);
 
       peer.send('trigger', {
-        task_id : task_id,
-        data    : task_data,
-        opts    : task_opts
-      }, function(err, data) {
+        task_id   : task_id,
+        task_data : task_data,
+        task_opts : task_opts
+      }, (err, data) => {
         delete this.processing_tasks[uuid];
-        console.log('Action remote success');
-        console.log(err, data);
         if (err) {
           if (!data) data = {};
           data.err = err;
