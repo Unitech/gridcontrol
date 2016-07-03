@@ -13,7 +13,8 @@ const cliux        = require('../lib/cli-ux.js');
 const multissh     = require('multissh');
 const shelljs      = require('shelljs');
 const Common       = require('../lib/common.js');
-const SSH          = require('../workflows/ssh.js');
+const INIT         = require('../lib/workflows/init.js')
+const SSH          = require('../lib/workflows/ssh.js');
 const publicIp     = require('public-ip');
 
 program
@@ -224,7 +225,7 @@ program
   .alias('install')
   .description('Install a local Gridcontrol Node')
   .action(function(grid_name) {
-    require('../workflows/init.js')(grid_name);
+    INIT(grid_name);
   });
 
 program

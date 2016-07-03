@@ -8,6 +8,7 @@ const shelljs      = require('shelljs');
 const keygen       = require('ssh-keygen2');
 const exec         = require('child_process').exec;
 const sshexec      = require('ssh-exec');
+const Common       = require('../common.js');
 
 var SSH = {
   /**
@@ -20,12 +21,8 @@ var SSH = {
    * @param {String} opts.only IP to copy key only
    */
   copy_public_key : function(hostfile, custom_key, opts) {
-    return new Promise(function(resolve, reject) {
-      fs.readFile(path.join(process.cwd(), hostfile), function(e, data) {
-        if (e) return reject(e);
-        resolve(data.toString());
-      });
-    }).then(function(content) {
+    Common.parseHostfile(hostfile)
+      .then(function(content) {
       return new Promise((resolve, reject) => {
         var ret = [];
 

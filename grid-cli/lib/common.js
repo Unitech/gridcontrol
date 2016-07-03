@@ -1,6 +1,8 @@
 
-const grid         = require('grid-api');
-const cliux        = require('./cli-ux.js');
+const grid  = require('grid-api');
+const cliux = require('./cli-ux.js');
+const path  = require('path');
+const fs    = require('fs');
 
 function exitError(err) {
   console.error(err);
@@ -47,4 +49,27 @@ exports.displayHosts = function displayHosts(cb) {
     if (err) return retry();
     return setTimeout(function() { cb() }, 150);
   });
+};
+
+exports.parseHostfile = function(hostfile) {
+  return new Promise(function(resolve, reject) {
+    fs.readFile(path.join(process.cwd(), hostfile), function(e, data) {
+      if (e) return reject(e);
+      var content = data.toString();
+      var hosts = content.trim().split('\n');
+      var ret_hosts = [];
+
+      hosts.forEach((host) => {
+        var ip = host.split(':')[1];
+        var user = host.split(':')[0];
+
+        ret_hosts.push({
+          user : user,
+          ip : ip
+        });
+      });
+
+      resolve(hosts);
+    });
+  })
 };

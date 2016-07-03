@@ -4,7 +4,7 @@ const fs           = require('fs');
 const chalk        = require('chalk');
 const shelljs      = require('shelljs');
 const ora          = require('ora');
-const Common       = require('../lib/common.js');
+const Common       = require('../common.js');
 
 /**
  * Init workflow
