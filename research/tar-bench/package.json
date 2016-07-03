@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "archiver": "^1.0.0",
+    "pako" : "*",
     "node-archiver": "^0.2.0",
     "node-zopfli": "^1.4.0",
     "tar-fs": "^1.13.0",
