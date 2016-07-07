@@ -11,6 +11,7 @@ var src_folder = path.join(__dirname, 'fixtures');
 var dst_gzip   = path.join(__dirname, 'fixtures.tar.gz');
 
 describe('Pack/Unpack folder', function() {
+  this.timeout(5000);
 
   after(function(done) {
     Helper.rmdir(dst_folder,function(err,out) {

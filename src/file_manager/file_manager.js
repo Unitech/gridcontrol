@@ -87,13 +87,18 @@ FilesManagement.prototype.initializeAndSpread = function(target_folder) {
 }
 
 FilesManagement.prototype.downloadAndExpand = function(link) {
+  var dest_file = path.join(this.root_folder, defaults.SYNC_FILE);
+
   debug('Joining swarm link [%s...] to sync folder [%s]', link.substring(0, 5), this.root_folder);
+
+  try {
+    // Delete previous file
+    fs.unlinkSync(dest_file);
+  } catch(e) {}
 
   return this.archiver.download(link)
     .then(() => {
-      // @todo delete or close previous archive once download is finished?
       debug('Download finished');
-      var dest_file = path.join(this.root_folder, defaults.SYNC_FILE);
 
       debug('Uncompressing file %s into %s',
             dest_file,

@@ -24,7 +24,7 @@ var Compress = module.exports = {
 
         var opts = {};
 
-        if (ignore) {
+       if (ignore) {
           opts = {
             ignore : (name) => {
               return !ignore.filter(name).length;
@@ -34,7 +34,7 @@ var Compress = module.exports = {
 
         var t_pack = tar.pack(source_folder, opts);
 
-        var stream = t_pack.pipe(zlib.createGzip())
+        var stream = t_pack
               .pipe(compressor)
               .pipe(fs.createWriteStream(destination));
 
@@ -55,8 +55,7 @@ var Compress = module.exports = {
       var s = fs.createReadStream(source);
       var b = tar.extract(destination_folder);
 
-      s.pipe(zlib.createGunzip())
-        .pipe(decompressor)
+      s.pipe(decompressor)
         .pipe(b);
 
       //@todo: close all stream if error

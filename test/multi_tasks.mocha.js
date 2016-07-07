@@ -13,7 +13,9 @@ describe('Multi Tasks test', function() {
   var n1;
 
   after(function(done) {
-    n1.close(done);
+    n1.close(function(err, data) {
+      done();
+    });
   });
 
   it('should create a first client', function() {

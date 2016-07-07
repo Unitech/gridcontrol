@@ -29,12 +29,12 @@ const TaskManager = function(opts) {
 
   if (process.env.NODE_ENV == 'test') {
     pm2_opts = {
-      independant : true,
+      independent : true,
       daemon_mode : true
     };
   }
 
-  this.pm2 = new PM2(pm2_opts);
+  this.pm2 = new PM2.custom(pm2_opts);
 
   // Defaults values
   this.task_meta   = {

@@ -17,9 +17,12 @@ describe('Multi local Gridcontrol', function() {
   var n1, n2, n3;
 
   after(function(done) {
-    n2.close();
-    n3.close();
-    n1.close(done);
+    n1.close(function() {
+      n2.close(function() {
+        n3.close(done);
+      });
+    });
+
   });
 
   describe('Two nodes synchronized', function() {

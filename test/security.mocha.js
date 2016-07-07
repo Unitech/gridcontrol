@@ -7,6 +7,8 @@ const should       = require('should');
 const socketr      = require('../src/network/secure-socket-router.js');
 
 describe('Security tests', function() {
+  this.timeout(5000);
+
   var n1, n2, n3;
 
   describe('Data ciphering', function() {
