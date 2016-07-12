@@ -1,5 +1,4 @@
 'use strict'
-const request    = require('request');
 const debug      = require('debug')('gc:tasks');
 const defaults   = require('../constants.js');
 
