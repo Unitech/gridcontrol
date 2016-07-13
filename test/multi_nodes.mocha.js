@@ -26,7 +26,6 @@ describe('Multi local Gridcontrol', function() {
   });
 
   describe('Two nodes synchronized', function() {
-    throw new Error('test');
     it('should create a first client', function() {
       n1 = new gridcontrol({
         peer_api_port : 10000
