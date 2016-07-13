@@ -4,6 +4,8 @@ var should        = require('should');
 var path          = require('path');
 
 describe('Task Manager', function() {
+  this.timeout(5000);
+
   var task_manager;
   var gfiles;
   var sample_app_path = path.join(__dirname, 'fixtures', 'app1');
