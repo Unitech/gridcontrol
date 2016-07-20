@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -32,7 +32,7 @@
     "dns-socket": "*",
     "express": "*",
     "fmt": "*",
-    "hyperdrive": "6.6.1",
+    "hypelight": "*",
     "length-prefixed-message": "^3.0.3",
     "memdb": "^1.3.1",
     "moniker": "*",
