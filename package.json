@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.8.3-1",
+  "version": "0.8.6",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -11,7 +11,7 @@
       "name": "gridcontrol",
       "script": "index.js",
       "env": {
-        "PM2_WAIT_FOR_INIT": 2000
+        "PM2_EXTRA_DISPLAY": "true"
       }
     }
   ],
@@ -32,12 +32,12 @@
     "dns-socket": "*",
     "express": "*",
     "fmt": "*",
-    "hypelight": "*",
+    "hypelight": "latest",
     "length-prefixed-message": "^3.0.3",
     "memdb": "^1.3.1",
     "moniker": "*",
     "progress-bar": "*",
-    "pm2": "Unitech/pm2#development",
+    "pm2": "next",
     "pmx": "*",
     "pump": "^1.0.1",
     "random-access-file": "^1.2.0",
