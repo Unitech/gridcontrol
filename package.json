@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.8.2",
+  "version": "0.8.3-0",
   "description": "",
   "engines": {
     "node": ">=4.0"
@@ -10,8 +10,8 @@
     {
       "name": "gridcontrol",
       "script": "index.js",
-      "env" : {
-        "PM2_WAIT_FOR_INIT" : 2000
+      "env": {
+        "PM2_WAIT_FOR_INIT": 2000
       }
     }
   ],
@@ -26,7 +26,7 @@
     "body-parser": "*",
     "buffer-equals": "^1.0.3",
     "chalk": "*",
-    "ignore" : "*",
+    "ignore": "*",
     "connections": "^1.4.2",
     "debug": "*",
     "dns-socket": "*",
