@@ -13,6 +13,7 @@
     "grid": "./bin/grid"
   },
   "dependencies": {
+    "toml-js" : "*",
     "grid-api": "latest",
     "request": "*",
     "commander": "*",

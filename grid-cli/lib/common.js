@@ -3,6 +3,7 @@ const grid  = require('grid-api');
 const cliux = require('./cli-ux.js');
 const path  = require('path');
 const fs    = require('fs');
+const toml  = require('toml-js');
 
 function exitError(err) {
   console.error(err);
@@ -51,25 +52,26 @@ exports.displayHosts = function displayHosts(cb) {
   });
 };
 
-exports.parseHostfile = function(hostfile) {
-  return new Promise(function(resolve, reject) {
-    fs.readFile(path.join(process.cwd(), hostfile), function(e, data) {
+exports.parseGridfile = function(gridfile) {
+  return new Promise((resolve, reject) => {
+    var conf_path = path.join(process.cwd(), gridfile);
+
+    fs.readFile(conf_path, function(e, data) {
       if (e) return reject(e);
-      var content = data.toString();
-      var hosts = content.trim().split('\n');
-      var ret_hosts = [];
 
-      hosts.forEach((host) => {
-        var ip = host.split(':')[1];
-        var user = host.split(':')[0];
+      try {
+        var conf = toml.parse(data.toString());
+      } catch(e) {
+        return reject(e);
+      }
 
-        ret_hosts.push({
-          user : user,
-          ip : ip
-        });
+      conf.servers.forEach(function(c, i) {
+        conf.servers[i] = {};
+        conf.servers[i].user = c.split('@')[0];
+        conf.servers[i].ip   = c.split('@')[1];
       });
 
-      resolve(hosts);
+      return resolve(conf);
     });
-  })
+  });
 };

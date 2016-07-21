@@ -40,39 +40,7 @@ program
   });
 
 program
-  .command('dump <filename>')
-  .description('Save all hosts connected to a hostfile')
-  .action(function(filename) {
-
-    filename = filename + '.hostfile';
-
-    listServerForMulti(function(err, node_list) {
-      if (err) return exitError(err);
-      try {
-        fs.unlinkSync(filename);
-      } catch(e) {}
-      node_list.forEach(function(node) {
-        fs.appendFileSync(filename, node.user + ':' + node.ip + '\n');
-      });
-      console.log(chalk.bold.blue(filename + ' hostfile content:'));
-      shelljs.exec('cat ' + filename);
-      console.log('');
-      console.log(chalk.bold.blue('To generate new SSH keypair:'))
-      console.log(chalk.bold('$ grid keygen <key_name>'));
-      console.log(chalk.bold.blue('To copy public SSH key:'))
-      console.log(chalk.bold('$ grid keycopy ' + filename + '<key_name>'));
-      console.log(chalk.bold.blue('To recover the grid:'))
-      console.log(chalk.bold('$ grid recover ' + filename));
-      exitSuccess();
-    });
-  });
-
-/**
- * These following commands uses directly SSH
- */
-
-program
-  .command('keygen <filename>')
+  .command('keygen <key_name>')
   .option('--no-chmod')
   .description('Generate SSH keypairs')
   .action(function(name, opts) {
@@ -92,12 +60,12 @@ program
           fs.chmodSync(name, '400');
         }
 
-        console.log('Public key:');
-        console.log(chalk.grey('./' + public_key));
-        console.log('Private key:');
-        console.log(chalk.grey('./' + name));
+        console.log('Generated Public key:');
+        console.log(chalk.bold('./' + public_key));
+        console.log('Generated Private key:');
+        console.log(chalk.bold('./' + name));
         console.log('Copy to target hosts:');
-        console.log(chalk.grey('$ grid keycopy <hostfile> ' + public_key));
+        console.log(chalk.bold('$ grid keycopy [gridfile] ' + public_key));
         exitSuccess();
       })
       .catch(e => {
@@ -106,102 +74,77 @@ program
 
   });
 
+/**
+ * These following commands uses directly SSH
+ */
 program
-  .command('keycopy <hostfile> [custom_ssh_key]')
+  .command('keycopy <gridfile> [custom_ssh_key]')
   .option('--only <ip>')
-  .alias('setup-key')
   .description('Install public key on remote hosts (default to $HOME/.ssh/id_rsa.pub)')
-  .action(function(hostfile, custom_key, opts) {
-    SSH.copy_public_key(hostfile, custom_key, opts)
-      .then(commands => {
-        console.log('Keys copied to %d hosts', commands.length);
-        exitSuccess();
-      })
-      .catch(e => {
-        exitError(e);
-      })
+  .action(function(gridfile, custom_key, opts) {
+    Common.parseGridfile(gridfile)
+      .then((conf) => {
+        if (conf.ssh_key && custom_key) {
+          return exitError(new Error('You cannot specify a custom key and having a ssh key into your gridfile'));
+        }
+        custom_key = conf.ssh_key;
+        SSH.copy_public_key(conf, custom_key, opts)
+          .then(commands => {
+            console.log('Keys copied to %d hosts', commands.length);
+            exitSuccess();
+          })
+          .catch(e => {
+            exitError(e);
+          })
+      });
   });
 
 program
-  .command('recover <hostfile> <gridname>')
-  .option('--key <public_key>')
-  .description('Force all nodes (via SSH) to recover')
-  .action(function(hostfile, gridname, opts) {
-    var hosts = fs.readFileSync(hostfile).toString().trim().split('\n');
-
-    SSH.recover(hosts, gridname, opts)
-      .then(() => {
-        setTimeout(function() {
+  .command('conf:setup <gridfile>')
+  .description('setup a grid declared in [gridfile]')
+  .action(function(gridfile) {
+    Common.parseGridfile(gridfile)
+      .then((conf) => {
+        async.forEachLimit(conf.servers, 1, (server, next) => {
+          SSH.provision_target(server, conf)
+            .then(function() {
+              next();
+            })
+            .catch(e => {
+              exitError(e);
+            })
+        }, (err) => {
           Common.displayHosts(function() {
             exitSuccess('✓ Remote node successfully provisioned');
           });
-        }, 1500);
+        });
       })
-      .catch(e => {
+      .catch((e) => {
         exitError(e);
       });
-  });
-
-program
-  .command('import <hostfile> <gridname> [public_key]')
-  .description('Force all nodes (via SSH) to recover')
-  .action(function(hostfile, gridname, public_key) {
-
-    var p_hosts = fs.readFileSync(hostfile).toString().trim().split('\n');
-    var server_list = [];
-
-    p_hosts.forEach(function(host) {
-      var dt = {
-        user : host.split(':')[0],
-        ip   : host.split(':')[1]
-      }
-      if (public_key)
-        dt.key = path.join(process.cwd(), public_key)
-      server_list.push(dt);
-    });
-
-    execCmd({
-      cmd : 'GRID=' + gridname + ' pm2 restart gridcontrol',
-      server_list : server_list,
-      title : 'Moving Nodes to new grid name'
-    });
   });
 
 
 program
   .command('provision <username> <ip> <grid_name>')
-  .option('--key <public_ssh_key>')
+  .option('--ssh_key <public_ssh_key>')
+  .option('--grid_password <grid password>')
   .description('provision a remote node')
-  .action(function(username, ip, namespace, opts) {
-    SSH.provision_target(username, ip, namespace, opts)
-      .then(function() {
-        Common.displayHosts(function() {
-          exitSuccess('✓ Remote node successfully provisioned');
-        });
-      })
+  .action(function(user, ip, grid_name, opts) {
+    SSH.provision_target({
+      user: user,
+      ip : ip
+    }, {
+      grid_name : grid_name,
+      ssh_key : opts ? opts.key : null
+    }).then(function() {
+      Common.displayHosts(function() {
+        exitSuccess('✓ Remote node successfully provisioned');
+      });
+    })
       .catch(e => {
         exitError(e);
       })
-  });
-
-/**
- * These commands uses hosts currently linked together (and not SSH)
- */
-program
-  .command('reset')
-  .alias('clear')
-  .description('Clear all')
-  .action(function() {
-    listServerForMulti(function(err, server_list) {
-      if (err) return exitError(err);
-
-      execCmd({
-        cmd : 'pm2 delete all ; pm2 restart gridcontrol',
-        server_list : server_list,
-        title : 'Clearing all tasks and restarting GC'
-      });
-
-    });
   });
 
 program
@@ -221,8 +164,7 @@ program
   });
 
 program
-  .command('init [grid_name]')
-  .alias('install')
+  .command('install [grid_name]')
   .description('Install a local Gridcontrol Node')
   .action(function(grid_name) {
     INIT(grid_name);
@@ -260,7 +202,7 @@ program
   });
 
 program
-  .command('upgrade [version]')
+  .command('upgrade <gridfile>')
   .description('Upgrade whole grid to latest gridcontrol version')
   .action(function() {
     listServerForMulti(function(err, server_list) {
@@ -292,6 +234,21 @@ program
   });
 
 program
+  .command('conf:spread <gridfile> <bash_command>')
+  .description('Execute a bash command on each Grid nodes')
+  .action(function(gridfile, bash_command) {
+    Common.parseGridfile(gridfile)
+      .then((conf) => {
+        execCmd({
+          cmd         : bash_command,
+          server_list : conf.servers
+        });
+      }).catch(e => {
+        exitError(e);
+      });
+  });
+
+program
   .command('logs [task_name]')
   .alias('log')
   .description('Display logs of all nodes')
@@ -307,52 +264,6 @@ program
       });
 
     });
-  });
-
-program
-  .command('monitor <secret_key> <public_key>')
-  .description('Monitor all nodes and tasks with Keymetrics (https://keymetrics.io)')
-  .action(function(secret, public) {
-    listServerForMulti(function(err, server_list) {
-      if (err) return exitError(err);
-      var cmd = 'pm2 link ' + secret + ' ' + public;
-
-      execCmd({
-        cmd         : cmd,
-        server_list : server_list,
-        title       : 'Monitoring Nodes with Keymetrics'
-      });
-    });
-  });
-
-program
-  .command('restart')
-  .description('Restart local Gridcontrol app')
-  .action(function() {
-    var shelljs = require('shelljs');
-
-    shelljs.exec('pm2 restart gridcontrol', { silent : true }, function(code, stdout, stderr) {
-
-      if (code != 0) {
-        return exitError(new Error(stderr));
-      }
-
-      Common.displayHosts(function() {
-        exitSuccess()
-      });
-    });
-  });
-
-program
-  .command('status')
-  .description('Status data about the current grid')
-  .action(function() {
-  });
-
-program
-  .command('invoke')
-  .description('List all peers connected to network')
-  .action(function() {
   });
 
 /**

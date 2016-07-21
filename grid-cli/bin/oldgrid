@@ -1,0 +1,149 @@
+#!/usr/bin/env node
+
+
+program
+  .command('dump <filename>')
+  .description('Save all hosts connected to a hostfile')
+  .action(function(filename) {
+
+    filename = filename + '.hostfile';
+
+    listServerForMulti(function(err, node_list) {
+      if (err) return exitError(err);
+      try {
+        fs.unlinkSync(filename);
+      } catch(e) {}
+      node_list.forEach(function(node) {
+        fs.appendFileSync(filename, node.user + ':' + node.ip + '\n');
+      });
+      console.log(chalk.bold.blue(filename + ' hostfile content:'));
+      shelljs.exec('cat ' + filename);
+      console.log('');
+      console.log(chalk.bold.blue('To generate new SSH keypair:'))
+      console.log(chalk.bold('$ grid keygen <key_name>'));
+      console.log(chalk.bold.blue('To copy public SSH key:'))
+      console.log(chalk.bold('$ grid keycopy ' + filename + '<key_name>'));
+      console.log(chalk.bold.blue('To recover the grid:'))
+      console.log(chalk.bold('$ grid recover ' + filename));
+      exitSuccess();
+    });
+  });
+
+
+
+
+
+
+program
+  .command('recover <hostfile> <gridname>')
+  .option('--key <public_key>')
+  .description('Force all nodes (via SSH) to recover')
+  .action(function(hostfile, gridname, opts) {
+    var hosts = fs.readFileSync(hostfile).toString().trim().split('\n');
+
+    SSH.recover(hosts, gridname, opts)
+      .then(() => {
+        setTimeout(function() {
+          Common.displayHosts(function() {
+            exitSuccess('✓ Remote node successfully provisioned');
+          });
+        }, 1500);
+      })
+      .catch(e => {
+        exitError(e);
+      });
+  });
+
+program
+  .command('import <hostfile> <gridname> [public_key]')
+  .description('Force all nodes (via SSH) to recover')
+  .action(function(hostfile, gridname, public_key) {
+
+    // if (public_key)
+    //   dt.key = path.join(process.cwd(), public_key)
+    // var p_hosts = fs.readFileSync(hostfile).toString().trim().split('\n');
+    // var server_list = [];
+
+    // p_hosts.forEach(function(host) {
+    //   var dt = {
+    //     user : host.split(':')[0],
+    //     ip   : host.split(':')[1]
+    //   }
+
+    //   server_list.push(dt);
+    // });
+
+    execCmd({
+      cmd : 'GRID=' + gridname + ' pm2 restart gridcontrol',
+      server_list : server_list,
+      title : 'Moving Nodes to new grid name'
+    });
+  });
+
+
+/**
+ * These commands uses hosts currently linked together (and not SSH)
+ */
+program
+  .command('reset')
+  .alias('clear')
+  .description('Clear all')
+  .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+
+      execCmd({
+        cmd : 'pm2 delete all ; pm2 restart gridcontrol',
+        server_list : server_list,
+        title : 'Clearing all tasks and restarting GC'
+      });
+
+    });
+  });
+
+
+program
+  .command('monitor <secret_key> <public_key>')
+  .description('Monitor all nodes and tasks with Keymetrics (https://keymetrics.io)')
+  .action(function(secret, public) {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      var cmd = 'pm2 link ' + secret + ' ' + public;
+
+      execCmd({
+        cmd         : cmd,
+        server_list : server_list,
+        title       : 'Monitoring Nodes with Keymetrics'
+      });
+    });
+  });
+
+program
+  .command('restart')
+  .description('Restart local Gridcontrol app')
+  .action(function() {
+    var shelljs = require('shelljs');
+
+    shelljs.exec('pm2 restart gridcontrol', { silent : true }, function(code, stdout, stderr) {
+
+      if (code != 0) {
+        return exitError(new Error(stderr));
+      }
+
+      Common.displayHosts(function() {
+        exitSuccess()
+      });
+    });
+  });
+
+program
+  .command('status')
+  .description('Status data about the current grid')
+  .action(function() {
+  });
+
+program
+  .command('invoke')
+  .description('List all peers connected to network')
+  .action(function() {
+  });

@@ -1,0 +1,17 @@
+# Gridfile in TOML format
+
+grid_name     = 'grid-test-1'
+grid_password = 'password'
+#ssh_key       = 'testo.pub'
+
+keymetrics_public = 'pxxp'
+keymetrics_secret = 'sxxs'
+#keymetrics_name (server level option)
+
+servers = [
+  'root@212.47.227.158',
+  'root@163.172.151.155',
+  'root@163.172.153.175',
+  'root@163.172.153.242',
+  'root@163.172.145.241'
+]

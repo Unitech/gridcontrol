@@ -20,70 +20,75 @@ var SSH = {
    * @param {Object} opts object
    * @param {String} opts.only IP to copy key only
    */
-  copy_public_key : function(hostfile, custom_key, opts) {
-    Common.parseHostfile(hostfile)
-      .then(function(content) {
-      return new Promise((resolve, reject) => {
-        var ret = [];
+  copy_public_key : function(conf, custom_key, opts) {
+    return new Promise((resolve, reject) => {
+      var ret = [];
 
-        var hosts = content.trim().split('\n');
+      var ssh_copy_id = path.join(__dirname, '..', 'ssh-copy-id');
 
-        var ssh_copy_id = path.join(__dirname, '..', 'lib', 'ssh-copy-id');
+      async.forEachLimit(conf.servers, 1, (server, next) => {
+        if (opts.only && opts.only != server.ip) {
+          console.log('---> Skipping %s', server.ip);
+          return next();
+        }
+        console.log(chalk.blue.bold('===> Copying key to : %s@%s'),
+                    server.user,
+                    server.ip);
 
-        async.forEachLimit(hosts, 1, (host, next) => {
-          var ip = host.split(':')[1];
-          var user = host.split(':')[0];
+        var cmd = ssh_copy_id;
 
-          if (opts.only && opts.only != ip) {
-            console.log('---> Skipping %s', ip);
-            return next();
-          }
-          console.log(chalk.blue.bold('===> Copying key to : %s@%s'), user, ip);
+        if (custom_key)
+          cmd += ' -i ' + custom_key;
 
-          var cmd = ssh_copy_id;
+        cmd += ' ' + server.user + '@' + server.ip;
 
-          if (custom_key)
-            cmd += ' -i ' + custom_key;
+        console.log(cmd);
+        ret.push(cmd);
 
-          cmd += ' ' + user + '@' + ip;
-
-          console.log(cmd);
-          ret.push(cmd);
-
-          shelljs.exec(cmd, function(code, stdout, stderr) {
-            next();
-          });
-        }, e => {
-          if (e) return reject(e);
-          return resolve(ret);
+        shelljs.exec(cmd, function(code, stdout, stderr) {
+          next();
         });
+      }, e => {
+        if (e) return reject(e);
+        return resolve(ret);
       });
-    })
+    });
   },
   /**
    * Provision a node via SSH
    * 1/ SCP the local install.sh script
    * 2/ Run install.sh (install Node.js+PM2+Gridcontrol)
    *
-   * @param {String} username username to connect via ssh
-   * @param {String} ip ip to connect to
-   * @param {String} namespace grid name
-   * @param {Object} opts
-   * @param {String} [opts.key="$HOME/.ssh/id_rsa.pub"] key to connect with
+   * @param {Object} server
+   * @param {Object} server.ip
+   * @param {Object} server.name
+   * @param {Object} [server.ssh_key=null]
+   * @param {Object} conf
+   * @param {Object} conf.ssh_key
+   * @param {Object} conf.grid_name
+   * @param {Object} conf.grid_password
+   * @param {Object} conf.keymetrics_public
+   * @param {Object} conf.keymetrics_private
    */
-  provision_target : function(username, ip, namespace, opts) {
+  provision_target : function(server, conf) {
     return new Promise((resolve, reject) => {
       var scp_copy_command;
-      var strssh = username + '@' + ip;
+      var local_install_script = path.join(__dirname, '../install.sh');
 
-      if (opts.key)
-        scp_copy_command = 'scp -i ' + opts.key + ' ' + __dirname + '/../lib/install.sh ' + strssh + ':/tmp';
+      var strssh = server.user + '@' + server.ip;
+
+      if (server.ssh_key)
+        scp_copy_command = 'scp -i ' + server.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
+      else if (conf.ssh_key)
+        scp_copy_command = 'scp -i ' + conf.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
       else
-        scp_copy_command = 'scp ' + __dirname + '/../lib/install.sh ' + strssh + ':/tmp';
+        scp_copy_command = 'scp ' + local_install_script + ' ' + strssh + ':/tmp';
 
-      var child = shelljs.exec(scp_copy_command);
+      // wtf?
+      //var child = shelljs.exec(scp_copy_command);
 
-      console.log(chalk.bold('Copying install script:'), chalk.italic.grey(scp_copy_command));
+      console.log(chalk.bold('Copying install script:'),
+                  chalk.italic.grey(scp_copy_command));
 
       shelljs.exec(scp_copy_command, function(code, stdout, stderr) {
         if (code != 0) return reject(new Error(stderr));
@@ -92,19 +97,22 @@ var SSH = {
       });
     }).then(function() {
       return new Promise((resolve, reject) => {
-        var install_script = "PS1='$ ' source ~/.bashrc; cat /tmp/install.sh | GRID=" + namespace + " bash"
+        //@todo add keymetrics_public + keymetrics_secret
+        var cmd = "PS1='$ ' source ~/.bashrc; cat /tmp/install.sh | GRID=" + conf.grid_name + " GRID_AUTH=" + conf.grid_password + " bash"
 
         var ssh_opts = {
-          user : username,
-          host : ip
+          user : server.user,
+          host : server.ip
         };
 
-        if (opts.key) {
-          ssh_opts.key = opts.key;
-        }
+        if (server.ssh_key)
+          ssh_opts.key = server.ssh_key;
+        else if (conf.ssh_key)
+          ssh_opts.key = conf.ssh_key;
 
         console.log(chalk.bold('Connecting to remote and starting install script'));
-        var stream = sshexec(install_script, ssh_opts);
+
+        var stream = sshexec(cmd, ssh_opts);
 
         stream.on('data', function(dt) {
           process.stdout.write(dt.toString());
