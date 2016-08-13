@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.8.6",
+  "version": "0.9.0",
   "description": "",
   "engines": {
     "node": ">=4.0"

@@ -18,7 +18,7 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 
 5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
 
-*Behind the scene: GridControl is a network layer built on top of PM2 to allow file synchronization, that adds an opionated PUB/SUB system and a wide-range discovery*
+*Behind the scene: GridControl is a network layer built on top of PM2 allowing file synchronization, inter process communication via an opionated PUB/SUB system and a wide-range system discovery*
 
 ## Features
 
