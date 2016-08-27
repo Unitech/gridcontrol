@@ -21,6 +21,15 @@ program
   .version(package.version);
 
 program
+  .command('detect')
+  .description('Use nmap to discover machines in network')
+  .action(function(opts) {
+    var exec = shelljs.exec('sudo nmap -sP 192.168.0.1/24', function() {
+      Common.displayHosts();
+    });
+  });
+
+program
   .command('list')
   .alias('ls')
   .option('--watch')
