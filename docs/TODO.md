@@ -3,7 +3,6 @@
 ## Ideas
 
 - [ ] Web interface for gridcontrol
-
 - [ ] Add password to grid provision
 - [ ] LB implement broadcast strategy
 - [ ] keep counter of invokations, errors

@@ -1,6 +1,0 @@
-
-# Run
-
-```
-$ ./production-module.sh
-```

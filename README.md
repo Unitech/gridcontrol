@@ -49,7 +49,7 @@ The binary `grid` is now available.
 On your local machine:
 
 ```bash
-$ grid init <GRID_NAME>
+$ grid install
 ```
 
 *This will install PM2 and Gridcontrol module*
@@ -127,7 +127,7 @@ setInterval(function() {
   // Dispatch the action <filename>.<handler> into the grid
   // and retrieve response
   grid.dispatch('getUrl.myHandler', {
-    url : 'http://google.com/'
+    url : 'https://api.ipify.org/?format=json'
   }, function(err, data, server_meta) {
     console.log('From server %s:%s', server.name, server.public_ip);
     console.log('Got response %s', data);
@@ -144,7 +144,7 @@ Start the main application:
 $ node index.js
 ```
 
-If the grid has 4 Nodes (including local) you will get this result:
+At trhe beginning, only the local gridcontrol will respond. Once the other peers are synchronized they will also process the queries:
 
 ```
 From server alor-vital:88.123.12.21
@@ -226,3 +226,20 @@ Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)
 ## License
 
 Apache V2 (see LICENSE.txt)
+
+## CHEATSHEET
+
+```
+$ npm install grid-cli -g
+$ grid install        # generate Gridfile + install pm2, gridcontrol
+$ # Edit Gridfile with host to provision
+$ grid conf:provision # check if everything is installed on remote hosts
+$ grid list
+```
+
+Adding one node:
+
+```
+$ grid provision root xx.xxx.xx.xx <grid_name>
+$ grid conf:update # Update conf file with new node added
+```
