@@ -10,7 +10,7 @@ grid="`type -P node` `pwd`/bin/grid"
 
 GRID_NAME="TEST-GRID-TEST"
 
-$grid init $GRID_NAME
+$grid install $GRID_NAME
 spec "should init grid"
 
 source "${SRC}/include.sh"

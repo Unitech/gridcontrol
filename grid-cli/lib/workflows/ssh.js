@@ -84,9 +84,6 @@ var SSH = {
       else
         scp_copy_command = 'scp ' + local_install_script + ' ' + strssh + ':/tmp';
 
-      // wtf?
-      //var child = shelljs.exec(scp_copy_command);
-
       console.log(chalk.bold('Copying install script:'),
                   chalk.italic.grey(scp_copy_command));
 
@@ -131,41 +128,6 @@ var SSH = {
         });
       });
     });
-  },
-  recover : function(hosts, gridname, opts) {
-    console.log(chalk.bold('☢ Launching recovery for %s hosts'), hosts.length);
-    console.log(chalk.bold('☢ Forcing grid name %s'), gridname);
-    return new Promise((resolve, reject) => {
-      async.forEachLimit(hosts, 1, function(host, next) {
-        var cmd  = "PS1='$ ' source ~/.bashrc; GRID=" + gridname + " pm2 restart gridcontrol";
-        var user = host.split(':')[0];
-        var ip   = host.split(':')[1];
-
-        var ssh_opts = {
-          user : user,
-          host : ip
-        };
-
-        if (opts.key) {
-          ssh_opts.key = opts.key;
-        }
-
-        console.log(chalk.bold.blue('Operating on host %s:%s'), user, ip);
-
-        sshexec(cmd, ssh_opts, function(err, stdout, stderr) {
-          if (stdout)
-            console.log(stdout);
-          next();
-        });
-
-      }, function(err) {
-        shelljs.exec('GRID=' + gridname + ' pm2 restart gridcontrol', function() {
-          console.log(chalk.bold('Done.'));
-          resolve();
-        });
-      });
-    });
-
   },
   generate_keypair : function(name, cb) {
     return new Promise((resolve, reject) => {

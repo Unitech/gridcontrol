@@ -21,12 +21,14 @@ program
   .version(package.version);
 
 program
-  .command('detect')
-  .description('Use nmap to discover machines in network')
-  .action(function(opts) {
-    var exec = shelljs.exec('sudo nmap -sP 192.168.0.1/24', function() {
-      Common.displayHosts();
-    });
+  .command('install [grid_name]')
+  .description('Generate Gridfile + Install a local Gridcontrol Node')
+  .action(function(grid_name) {
+    Common.generateGridfile(process.cwd())
+      .then((data) => {
+        console.log(chalk.bold('Grifile generated in path %s'), data.file);
+        return INIT(grid_name);
+      });
   });
 
 program
@@ -46,6 +48,148 @@ program
     }
     else
       Common.displayHosts();
+  });
+
+program
+  .command('conf:generate')
+  .description('Generate a Gridfile')
+  .action(function(opts) {
+    Common.generateGridfile(process.cwd())
+      .then((data) => {
+        console.log(chalk.bold('Gridfile generated in current path (%s)'), data.file);
+        console.log();
+        console.log(chalk.bold('Gridfile content:\n'));
+        var file = fs.readFileSync(data.file);
+        console.log(file.toString());
+      })
+      .catch((err) => {
+        exitError(err);
+      });
+  });
+
+program
+  .command('conf:update')
+  .description('Update Gridfile with current hosts')
+  .action(function(opts) {
+    var gridfile = path.join(process.cwd(), 'Gridfile');
+    Common.updateGridfile(gridfile)
+      .then((data) => {
+        console.log(chalk.bold('Gridfile updated (%s)'), data.file);
+        console.log();
+        console.log(chalk.bold('Gridfile content:\n'));
+        var file = fs.readFileSync(data.file);
+        console.log(file.toString());
+      })
+      .catch((err) => {
+        exitError(err);
+      });
+  });
+
+program
+  .command('conf:provision')
+  .description('Provision each host declared in Gridfile')
+  .action(function(gridfile) {
+    var conf_path = path.join(process.cwd(), 'Gridfile');
+
+    Common.parseGridfile(conf_path)
+      .then((conf) => {
+        async.forEachLimit(conf.servers, 5, (server, next) => {
+          SSH.provision_target(server, conf)
+            .then(function() {
+              next();
+            })
+            .catch(e => {
+              exitError(e);
+            })
+        }, (err) => {
+          Common.displayHosts(function() {
+            exitSuccess('✓ Remote node successfully provisioned');
+          });
+        });
+      })
+      .catch((e) => {
+        exitError(e);
+      });
+  });
+
+program
+  .command('conf:recover')
+  .description('Restore the Grid based on current Gridfile')
+  .action(function(hostfile, gridname, opts) {
+    var conf_path = path.join(process.cwd(), 'Gridfile');
+
+    Common.parseGridfile(conf_path)
+      .then((gridfile) => {
+        var servers = gridfile.servers;
+        var grid_name = gridfile.grid_name;
+
+        console.log(chalk.bold('☢ Launching recovery for %s hosts'), servers.length);
+        console.log(chalk.bold('☢ Forcing grid name %s'), grid_name);
+
+        var cmd = 'GRID="' + grid_name + '"';
+
+        if (gridfile.grid_password)
+          cmd += ' GRID_AUTH="' + gridfile.grid_password + '"';
+
+        cmd += ' pm2 restart gridcontrol';
+
+        execCmd({
+          cmd         : cmd,
+          server_list : servers,
+          title       : 'Recovering Grid: ' + grid_name
+        });
+      })
+
+  });
+
+/**
+ * These following commands uses directly SSH
+ */
+program
+  .command('conf:keycopy [custom_ssh_key]')
+  .option('--only <ip>')
+  .description('Install public key on remote hosts (default to $HOME/.ssh/id_rsa.pub)')
+  .action(function(gridfile, custom_key, opts) {
+    var conf_path = path.join(process.cwd(), 'Gridfile');
+
+    Common.parseGridfile(conf_path)
+      .then((conf) => {
+        if (conf.ssh_key && custom_key) {
+          return exitError(new Error('You cannot specify a custom key and having a ssh key into your gridfile'));
+        }
+        custom_key = conf.ssh_key;
+        SSH.copy_public_key(conf, custom_key, opts)
+          .then(commands => {
+            console.log('Keys copied to %d hosts', commands.length);
+            exitSuccess();
+          })
+          .catch(e => {
+            exitError(e);
+          })
+      });
+  });
+
+
+program
+  .command('provision <username> <ip> <grid_name>')
+  .option('--ssh_key <public_ssh_key>')
+  .option('--grid_password <grid password>')
+  .description('provision a remote node')
+  .action(function(user, ip, grid_name, opts) {
+    SSH.provision_target({
+      user: user,
+      ip : ip
+    }, {
+      grid_name : grid_name,
+      ssh_key : opts ? opts.key : null
+    }).then(function() {
+      Common.displayHosts(function() {
+        exitSuccess('✓ Remote node successfully provisioned');
+      });
+    })
+      .catch(e => {
+        exitError(e);
+      })
   });
 
 program
@@ -80,80 +224,6 @@ program
       .catch(e => {
         exitError(e);
       });
-
-  });
-
-/**
- * These following commands uses directly SSH
- */
-program
-  .command('keycopy <gridfile> [custom_ssh_key]')
-  .option('--only <ip>')
-  .description('Install public key on remote hosts (default to $HOME/.ssh/id_rsa.pub)')
-  .action(function(gridfile, custom_key, opts) {
-    Common.parseGridfile(gridfile)
-      .then((conf) => {
-        if (conf.ssh_key && custom_key) {
-          return exitError(new Error('You cannot specify a custom key and having a ssh key into your gridfile'));
-        }
-        custom_key = conf.ssh_key;
-        SSH.copy_public_key(conf, custom_key, opts)
-          .then(commands => {
-            console.log('Keys copied to %d hosts', commands.length);
-            exitSuccess();
-          })
-          .catch(e => {
-            exitError(e);
-          })
-      });
-  });
-
-program
-  .command('conf:setup <gridfile>')
-  .description('setup a grid declared in [gridfile]')
-  .action(function(gridfile) {
-    Common.parseGridfile(gridfile)
-      .then((conf) => {
-        async.forEachLimit(conf.servers, 1, (server, next) => {
-          SSH.provision_target(server, conf)
-            .then(function() {
-              next();
-            })
-            .catch(e => {
-              exitError(e);
-            })
-        }, (err) => {
-          Common.displayHosts(function() {
-            exitSuccess('✓ Remote node successfully provisioned');
-          });
-        });
-      })
-      .catch((e) => {
-        exitError(e);
-      });
-  });
-
-
-program
-  .command('provision <username> <ip> <grid_name>')
-  .option('--ssh_key <public_ssh_key>')
-  .option('--grid_password <grid password>')
-  .description('provision a remote node')
-  .action(function(user, ip, grid_name, opts) {
-    SSH.provision_target({
-      user: user,
-      ip : ip
-    }, {
-      grid_name : grid_name,
-      ssh_key : opts ? opts.key : null
-    }).then(function() {
-      Common.displayHosts(function() {
-        exitSuccess('✓ Remote node successfully provisioned');
-      });
-    })
-      .catch(e => {
-        exitError(e);
-      })
   });
 
 program
@@ -173,10 +243,12 @@ program
   });
 
 program
-  .command('install [grid_name]')
-  .description('Install a local Gridcontrol Node')
-  .action(function(grid_name) {
-    INIT(grid_name);
+  .command('detect')
+  .description('Use nmap to discover machines in network')
+  .action(function(opts) {
+    var exec = shelljs.exec('sudo nmap -sP 192.168.0.1/24', function() {
+      Common.displayHosts();
+    });
   });
 
 program
@@ -246,7 +318,9 @@ program
   .command('conf:spread <gridfile> <bash_command>')
   .description('Execute a bash command on each Grid nodes')
   .action(function(gridfile, bash_command) {
-    Common.parseGridfile(gridfile)
+    var conf_path = path.join(process.cwd(), 'Gridfile');
+
+    Common.parseGridfile(conf_path)
       .then((conf) => {
         execCmd({
           cmd         : bash_command,

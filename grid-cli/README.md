@@ -19,7 +19,7 @@ Make sure SSH keys are set.
 
 ```bash
 # Install a local node (required)
-$ grid init <grid_name>
+$ grid install
 
 # Provision a remote node
 $ grid provision username ip <grid_name>

@@ -17,7 +17,6 @@ module.exports = function(grid_name) {
   // Welcome banner
   //var a = fs.readFileSync(__dirname + '/../pres/ascii2')
   //console.log(a.toString());
-
   new Promise((resolve, reject) => {
     // Determine grid name
     if (grid_name)
