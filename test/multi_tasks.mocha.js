@@ -93,6 +93,19 @@ describe('Multi Tasks test', function() {
       });
     });
 
+    it('should get module missing error', function(done) {
+      request.post('http://localhost:10000/tasks/lb_trigger_single', {
+        form : {
+          task_id : 'module_missing'
+        }
+      }, function(err, res, body) {
+        body = JSON.parse(body);
+        should(res.statusCode).eql(200);
+        body.err.message.indexOf('Cannot request').should.be.above(-1)
+        done();
+      });
+    });
+
     it('should get an error when handler does not exists', function(done) {
       request.post('http://localhost:10000/tasks/lb_trigger_single', {
         form : {

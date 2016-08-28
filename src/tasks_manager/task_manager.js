@@ -269,7 +269,7 @@ TaskManager.prototype.triggerTask = function(opts) {
 
   //@TODO configure
   if (opts.retry_count++ > 12) {
-    return Promise.reject(new Error('Unknown script ' + script));
+    return Promise.reject(Tools.safeClone(new Error('Cannot request ' + script + '. App seems stopped/offline. Check logs `pm2 logs ' + script + '`')));
   }
 
   function launch() {
@@ -292,13 +292,15 @@ TaskManager.prototype.triggerTask = function(opts) {
     return new Promise((resolve, reject) => {
       request.post(req_opts, function(err, raw, body) {
         if (err) {
-          return reject(err);
+          return reject(Tools.safeClone(err));
         }
 
         try {
           body = JSON.parse(body);
         } catch(e) {
-          return reject(e);
+          return reject(Tools.safeClone({
+            err : err
+          }));
         }
 
         debug('status=action_success task=%s', script);
@@ -307,7 +309,7 @@ TaskManager.prototype.triggerTask = function(opts) {
         resolve(body);
       });
     })
-    .catch(function(err) {
+      .catch(function(err) {
       if (err.code == 'ECONNREFUSED') {
         debug('status=action_retry msg=script not online yet task=%s', script);
         return bluebird.delay(200).then(() => that.triggerTask(opts))
