@@ -1,7 +1,11 @@
 {
   "name": "gridcontrol",
-  "version": "0.9.3",
-  "description": "",
+  "version": "0.9.4",
+  "description": "Grid control system for scalable micro service applications",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gridcontrol/gridcontrol.git"
+  },
   "engines": {
     "node": ">=4.0"
   },
