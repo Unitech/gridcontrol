@@ -218,14 +218,14 @@ TaskManager.prototype.startTask = function(task_file_path) {
       name      : task_pm2_name,
       instances : this.task_meta.instances,
       exec_mode : 'cluster',
-      watch     : true,
+      watch     : false,
       env       : Tools.safeClone(env)
     };
   } else {
     pm2_opts = {
       script    : task_file_path,
       name      : task_pm2_name,
-      watch     : true,
+      watch     : false,
       env       : Tools.safeClone(env)
     };
   }
