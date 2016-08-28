@@ -38,7 +38,7 @@ LoadBalancer.prototype.findSuitablePeer = function(req) {
 
     //@todo take monitoring data into account
     if (target.identity.synchronized == false) {
-      return bluebird.delay(100).then(() => promise(retry));
+      return bluebird.delay(250).then(() => promise(retry));
     }
 
     return Promise.resolve(target)
