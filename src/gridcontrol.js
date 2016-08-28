@@ -293,6 +293,7 @@ GridControl.prototype.mountActions = function(router) {
    */
   router.on('sync:done', (data) => {
     // if data.link == current_link == OK
+    debug('Peer synced!', data);
     router.identity.synchronized = true;
   });
 
