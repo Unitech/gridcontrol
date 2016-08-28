@@ -55,7 +55,7 @@ TaskManager.prototype.start = function() {
     return this.pm2.connect((err, meta) => {
       return resolve();
     });
-  });
+  }).then(this.deleteAllPM2Tasks.bind(this));
 };
 
 TaskManager.prototype.serialize = function() {
