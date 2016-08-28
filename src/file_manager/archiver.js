@@ -1,12 +1,12 @@
 'use strict';
-const debug    = require('debug')('gc:archiver');
-const raf      = require('random-access-file')
-const bluebird = require('bluebird')
-const fs       = bluebird.promisifyAll(require('fs'))
-const p        = require('path')
-const progress = require('progress-bar')
-const Interplanetary  = require('../network/interplanetary.js');
-const defaults        = require('../constants.js');
+const debug          = require('debug')('gc:archiver');
+const raf            = require('random-access-file')
+const bluebird       = require('bluebird')
+const fs             = bluebird.promisifyAll(require('fs'))
+const p              = require('path')
+const progress       = require('progress-bar')
+const Interplanetary = require('../network/interplanetary.js');
+const defaults       = require('../constants.js');
 
 module.exports = Archiver
 
@@ -15,11 +15,9 @@ function Archiver(options) {
 
   if(!options.drive) throw new ReferenceError('Provide a hyperdrive')
   if(!options.root) throw new ReferenceError('Provide a root directory')
-  //if(!options.interplanetary) throw new ReferenceError('Provide Interplanetary')
 
   this.drive = options.drive
   this.root = options.root
-  //this.interplanetary = options.interplanetary
 };
 
 Archiver.prototype.join = function(archive, cb) {
@@ -58,7 +56,7 @@ Archiver.prototype.join = function(archive, cb) {
 }
 
 /**
- * @param root root path
+ * @param {String} root root path
  * @param options.filters filters
  * @param options.maxDepth mas depth, default Infinity
  * @private
@@ -173,8 +171,6 @@ Archiver.prototype.spread = function(archive) {
   //   // this is how the swarm and hyperdrive interface
   //   return archive.replicate()
   // }
-
-
 }
 
 function bytesToSize(bytes) {

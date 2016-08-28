@@ -306,21 +306,15 @@ GridControl.prototype.mountActions = function(router) {
                 sync_meta.public_ip,
                 sync_meta.link);
 
-    this.file_manager.downloadAndExpand(sync_meta.link)
+    this.task_manager.deleteAllPM2Tasks()
+      .then(() => {
+        return this.file_manager.downloadAndExpand(sync_meta.link);
+      })
       .then((destination) => {
         this.emit('synchronized');
 
         sync_meta.meta.base_folder = destination;
-
-        /**
-         * If tests, do not launch Tasks
-         */
-        // if (process.env.NODE_ENV == 'test' && !process.env.FORCE_PEER_SYNC) {
-        //   return this.socket_pool.broadcast('sync:done', {
-        //     link : sync_meta.link
-        //   });
-        // }
-
+        // @todo return is missing?
         this.task_manager.initTasks(sync_meta.meta)
           .then(() => {
             this.emit('tasks_started');
@@ -352,7 +346,7 @@ GridControl.prototype.stopDiscovery = function(cb) {
 
 /**
  * Worker
- * - cache a peer_list for loadbalancer to apply round robin algo
+ * - cache synchronized peers (this.peer_list)
  */
 GridControl.prototype.startWorker = function() {
   var cachePeerList = () => {

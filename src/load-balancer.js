@@ -13,6 +13,7 @@ const defaults = require('./constants.js');
 const LoadBalancer = function(opts) {
   this._rri = 0;
   this.processing_tasks = {};
+  this.stats_tasks = {};
 };
 
 /**
@@ -46,6 +47,51 @@ LoadBalancer.prototype.findSuitablePeer = function(req) {
   return promise(0)
 };
 
+LoadBalancer.prototype.bumpStatTask = function(task_id) {
+  // Stats about task
+  if (!this.stats_tasks[task_id])
+    this.stats_tasks[task_id] = {
+      invokations : 1,
+      success     : 0,
+      errors      : 0,
+      remote_invok: 0
+    }
+  else
+    this.stats_tasks[task_id].invokations++;
+};
+
+/**
+ * Find all Synchronized Peers for broadcast action
+ */
+LoadBalancer.prototype.findSynchronizedPeers = function(req) {
+  let promise = (retry) => {
+    if (retry++ > defaults.FIND_SUITABLE_PEER_RETRY) {
+      return Promise.reject(new Error('Too many retries on route request while searching for a suitable peer')) ;
+    }
+
+    let peer_list  = req.net_manager.getPeerList();
+    let peer_ready = [];
+    if (peer_list.length === 0) {
+      debug('Not any peers is synced (and local compute is not activated)');
+      return bluebird.delay(500).then(() => promise(retry));
+    }
+
+    peer_list.forEach((peer) => {
+      if (peer.synchronized == true)
+        peer_ready.push(peer)
+    });
+
+    //@todo take monitoring data into account
+    if (peer_ready.length == 0) {
+      return bluebird.delay(100).then(() => promise(retry));
+    }
+
+    return Promise.resolve(peer_ready)
+  }
+
+  return promise(0)
+};
+
 /**
  * Main function to route a one-to-one action
  * exposed on api.js as:
@@ -60,23 +106,21 @@ LoadBalancer.prototype.route = function(req, res, next) {
   let task_data = req.body.data || null;
   let task_opts = req.body.opts || {};
   let uuid      = crypto.randomBytes(32).toString('hex');
+  let self      = this;
 
   // Avoid integer overflow
   if (Number.isSafeInteger(this._rri) === false) {
     this._rri = 0;
   }
 
+  this.bumpStatTask(task_id);
+
   this.findSuitablePeer(req)
-    .catch(err => {
-      console.error(err.message || err);
-      return res.send(Tools.safeClone({ err : err }));
-    })
     .then((peer) => {
       if (req.task_manager.taskExists(task_id) == false) {
         return res.send({err : Tools.safeClone(new Error('Task file ' + task_id.split('.')[0] + ' does not exists'))});
       }
 
-      // @todo: do stats on task processing (invokation, errors...)
       this.processing_tasks[uuid] = {
         started_at : new Date(),
         peer_info  : peer.identity,
@@ -94,11 +138,13 @@ LoadBalancer.prototype.route = function(req, res, next) {
           task_opts: task_opts
         })
           .then((data) => {
+            this.stats_tasks[task_id].success++;
             delete this.processing_tasks[uuid];
             data.server = req.net_manager.getLocalIdentity();
             res.send(data);
           })
           .catch((err) => {
+            this.stats_tasks[task_id].errors++;
             delete this.processing_tasks[uuid];
             res.send({err: err});
           });
@@ -108,6 +154,8 @@ LoadBalancer.prototype.route = function(req, res, next) {
             task_id,
             peer.identity.public_ip,
             peer.identity.api_port);
+
+      this.stats_tasks[task_id].remote_invok++;
 
       peer.send('trigger', {
         task_id   : task_id,
@@ -120,6 +168,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
           data.err = err;
         }
 
+        //@todo double check this code segment
         if (typeof(data) == 'string') {
           try {
             data = JSON.parse(data);
@@ -130,13 +179,32 @@ LoadBalancer.prototype.route = function(req, res, next) {
         else if (typeof(data) == 'object')
           data.server = peer.identity;
 
+        this.stats_tasks[task_id].success++;
         res.send(data);
       });
-    });
+    })
+    .catch(err => {
+      this.stats_tasks[task_id].errors++;
+      console.error(err.message || err);
+      return res.send(Tools.safeClone({ err : err }));
+    })
 };
 
 LoadBalancer.prototype.broadcast = function(req, res, next) {
-  //@todo http multistream
+  let task_id   = req.body.task_id;
+  let task_data = req.body.data || null;
+  let task_opts = req.body.opts || {};
+  let uuid      = crypto.randomBytes(32).toString('hex');
+
+  this.findSynchronizedPeers()
+    .then((peers) => {
+
+      return bluebird.map(peers, (peer) => {
+        return new Promise(resolve => {
+          this.bumpStatTask(task_id);
+        })
+      }, {concurrency: 20});
+    })
 };
 
 module.exports = LoadBalancer;

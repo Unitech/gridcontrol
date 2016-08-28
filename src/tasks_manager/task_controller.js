@@ -5,26 +5,8 @@ const defaults   = require('../constants.js');
 const Controller = {};
 
 /**
- * res.send(array_of_tasks)
- * @memberof TaskController
- * @method list_tasks
+ * Main exposed API route to initialize Gridcontrol
  */
-Controller.list_tasks = function(req, res, next) {
-  let tasks = req.task_manager.getTasks();
-  return res.send(Object.keys(tasks).map((key) => tasks[key]));
-};
-
-Controller.clear_all_tasks = function(req, res, next) {
-  req.task_manager.deleteAllPM2Tasks()
-  .then((tasks) => {
-    res.send({
-      success:true,
-      processes_deleted : tasks
-    });
-  })
-  .catch(next);
-};
-
 Controller.init_task_group = function(req, res, next) {
   let base_folder = req.body.base_folder;
   let task_folder = req.body.task_folder || defaults.TASK_FOLDER;
@@ -69,5 +51,25 @@ Controller.init_task_group = function(req, res, next) {
     });
 };
 
+/**
+ * res.send(array_of_tasks)
+ * @memberof TaskController
+ * @method list_tasks
+ */
+Controller.list_tasks = function(req, res, next) {
+  let tasks = req.task_manager.getTasks();
+  return res.send(Object.keys(tasks).map((key) => tasks[key]));
+};
+
+Controller.clear_all_tasks = function(req, res, next) {
+  req.task_manager.deleteAllPM2Tasks()
+  .then((tasks) => {
+    res.send({
+      success:true,
+      processes_deleted : tasks
+    });
+  })
+  .catch(next);
+};
 
 module.exports = Controller;

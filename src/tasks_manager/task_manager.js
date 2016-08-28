@@ -10,11 +10,11 @@ const fs         = bluebird.promisifyAll(require('fs'));
 const PM2        = bluebird.promisifyAll(require('pm2'));
 
 /**
- * The Task Manager manage all tasks
+ * The Task Manager manage Tasks and PM2
  * @constructor
- * @param opts {object} options
- * @param opts.port_offset {Integer} Port to start on
- * @param {String} opts.app_folder application to cwd to
+ * @param {Object}  opts options
+ * @param {Integer} opts.port_offset Port to start on
+ * @param {String}  opts.app_folder application to cwd to
  */
 const TaskManager = function(opts) {
   if (!opts) opts = {};
@@ -106,7 +106,9 @@ TaskManager.prototype.taskExists = function(task_id) {
 
 TaskManager.prototype.addTask = function(task_id, task) {
   if (!task.port)
-    console.error('Port is missing');
+    throw new Error('Port is missing');
+  if (!task.task_id)
+    throw new Error('Task id is missing');
 
   this.task_list[task_id] = task;
 };
@@ -169,7 +171,7 @@ TaskManager.prototype.deleteAllPM2Tasks = function() {
         return new Promise(resolve => {
           this.pm2.delete(proc_name, resolve);
         })
-      }, {concurrency: 5});
+      }, {concurrency: 1});
     });
 };
 
@@ -194,8 +196,8 @@ TaskManager.prototype.startAllTasks = function(opts, tasks_files) {
 TaskManager.prototype.startTask = function(task_file_path) {
   let task_id       = p.basename(task_file_path).split('.')[0];
   let task_pm2_name = 'task:' + task_id;
+  let tasks         = this.getTasks()
   let task_port;
-  let tasks = this.getTasks()
 
   if (tasks[task_id])
     task_port = tasks[task_id].port;

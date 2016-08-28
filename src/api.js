@@ -1,6 +1,6 @@
 'use strict';
 /**
- * @file Expose API to CloudFunctions
+ * @file Gridcontrol API
  * @author Alexandre Strzelewicz
  * @project Gridcontrol
  */
@@ -151,6 +151,10 @@ API.prototype.mountRoutes = function() {
   app.get('/tasks/processing', function(req, res, next) {
     let tasks = req.load_balancer.processing_tasks;
     return res.send(Object.keys(tasks).map((key) => tasks[key]));
+  });
+
+  app.get('/tasks/stats', function(req, res, next) {
+    return res.send(req.load_balancer.stats_tasks);
   });
 
   /**

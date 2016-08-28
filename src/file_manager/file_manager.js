@@ -69,6 +69,7 @@ FilesManagement.prototype.initializeAndSpread = function(target_folder) {
   .then(() => {
     let new_md5 = getFileMD5(defaults.TMP_FILE);
 
+    // Check if file change in current folder
     if (this.current_sync_md5 == new_md5)
       return Promise.reject(new Error('File has not changed'));
     else {

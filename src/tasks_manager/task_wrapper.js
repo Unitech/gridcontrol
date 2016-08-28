@@ -1,4 +1,14 @@
 'use strict'
+/**
+ * **Task Wrapper**
+ *
+ * It exposes the task as a HTTP API
+ * POST on / and you will interact with the task
+ * GET  on / and you will get metadata about the running tasks
+ *
+ * The API listen is determined by process.env.TASK_PORT
+ *
+ */
 const express    = require('express');
 const app        = express();
 const bodyParser = require('body-parser');
