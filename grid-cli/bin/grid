@@ -94,16 +94,25 @@ program
     Common.parseGridfile(conf_path)
       .then((conf) => {
         async.forEachLimit(conf.servers, 5, (server, next) => {
-          SSH.provision_target(server, conf)
+          SSH.copy_install_script(server, conf)
             .then(function() {
               next();
             })
             .catch(e => {
-              exitError(e);
+              next();
             })
         }, (err) => {
-          Common.displayHosts(function() {
-            exitSuccess('✓ Remote node successfully provisioned');
+          var cmd;
+
+          if (conf.grid_password)
+            cmd = "cat /tmp/install.sh | GRID=" + conf.grid_name + " GRID_AUTH=" + conf.grid_password + " bash"
+          else
+            cmd = "cat /tmp/install.sh | GRID=" + conf.grid_name + " bash"
+
+          execCmd({
+            cmd         : cmd,
+            server_list : conf.servers,
+            title       : 'Provisioning Grid'
           });
         });
       })

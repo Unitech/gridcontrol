@@ -6,7 +6,7 @@ grid_password = 'password'
 
 keymetrics_public = 'pxxp'
 keymetrics_secret = 'sxxs'
-#keymetrics_name (server level option)
+#keymetrics_name_prefix = 'testo-%d' (server level option)
 
 servers = [
   'root@212.47.227.158',

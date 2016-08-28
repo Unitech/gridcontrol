@@ -1,5 +1,6 @@
 ## Todo
 
+- [ ] Better pm2 logs integration
 - [ ] Web interface for gridcontrol
 - [ ] Add password to grid provision
 - [ ] LB implement broadcast strategy

@@ -54,6 +54,30 @@ var SSH = {
       });
     });
   },
+  copy_install_script : function(server, conf) {
+    return new Promise((resolve, reject) => {
+      var scp_copy_command;
+      var local_install_script = path.join(__dirname, '../install.sh');
+
+      var strssh = server.user + '@' + server.ip;
+
+      if (server.ssh_key)
+        scp_copy_command = 'scp -o ConnectTimeout=10 -i ' + server.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
+      else if (conf.ssh_key)
+        scp_copy_command = 'scp -o ConnectTimeout=10  -i ' + conf.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
+      else
+        scp_copy_command = 'scp -o ConnectTimeout=10  ' + local_install_script + ' ' + strssh + ':/tmp';
+
+      console.log(chalk.bold('Copying install script:'),
+                  chalk.italic.grey(scp_copy_command));
+
+      shelljs.exec(scp_copy_command, function(code, stdout, stderr) {
+        if (code != 0) return reject(new Error(stderr));
+        console.log(chalk.bold.green('✓ Install script copied successfully on server %s'), server.ip);
+        return resolve();
+      });
+    })
+  },
   /**
    * Provision a node via SSH
    * 1/ SCP the local install.sh script
@@ -71,29 +95,8 @@ var SSH = {
    * @param {Object} conf.keymetrics_private
    */
   provision_target : function(server, conf) {
-    return new Promise((resolve, reject) => {
-      var scp_copy_command;
-      var local_install_script = path.join(__dirname, '../install.sh');
-
-      var strssh = server.user + '@' + server.ip;
-
-      if (server.ssh_key)
-        scp_copy_command = 'scp -i ' + server.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
-      else if (conf.ssh_key)
-        scp_copy_command = 'scp -i ' + conf.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
-      else
-        scp_copy_command = 'scp ' + local_install_script + ' ' + strssh + ':/tmp';
-
-      console.log(chalk.bold('Copying install script:'),
-                  chalk.italic.grey(scp_copy_command));
-
-      shelljs.exec(scp_copy_command, function(code, stdout, stderr) {
-        if (code != 0) return reject(new Error(stderr));
-        console.log(chalk.bold.green('✓ Install script copied successfully'));
-        return resolve();
-      });
-    }).then(function() {
-      return new Promise((resolve, reject) => {
+    return this.copy_install_script(server, conf)
+      .then((resolve, reject) => {
         //@todo add keymetrics_public + keymetrics_secret
         var cmd = "PS1='$ ' source ~/.bashrc; cat /tmp/install.sh | GRID=" + conf.grid_name + " GRID_AUTH=" + conf.grid_password + " bash"
 
@@ -127,7 +130,6 @@ var SSH = {
           resolve(e)
         });
       });
-    });
   },
   generate_keypair : function(name, cb) {
     return new Promise((resolve, reject) => {
