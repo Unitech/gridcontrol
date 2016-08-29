@@ -1,5 +1,6 @@
 ## Todo
 
+- [ ] fix npm-shrinkwrap (change from git to npm packages?)
 - [ ] Better pm2 logs integration
 - [ ] Web interface for gridcontrol
 - [ ] Add password to grid provision

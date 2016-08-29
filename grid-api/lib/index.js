@@ -120,6 +120,12 @@ Client.prototype.dispatch = Client.prototype.exec = Client.prototype.invoke = fu
   });
 };
 
+Client.prototype.getConf = function(cb) {
+  request.get(this.base_url + '/conf', function(err, r, b) {
+    return cb(err, parseBody(b));
+  });
+};
+
 Client.prototype.listTasks = function(cb) {
   request.get(this.base_url + '/tasks/list', function(err, r, b) {
     return cb(err, parseBody(b));

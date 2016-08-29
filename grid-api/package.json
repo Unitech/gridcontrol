@@ -1,7 +1,7 @@
 {
   "name": "grid-api",
-  "version": "0.2.0",
-  "description": "API to interact with net-functions",
+  "version": "0.2.1",
+  "description": "Gridcontrol HTTP API",
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=test ./node_modules/.bin/mocha test/*.mocha.js"
