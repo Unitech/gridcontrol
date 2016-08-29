@@ -192,8 +192,9 @@ API.prototype.mountRoutes = function() {
 
   app.get('/conf', function(req, res, next) {
     res.send(Tools.safeClone({
-      file_manager : req.file_manager,
-      task_manager : req.task_manager
+      file_manager  : req.file_manager,
+      task_manager  : req.task_manager,
+      load_balancer : req.load_balancer
     }));
   });
 };

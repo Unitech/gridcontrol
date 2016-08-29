@@ -132,6 +132,12 @@ Client.prototype.listTasks = function(cb) {
   });
 };
 
+Client.prototype.listTasksStats = function(cb) {
+  request.get(this.base_url + '/tasks/stats', function(err, r, b) {
+    return cb(err, parseBody(b));
+  });
+};
+
 Client.prototype.listProcessingTasks = function(cb) {
   request.get(this.base_url + '/tasks/processing', function(err, r, b) {
     return cb(err, parseBody(b));

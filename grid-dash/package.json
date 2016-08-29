@@ -8,7 +8,10 @@
   },
   "dependencies" : {
     "blessed" : "*",
-    "blessed-contrib" : "*"
+    "blessed-contrib" : "*",
+    "grid-api" : "*",
+    "pm2" : "next",
+    "moment" : "*"
   },
   "author": "",
   "license": "ISC"
