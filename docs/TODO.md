@@ -1,5 +1,7 @@
 ## Todo
 
+- [ ] Timeout request when machines goes offline
+- [ ] Auto reconnect dashboard
 - [ ] Express decapsulator POC
 - [ ] test with remote computer to interconnect odroid in a local network
 - [ ] fix npm-shrinkwrap (change from git to npm packages?)

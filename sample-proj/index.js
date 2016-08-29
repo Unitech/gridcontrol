@@ -29,7 +29,7 @@ grid.on('ready', function() {
     grid.exec('my-ip', function(err, data, server) {
       if (err) console.log(err);
 	   // console.log(err, data, server && server.public_ip);
-	    console.log('Got response', data, server.public_ip);
+	    console.log('Got response', data, server.public_ip, server.private_ip);
     });
   }, 500);
 });

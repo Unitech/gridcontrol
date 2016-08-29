@@ -11,7 +11,8 @@
     "blessed-contrib" : "*",
     "grid-api" : "*",
     "pm2" : "next",
-    "moment" : "*"
+    "moment" : "*",
+    "chalk" : "*"
   },
   "author": "",
   "license": "ISC"

@@ -3,8 +3,8 @@ var blessed = require('blessed');
 var contrib = require('blessed-contrib');
 var gridapi = require('grid-api');
 var pm2     = require('pm2');
-
-//create layout and widgets
+var chalk   = require('chalk');
+var moment  = require('moment');
 
 const BOX_BORDER = {
   type: "line",
@@ -33,12 +33,13 @@ var Dashboard = {
       parent : this.screen,
       label: 'Grid elements',
       selectedBg: 'black',
+      interactive : false,
       top : 0,
       left : 0,
       width: '50%',
       height: '50%',
       border: BOX_BORDER,
-      columnWidth: [20, 15, 12, 20]
+      columnWidth: [18, 16, 16, 8]
     })
 
     function getShowHosts() {
@@ -47,16 +48,23 @@ var Dashboard = {
 
         var dt = [];
         data.forEach((host) => {
+          var synchronized_text;
+
+          if (host.synchronized === undefined)
+            synchronized_text = chalk.bold('master');
+          else
+            synchronized_text = host.synchronized ? chalk.bold.green('true') : chalk.bold.yellow('false')
+
           dt.push([
             host.name,
             host.public_ip,
-            host.synchronized + '',
-            host.uptime
+            host.private_ip,
+            synchronized_text,
           ]);
         });
 
         table.setData({
-          headers: ['Node name', 'Public IP', 'Synchronized', 'Uptime'],
+          headers: ['Node name', 'Public IP', 'Private IP', 'Sync'],
           data: dt
         })
       });
@@ -83,7 +91,7 @@ var Dashboard = {
       if (err) return console.error(err);
       pm2.launchBus((err, bus) => {
         bus.on('log:*', (type, data) => {
-          log.log(data.at + ' ' + data.process.name + ': ' + data.data);
+          log.log(data.process.name + ': ' + data.data);
         });
       });
     });
@@ -91,6 +99,7 @@ var Dashboard = {
   displayCurrentProcessingTasks : () => {
     var table = contrib.table({
       fg: 'white',
+      interactive : false,
       parent : this.screen,
       label: 'Tasks being processed',
       selectedBg: 'black',
@@ -99,7 +108,7 @@ var Dashboard = {
       width: '50%',
       height: '50%',
       border: BOX_BORDER,
-      columnWidth: [20, 15, 15]
+      columnWidth: [18, 16, 16, 8]
     })
 
     function getShowTasks() {
@@ -108,15 +117,19 @@ var Dashboard = {
 
         var dt = [];
         data.forEach((task) => {
+          if (task.task_id == null || task.peer_info.name == null)
+            return false;
           dt.push([
-            task.task_id,
-            task.started_at,
-            task.peer_info.name
+            task.task_id.toString(),
+            moment(task.started_at).format('HH:MM:ss'),
+            task.peer_info.public_ip.toString(),
+            task.peer_info.private_ip.toString()
           ]);
         });
 
+        //console.log(dt);
         table.setData({
-          headers: ['Task Name', 'Time spent', 'Process. Node'],
+          headers: ['Task Name', 'Started', 'Public IP',  'Private IP'],
           data: dt
         })
       });
@@ -129,6 +142,7 @@ var Dashboard = {
   displayTasksStats : () => {
     var table = contrib.table({
       fg: 'white',
+      interactive : false,
       parent : this.screen,
       label: 'Tasks stats',
       selectedBg: 'black',
@@ -137,7 +151,7 @@ var Dashboard = {
       width: '50%',
       height: '50%',
       border: BOX_BORDER,
-      columnWidth: [10, 10, 10, 10, 10]
+      columnWidth: [15, 7, 7, 7, 10]
     })
 
     function getShowTasks() {
@@ -156,7 +170,7 @@ var Dashboard = {
         });
 
         table.setData({
-          headers: ['Task Name', 'Tot. Invok.', 'Success', 'Errors', 'Remote'],
+          headers: ['Task Name', 'Invok.', 'Succ.', 'Err.', 'Remote'],
           data: dt
         })
       });
