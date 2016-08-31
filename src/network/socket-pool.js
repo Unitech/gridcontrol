@@ -19,7 +19,7 @@ var SocketPool = function() {
  * @return Promise
  */
 SocketPool.prototype.add = function(opts) {
-  var that = this;
+  let that = this;
   let socket = opts.socket;
   let password = opts.password;
   let local_identity = opts.local_identity;

@@ -166,9 +166,9 @@ LoadBalancer.prototype.route = function(req, res, next) {
         if (err) {
           if (!data) data = {};
           data.err = err;
+          throw err;
         }
 
-        //@todo double check this code segment
         if (typeof(data) == 'string') {
           try {
             data = JSON.parse(data);
@@ -181,7 +181,8 @@ LoadBalancer.prototype.route = function(req, res, next) {
 
         this.stats_tasks[task_id].success++;
         res.send(data);
-      });
+        // @todo configure timeout for remote request
+      }).timeout(defaults.REMOTE_REQUEST_TIMEOUT);
     })
     .catch(err => {
       this.stats_tasks[task_id].errors++;

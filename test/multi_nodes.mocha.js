@@ -19,7 +19,7 @@ describe('Multi local Gridcontrol', function() {
   after(function(done) {
     n1.close(function() {
       n2.close(function() {
-        n3.close(done);
+        done();
       });
     });
 
@@ -130,6 +130,24 @@ describe('Multi local Gridcontrol', function() {
         var ret = JSON.parse(body);
         plan.ok(true);
       });
+    });
+  });
+
+  describe('Peer exit', function() {
+    it('should retrieve two remote peer', function(done) {
+      n2.getRouters().length.should.eql(2);
+      done();
+    });
+
+    it('should exit peer', function(done) {
+      n3.close(() => {
+        setTimeout(done, 1000);
+      });
+    });
+
+    it('should now only retrieve one remote peer', function(done) {
+      n2.getRouters().length.should.eql(1);
+      done();
     });
   });
 
