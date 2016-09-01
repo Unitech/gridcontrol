@@ -1,0 +1,15 @@
+{
+  "name": "sample-project",
+  "version": "1.0.0",
+  "description": "Sample project for Gridcontrol",
+  "main": "index.js",
+  "dependencies" : {
+    "grid-api" : "*",
+    "request"  : "*"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

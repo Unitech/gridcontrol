@@ -62,6 +62,12 @@ $ grid monitor <secret> <public>
 $ grid ssh
 ```
 
+Generate sample project in current folder:
+
+```bash
+$ grid sample <project-name>
+```
+
 # License
 
 Apache V2

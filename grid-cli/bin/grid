@@ -92,6 +92,14 @@ program
       });
   });
 
+program
+  .command('sample <project-name>')
+  .description('Generate sample project')
+  .action(function(project_name) {
+    var sample_project = path.join(__dirname, '../lib/template/sample-project');
+    var destination_folder = path.join(process.cwd(), project_name);
+    shelljs.cp('-R', sample_project, destination_folder);
+  });
 
 program
   .command('multissh <bash_command>')
