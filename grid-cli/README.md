@@ -19,20 +19,31 @@ Make sure SSH keys are set.
 
 ```bash
 # Install a local node (required)
-$ grid install
+$ grid generate
+```
 
+Edit Gridfile
+
+```bash
+$ grid conf:provision Gridfile
+
+$ grid ls --watch
+
+# Execute a command (to install deps for example) on each node
+$ grid multissh <bash_command>
+```
+
+-> Implement 127.0.0.1
+
+
+
+
+```
 # Provision a remote node
 $ grid provision username ip <grid_name>
 
 # Upgrade the whole grid to latest version
 $ grid upgrade
-
-# List all node in Grid
-$ grid list
-$ grid ls --watch
-
-# List running tasks on all nodes
-$ grid tasks
 
 # Display logs in realtime of all nodes
 $ grid logs [task_name]
@@ -42,12 +53,6 @@ $ grid monitor <secret_key> <public_key>
 
 # Restart local node
 $ grid restart
-
-# Move all server to another grid
-$ grid move <new_grid_name>
-
-# Execute a command (to install deps for example) on each node
-$ grid spread <bash_command>
 ```
 
 ## Auth/Recovery

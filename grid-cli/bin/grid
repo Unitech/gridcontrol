@@ -20,16 +20,16 @@ const publicIp     = require('public-ip');
 program
   .version(package.version);
 
-program
-  .command('install [grid_name]')
-  .description('Generate Gridfile + Install a local Gridcontrol Node')
-  .action(function(grid_name) {
-    Common.generateGridfile(process.cwd())
-      .then((data) => {
-        console.log(chalk.bold('Grifile generated in path %s'), data.file);
-        return INIT(grid_name);
-      });
-  });
+// program
+//   .command('install [grid_name]')
+//   .description('Generate Gridfile + Install a local Gridcontrol Node')
+//   .action(function(grid_name) {
+//     Common.generateGridfile(process.cwd())
+//       .then((data) => {
+//         console.log(chalk.bold('Grifile generated in path %s'), data.file);
+//         return INIT(grid_name);
+//       });
+//   });
 
 program
   .command('list')
@@ -122,7 +122,25 @@ program
   });
 
 program
+  .command('conf:multissh <gridfile> <bash_command>')
+  .description('Execute a bash command on each Grid nodes')
+  .action(function(gridfile, bash_command) {
+    var conf_path = path.join(process.cwd(), 'Gridfile');
+
+    Common.parseGridfile(conf_path)
+      .then((conf) => {
+        execCmd({
+          cmd         : bash_command,
+          server_list : conf.servers
+        });
+      }).catch(e => {
+        exitError(e);
+      });
+  });
+
+program
   .command('conf:recover')
+  .alias('restart')
   .description('Restore the Grid based on current Gridfile')
   .action(function(hostfile, gridname, opts) {
     var conf_path = path.join(process.cwd(), 'Gridfile');
@@ -149,6 +167,24 @@ program
         });
       })
 
+  });
+
+program
+  .command('upgrade <gridfile>')
+  .description('Upgrade whole grid to latest gridcontrol version')
+  .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+      grid.listHosts(function(err, hosts) {
+
+        execCmd({
+          cmd         : 'GRID=' + hosts[0].ns + ' pm2 install gridcontrol',
+          server_list : server_list,
+          title       : 'Upgrading Gridcontrol to latest'
+        });
+
+      })
+    });
   });
 
 /**
@@ -292,25 +328,7 @@ program
   });
 
 program
-  .command('upgrade <gridfile>')
-  .description('Upgrade whole grid to latest gridcontrol version')
-  .action(function() {
-    listServerForMulti(function(err, server_list) {
-      if (err) return exitError(err);
-      grid.listHosts(function(err, hosts) {
-
-        execCmd({
-          cmd         : 'GRID=' + hosts[0].ns + ' pm2 install gridcontrol',
-          server_list : server_list,
-          title       : 'Upgrading Gridcontrol to latest'
-        });
-
-      })
-    });
-  });
-
-program
-  .command('spread <bash_command>')
+  .command('multissh <bash_command>')
   .description('Execute a bash command on each Grid nodes')
   .action(function(bash_command) {
     listServerForMulti(function(err, server_list) {
@@ -321,23 +339,6 @@ program
         server_list : server_list
       });
     });
-  });
-
-program
-  .command('conf:spread <gridfile> <bash_command>')
-  .description('Execute a bash command on each Grid nodes')
-  .action(function(gridfile, bash_command) {
-    var conf_path = path.join(process.cwd(), 'Gridfile');
-
-    Common.parseGridfile(conf_path)
-      .then((conf) => {
-        execCmd({
-          cmd         : bash_command,
-          server_list : conf.servers
-        });
-      }).catch(e => {
-        exitError(e);
-      });
   });
 
 program
