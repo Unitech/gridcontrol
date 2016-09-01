@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "toml-js" : "*",
+    "toml" : "*",
     "grid-api": "latest",
-    "request": "*",
     "commander": "*",
     "cli-table2": "*",
     "shelljs": "*",
@@ -28,7 +28,7 @@
     "cli-spinners": "*",
     "multissh": "*",
     "ssh-keygen2": "*",
-    "public-ip": "*"
+    "strip-ansi" : "*"
   },
   "devDependencies": {
     "should": "*",

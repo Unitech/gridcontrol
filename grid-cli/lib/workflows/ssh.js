@@ -17,20 +17,14 @@ var SSH = {
    *
    * @param {String} hostfile file containing a list of server (format: user:ip)
    * @param {String} [custom_key="$HOME/.ssh/id_rsa.pub"] optionnal path of a custom ssh key
-   * @param {Object} opts object
-   * @param {String} opts.only IP to copy key only
    */
-  copy_public_key : function(conf, custom_key, opts) {
+  copy_public_key : function(conf, custom_key) {
     return new Promise((resolve, reject) => {
       var ret = [];
 
       var ssh_copy_id = path.join(__dirname, '..', 'ssh-copy-id');
 
       async.forEachLimit(conf.servers, 1, (server, next) => {
-        if (opts.only && opts.only != server.ip) {
-          console.log('---> Skipping %s', server.ip);
-          return next();
-        }
         console.log(chalk.blue.bold('===> Copying key to : %s@%s'),
                     server.user,
                     server.ip);
@@ -45,7 +39,13 @@ var SSH = {
         console.log(cmd);
         ret.push(cmd);
 
+        var timer = setTimeout(() => {
+          console.error(chalk.bold.red('Host %s@%s does not look online'), server.user, server.ip);
+          next();
+        }, 7000);
+
         shelljs.exec(cmd, function(code, stdout, stderr) {
+          clearTimeout(timer);
           next();
         });
       }, e => {
@@ -131,17 +131,19 @@ var SSH = {
         });
       });
   },
-  generate_keypair : function(name, cb) {
+  generate_keypair : function(_opts) {
     return new Promise((resolve, reject) => {
+      if (!_opts) _opts = {};
+
       var opts = {
         type    : 'rsa',
-        bits    : 2048,
+        bits    : _opts.bits || 1024,
         comment : 'grid-keys'
       };
 
       keygen(opts, function (err, keypair) {
         if (err) return reject(err);
-        resolve(keypair);
+        return resolve(keypair);
       });
     });
   }

@@ -1,10 +1,12 @@
 
-var blessed = require('blessed');
-var contrib = require('blessed-contrib');
-var gridapi = require('grid-api');
-var pm2     = require('pm2');
-var chalk   = require('chalk');
-var moment  = require('moment');
+var blessed      = require('blessed');
+var blessedLog   = require('./vendor/log.js');
+var blessedTable = require('./vendor/table.js');
+var gridapi      = require('grid-api');
+var chalk        = require('chalk');
+var moment       = require('moment');
+
+const REFRESH_DATA = 1000;
 
 const BOX_BORDER = {
   type: "line",
@@ -13,6 +15,7 @@ const BOX_BORDER = {
 
 var Dashboard = {
   init : () => {
+
     this.screen = blessed.screen({
       smartCSR   : true,
       autoPadding: true
@@ -22,16 +25,25 @@ var Dashboard = {
       this.screen.render();
     }, 500);
 
+    Dashboard.displayCurrentProcessingTasks();
+    Dashboard.displayTasksStats();
+    Dashboard.populateHosts();
+    //Dashboard.mountPM2Stats();
+
+    process.nextTick(() => {
+      this.screen.render();
+    });
+
     this.screen.key(['escape', 'q', 'C-c'], () => {
       this.screen.destroy();
       process.exit(0);
     });
   },
   populateHosts : () => {
-    var table = contrib.table({
+    var table = blessedTable({
       fg: 'white',
       parent : this.screen,
-      label: 'Grid elements',
+      label: chalk.bold('Grid Nodes'),
       selectedBg: 'black',
       interactive : false,
       top : 0,
@@ -44,10 +56,13 @@ var Dashboard = {
 
     function getShowHosts() {
       gridapi.listHosts((err, data) => {
-        if (err) return console.error(err);
-
         var dt = [];
-        data.forEach((host) => {
+
+        if (err) {
+          dt.push([chalk.bold.red(err.message)]);
+        }
+
+        data && data.forEach((host) => {
           var synchronized_text;
 
           if (host.synchronized === undefined)
@@ -72,10 +87,11 @@ var Dashboard = {
 
     setInterval(() => {
       getShowHosts();
-    }, 1000);
+    }, REFRESH_DATA);
+    getShowHosts();
   },
   mountPM2Stats : () => {
-    var log = contrib.log({
+    var log = blessedLog({
       parent     : this.screen,
       left       : 0,
       top        : '50%',
@@ -87,6 +103,8 @@ var Dashboard = {
       border     : BOX_BORDER
     });
 
+    var pm2     = require('pm2');
+
     pm2.connect((err) => {
       if (err) return console.error(err);
       pm2.launchBus((err, bus) => {
@@ -97,15 +115,15 @@ var Dashboard = {
     });
   },
   displayCurrentProcessingTasks : () => {
-    var table = contrib.table({
+    var table = blessedTable({
       fg: 'white',
       interactive : false,
       parent : this.screen,
-      label: 'Tasks being processed',
+      label: chalk.bold('Tasks being processed'),
       selectedBg: 'black',
       top : '50%',
-      left : '50%',
-      width: '50%',
+      left : '0%',
+      width: '100%',
       height: '50%',
       border: BOX_BORDER,
       columnWidth: [18, 16, 16, 8]
@@ -113,10 +131,13 @@ var Dashboard = {
 
     function getShowTasks() {
       gridapi.listProcessingTasks((err, data) => {
-        if (err) return console.error(err);
-
         var dt = [];
-        data.forEach((task) => {
+
+        if (err) {
+          dt.push([chalk.bold.red(err.message)]);
+        }
+
+        data && data.forEach((task) => {
           if (task.task_id == null || task.peer_info.name == null)
             return false;
           dt.push([
@@ -137,14 +158,16 @@ var Dashboard = {
 
     setInterval(() => {
       getShowTasks();
-    }, 1000);
+    }, REFRESH_DATA);
+
+    getShowTasks();
   },
   displayTasksStats : () => {
-    var table = contrib.table({
+    var table = blessedTable({
       fg: 'white',
       interactive : false,
       parent : this.screen,
-      label: 'Tasks stats',
+      label: chalk.bold('Tasks stats'),
       selectedBg: 'black',
       top : 0,
       left : '50%',
@@ -156,10 +179,13 @@ var Dashboard = {
 
     function getShowTasks() {
       gridapi.listTasksStats((err, data) => {
-        if (err) return console.error(err);
-
         var dt = [];
-        Object.keys(data).forEach((task_name) => {
+
+        if (err) {
+          dt.push([chalk.bold.red(err.message)]);
+        }
+
+        data && Object.keys(data).forEach((task_name) => {
           dt.push([
             task_name,
             data[task_name].invokations,
@@ -178,12 +204,13 @@ var Dashboard = {
 
     setInterval(() => {
       getShowTasks();
-    }, 1000);
+    }, REFRESH_DATA);
+
+    getShowTasks();
   }
 };
 
-Dashboard.init();
-Dashboard.displayCurrentProcessingTasks();
-Dashboard.displayTasksStats();
-Dashboard.populateHosts();
-Dashboard.mountPM2Stats();
+module.exports = Dashboard;
+
+if (require.main == module)
+  Dashboard.init();

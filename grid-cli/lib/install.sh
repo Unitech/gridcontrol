@@ -54,12 +54,16 @@ function install_node {
 }
 
 function install_pm2 {
+  pm2 &>/dev/null
+  if [ $? == "1" ]; then
+    already PM2
+  else
     installing PM2
-    # Remove warn messages
-    npm install pm2@next -g 2> /dev/null
+    npm install -g pm2@latest
     . ~/.nvm/nvm.sh
     pm2 update
     success PM2
+  fi
 }
 
 function install_net_functions {

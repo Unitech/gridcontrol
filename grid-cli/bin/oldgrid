@@ -1,6 +1,50 @@
 #!/usr/bin/env node
 
 
+// program
+//   .command('install [grid_name]')
+//   .description('Generate Gridfile + Install a local Gridcontrol Node')
+//   .action(function(grid_name) {
+//     Common.generateGridfile(process.cwd())
+//       .then((data) => {
+//         console.log(chalk.bold('Grifile generated in path %s'), data.file);
+//         return INIT(grid_name);
+//       });
+//   });
+
+
+program
+  .command('move <new_grid_name>')
+  .description('move all server to another grid namespace')
+  .action(function(new_grid_name) {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+
+      execCmd({
+        cmd         : 'GRID="' + new_grid_name + '" pm2 restart gridcontrol',
+        server_list : server_list,
+        title       : 'Moving current grid to new one'
+      });
+    });
+  });
+
+program
+  .command('list-tasks')
+  .alias('tasks')
+  .description('List all tasks')
+  .action(function() {
+    listServerForMulti(function(err, server_list) {
+      if (err) return exitError(err);
+
+      execCmd({
+        cmd         : 'pm2 ls',
+        server_list : server_list,
+        title       : 'List all tasks'
+      });
+    });
+  });
+
+
 program
   .command('dump <filename>')
   .description('Save all hosts connected to a hostfile')

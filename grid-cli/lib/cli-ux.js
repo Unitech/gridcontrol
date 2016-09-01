@@ -6,8 +6,26 @@ var netfunctions = require('grid-api');
 
 var CliUX = {};
 
-CliUX.status = function(peers) {
-}
+CliUX.chooseHostname = function(servers, cb) {
+  var hostnames = [];
+
+  servers.forEach(function(server) {
+    hostnames.push(server.ip + ' ' + server.user);
+  });
+
+  inquirer.prompt({
+    type: 'list',
+    name: 'server',
+    message: 'Which server?',
+    choices: hostnames,
+    filter : function(server) {
+      return { ip : server.split(' ')[0], user : server.split(' ')[1] };
+    }
+  }).then(function (answers) {
+    cb(answers.server);
+  });
+
+};
 
 CliUX.displayHosts = function(peers, cb) {
   // instantiate
