@@ -118,7 +118,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
   this.findSuitablePeer(req)
     .then((peer) => {
       if (req.task_manager.taskExists(task_id) == false) {
-        return res.send({err : Tools.safeClone(new Error('Task file ' + task_id.split('.')[0] + ' does not exists'))});
+        return res.send({err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))});
       }
 
       this.processing_tasks[uuid] = {

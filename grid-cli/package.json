@@ -1,6 +1,6 @@
 {
   "name": "grid-cli",
-  "version": "0.4.7",
+  "version": "0.4.10",
   "description": "",
   "main": "index.js",
   "engines": {

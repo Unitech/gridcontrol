@@ -1,14 +1,18 @@
 ## Todo
 
-- [ ] Timeout request when machines goes offline
-- [ ] Auto reconnect dashboard
+- [ ] ssh-add private key when provisioning
+- [ ] generate gridfile with random grid name and random password
+- [ ] Fix when Gridfile is missing (sometime no message is thrown)
+
 - [ ] Express decapsulator POC
-- [ ] test with remote computer to interconnect odroid in a local network
-- [ ] fix npm-shrinkwrap (change from git to npm packages?)
 - [ ] Better pm2 logs integration
-- [ ] Web interface for gridcontrol
-- [ ] Add password to grid provision
 - [ ] LB implement broadcast strategy
+
+- [X] fix npm-shrinkwrap (change from git to npm packages?)
+- [X] test with remote computer to interconnect odroid in a local network
+- [NOK] Web interface for gridcontrol
+- [X] Add password to grid provision
+- [X] Auto reconnect dashboard
 - [X] keep counter of invokations, errors
 - [~] Grid upgrade = dont keep namespace
 - [X] Add AUTH via env variable ([X] NS and AUTH/PASS)

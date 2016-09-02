@@ -6,7 +6,7 @@ var grid = require('grid-api').init({
   }
 });
 
-function triggerTask() {
+function triggerGetIp() {
   grid.exec('get-ip', function(err, data, server) {
     if (err) {
       console.log(err);
@@ -36,5 +36,5 @@ function triggerEcho() {
 
 grid.on('ready', function() {
   console.log('Gridcontrol Ready');
-  setInterval(triggerTask, 1000);
+  setInterval(triggerEcho, 1000);
 });

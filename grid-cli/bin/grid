@@ -143,7 +143,8 @@ program
         console.log(chalk.bold('☢ Launching recovery for %s hosts'), servers.length);
         console.log(chalk.bold('☢ Forcing grid name %s'), grid_name);
 
-        var cmd = 'GRID="' + grid_name + '"';
+
+        var cmd = 'pm2 kill ; pm2 ls; GRID="' + grid_name + '"';
 
         if (gridfile.grid_password)
           cmd += ' GRID_AUTH="' + gridfile.grid_password + '"';
