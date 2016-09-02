@@ -27,12 +27,7 @@ Change each attribute with the desired value.
 $ grid provision
 ```
 
-This will install:
-
-- NVM
-- Node.js
-- PM2
-- Gridcontrol node
+*This will copy the SSH pub key and install NVM, Node.js, PM2 and Gridcontrol*
 
 3/ Play
 

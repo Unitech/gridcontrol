@@ -1,8 +1,6 @@
 
 var grid = require('../grid-api/').init({
-  task_folder : 'tasks',
   instances   : 1,
-  local       : false,
   env         : {
     NODE_ENV  : 'development'
   }

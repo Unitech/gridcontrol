@@ -72,16 +72,18 @@ var Dashboard = {
 
           dt.push([
             host.name,
-            host.public_ip,
+            host.public_ip || 'N/A',
             host.private_ip,
             synchronized_text,
           ]);
         });
 
-        table.setData({
-          headers: ['Node name', 'Public IP', 'Private IP', 'Sync'],
-          data: dt
-        })
+        if (dt.length > 0) {
+          table.setData({
+            headers: ['Node name', 'Public IP', 'Private IP', 'Sync'],
+            data: dt
+          })
+        }
       });
     }
 

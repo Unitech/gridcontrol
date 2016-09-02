@@ -297,6 +297,11 @@ GridControl.prototype.mountActions = function(router) {
     router.identity.synchronized = true;
   });
 
+  router.on('ping', (data, cb) => {
+    debug('Received a PING');
+    return cb(null, 'pong');
+  });
+
   /**
    * Task to synchronize this current node
    */

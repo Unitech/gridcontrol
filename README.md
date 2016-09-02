@@ -34,109 +34,130 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 - **Rock Solid** [PM2](https://github.com/Unitech/pm2) behind the scene for process management and cluster capabilities
 - And a lot more like Buffering, Retry on Failure...
 
-## Managing a Compute Grid
+## Creating a Grid
 
-The Grid CLI is your main tool to control a Grid:
+Install your Army Swiss Knife to manage a Grid:
 
 ```bash
 $ npm install grid-cli -g
 ```
 
-The binary `grid` is now available.
+Now the bin `grid` is available via the CLI.
 
-### Create a Compute Grid
+### Commands
 
-On your local machine:
+1/ Generate a new **Gridfile** in the current path that contains grid name, grid password, host and SSH keys:
 
 ```bash
-$ grid install
+$ grid new
 ```
 
-*This will install PM2 and Gridcontrol module*
+Change each attribute with the desired value.
 
-To provision remote machines:
+2/ Provision every hosts listed in the Gridfile:
 
 ```bash
-$ grid provision <USERNAME> <IP> <GRID_NAME>
+$ grid provision
 ```
 
-*This will SSH onto the server and will install and configure GridControl with the specified GRID NAME*
-*GRID_NAME* is a common identifier for each node to link themselves.
+*This will copy the SSH pub key and install NVM, Node.js, PM2 and Gridcontrol*
+*This installation does not need ROOT access rights at anytime*
 
-Provision as many server as needed, then to list Nodes connected to the Grid:
-
-```bash
-$ grid list
-```
-
-To execute/install a software on each Grid's Node just do:
+3/ Grid management
 
 ```bash
-$ grid spread <COMMAND>
+# List all nodes linked to the grid
+$ grid ls
+
+# Display Dashboard
+$ grid dash
+
+# Execute a command on each server
+$ grid multissh <bash_command>
+
+# Restart/Recover the current Grid
+$ grid restart
+
+# Upgrade Gridcontrol to latest version
+$ grid upgrade
+
+# Display realtime logs of all tasks
+$ grid logs
+
+# Monitor the whole Grid with Keymetrics
+$ grid monitor <secret> <public>
+
+# Interactively SSH to desired machine
+$ grid ssh
 ```
 
 ### Interact with the Grid
 
 Now let's play with the Grid.
+You can generate a sample project by typing:
 
-We have to create a project with this basic structure:
+```bash
+$ grid sample [project-name]
+$ cd [project-name]
+$ npm install
+```
+
+You will get a project looking like this:
 
 ```
 .
 ├── index.js
 ├── package.json
 └── tasks
-    └── getURL.js
+    └── get-ip.js
 ```
 
-Let's look at the content of `tasks/getUrl.js`:
+Let's look at the content of `tasks/get-ip.js`, this is a task that will be propagated in the grid:
 
 ```javascript
 var request = require('request');
 
-// this function, called 'getUrl.myHandler', is now exposed over the wire
-exports.myHandler = function(data, cb) {
+module.exports = function(context, cb) {
+  request('https://api.ipify.org/?format=json', function (error, response, body) {
+    if (error)
+      return cb(error);
 
-  // Get the HTML content of the specified url
-  request.get(data.url, function(err, res, body) {
-    if (err) return cb(err);
-
-    // Then return the result
-    cb(null, { response : body });
+    if (!error && response.statusCode == 200) {
+      return cb(null, body);
+    }
   });
 };
 ```
 
-Now let's call this function from our main file, `index.js`:
+To call this function, look at how it is done in `index.js`:
 
 ```javascript
-var grid = require('grid-api');
-
-// Initialize the grid
-grid.init({
-  task_folder : 'tasks'  // default to ./tasks/
-  instances   : 2,       // instance per tasks, default to 'max'
-  env : {                // Extra environment variables to pass to tasks
-    TOKEN_SERVICE_X : 'xxxxxxx',
-    NODE_ENV : 'production'
+var grid = require('../grid-api/').init({
+  instances   : 1,
+  env         : {
+    NODE_ENV  : 'development'
   }
 });
 
-setInterval(function() {
-
-  // Dispatch the action <filename>.<handler> into the grid
-  // and retrieve response
-  grid.dispatch('getUrl.myHandler', {
-    url : 'https://api.ipify.org/?format=json'
-  }, function(err, data, server_meta) {
-    console.log('From server %s:%s', server.name, server.public_ip);
-    console.log('Got response %s', data);
+function triggerTask() {
+  grid.exec('get-ip', function(err, data, server) {
+    if (err) {
+      console.log(err);
+      return false;
+    }
+	  console.log('Got response from server pub_ip=(%s) priv_ip=(%s):',
+                server.public_ip,
+                server.private_ip);
+    console.log(data);
   });
+}
 
-}, 1000);
+grid.on('ready', function() {
+  console.log('Gridcontrol Ready');
+  setInterval(triggerTask, 1000);
+});
+
 ```
-
-*For more documentation about the api please refer to grid-api/README.md*
 
 Start the main application:
 
@@ -144,7 +165,7 @@ Start the main application:
 $ node index.js
 ```
 
-At trhe beginning, only the local gridcontrol will respond. Once the other peers are synchronized they will also process the queries:
+At the beginning, only the local gridcontrol will respond. Once the other peers are synchronized they will also process the queries:
 
 ```
 From server alor-vital:88.123.12.21
@@ -158,38 +179,6 @@ Got response $HTML
 ```
 
 Distributed processing, on-premise!
-
-## Advanced management
-
-Display each Node connected to the grid:
-
-```bash
-$ grid list
-```
-
-Display all Node's logs:
-
-```bash
-$ grid logs
-```
-
-Upgrade all Nodes to latest GridcontroL
-
-```bash
-$ grid upgrade
-```
-
-Monitor all Nodes with [keymetrics.io](https://keymetrics.io):
-
-```bash
-$ grid monitor <secret_keymetrics> <public_keymetrics>
-```
-
-Move all Nodes to another Grid:
-
-```bash
-$ grid move <new_grid_name>
-```
 
 ## Advanced documentation
 

@@ -61,9 +61,7 @@ var SSH = {
 
       var strssh = server.user + '@' + server.ip;
 
-      if (server.ssh_key)
-        scp_copy_command = 'scp -o ConnectTimeout=10 -i ' + server.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
-      else if (conf.ssh_key)
+      if (conf.ssh_key)
         scp_copy_command = 'scp -o ConnectTimeout=10  -i ' + conf.ssh_key + ' ' + local_install_script + ' ' + strssh + ':/tmp';
       else
         scp_copy_command = 'scp -o ConnectTimeout=10  ' + local_install_script + ' ' + strssh + ':/tmp';

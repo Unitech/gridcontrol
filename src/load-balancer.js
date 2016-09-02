@@ -166,6 +166,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
         if (err) {
           if (!data) data = {};
           data.err = err;
+          // Will be catched by Promise.catch
           throw err;
         }
 

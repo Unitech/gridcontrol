@@ -58,6 +58,9 @@ program
 
     Common.parseGridfile(conf_path)
       .then((conf) => {
+        return SSH.copy_public_key(conf, conf.ssh_public_key)
+      })
+      .then((conf) => {
 
         // Copy install script locally
         shelljs.cp(path.join(__dirname, '../lib/install.sh'), '/tmp/');
@@ -178,7 +181,6 @@ program
 
 program
   .command('dash')
-  .alias('ls')
   .description('Display Dashboard')
   .action(function() {
     Dashboard.init();
