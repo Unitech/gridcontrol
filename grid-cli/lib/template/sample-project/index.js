@@ -1,5 +1,5 @@
 
-var grid = require('../grid-api/').init({
+var grid = require('grid-api').init({
   instances   : 1,
   env         : {
     NODE_ENV  : 'development'

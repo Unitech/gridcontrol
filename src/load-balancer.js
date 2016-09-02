@@ -131,7 +131,7 @@ LoadBalancer.prototype.route = function(req, res, next) {
         /**
          * send task action to local node
          */
-        debug('status=routing task=%s target=localhost', task_id);
+        console.log('status=routing task=%s target=localhost', task_id);
         return req.task_manager.triggerTask({
           task_id  : task_id,
           task_data: task_data,

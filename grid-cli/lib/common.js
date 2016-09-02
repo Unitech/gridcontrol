@@ -173,7 +173,8 @@ function parseGridfile(conf_path) {
         var tmp_file_pb = path.join(os.tmpdir(), filename_pb);
         fs.writeFileSync(tmp_file_pr, conf.ssh_key);
         fs.writeFileSync(tmp_file_pb, conf.ssh_public_key);
-
+        fs.chmodSync(tmp_file_pr, '400');
+        fs.chmodSync(tmp_file_pb, '400');
         conf.ssh_key = tmp_file_pr;
         conf.ssh_public_key = tmp_file_pb;
       }

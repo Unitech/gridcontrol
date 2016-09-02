@@ -34,6 +34,7 @@ var SSH = {
         if (custom_key)
           cmd += ' -i ' + custom_key;
 
+        cmd += ' -o "StrictHostKeyChecking no" -o "CheckHostIP=no"';
         cmd += ' ' + server.user + '@' + server.ip;
 
         console.log(cmd);
@@ -42,7 +43,7 @@ var SSH = {
         var timer = setTimeout(() => {
           console.error(chalk.bold.red('Host %s@%s does not look online'), server.user, server.ip);
           next();
-        }, 7000);
+        }, 25000);
 
         shelljs.exec(cmd, function(code, stdout, stderr) {
           clearTimeout(timer);

@@ -28,7 +28,7 @@ var Dashboard = {
     Dashboard.displayCurrentProcessingTasks();
     Dashboard.displayTasksStats();
     Dashboard.populateHosts();
-    //Dashboard.mountPM2Stats();
+    Dashboard.mountPM2Stats();
 
     process.nextTick(() => {
       this.screen.render();
@@ -51,7 +51,7 @@ var Dashboard = {
       width: '50%',
       height: '50%',
       border: BOX_BORDER,
-      columnWidth: [18, 16, 16, 8]
+      columnWidth: [21, 15, 15, 8]
     })
 
     function getShowHosts() {
@@ -124,8 +124,8 @@ var Dashboard = {
       label: chalk.bold('Tasks being processed'),
       selectedBg: 'black',
       top : '50%',
-      left : '0%',
-      width: '100%',
+      left : '50%',
+      width: '50%',
       height: '50%',
       border: BOX_BORDER,
       columnWidth: [18, 16, 16, 8]
@@ -169,7 +169,7 @@ var Dashboard = {
       fg: 'white',
       interactive : false,
       parent : this.screen,
-      label: chalk.bold('Tasks stats'),
+      label: chalk.bold('Load Balancer Stats'),
       selectedBg: 'black',
       top : 0,
       left : '50%',

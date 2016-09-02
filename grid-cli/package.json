@@ -1,6 +1,6 @@
 {
   "name": "grid-cli",
-  "version": "0.4.0",
+  "version": "0.4.6",
   "description": "",
   "main": "index.js",
   "engines": {
@@ -28,7 +28,8 @@
     "cli-spinners": "*",
     "multissh": "*",
     "ssh-keygen2": "*",
-    "strip-ansi" : "*"
+    "strip-ansi" : "*",
+    "pm2" : "next"
   },
   "devDependencies": {
     "should": "*",

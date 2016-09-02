@@ -56,11 +56,14 @@ program
   .action(function(gridfile) {
     var conf_path = path.join(process.cwd(), 'Gridfile');
 
+    var conf;
+
     Common.parseGridfile(conf_path)
-      .then((conf) => {
+      .then((_conf) => {
+        conf = _conf;
         return SSH.copy_public_key(conf, conf.ssh_public_key)
       })
-      .then((conf) => {
+      .then(() => {
 
         // Copy install script locally
         shelljs.cp(path.join(__dirname, '../lib/install.sh'), '/tmp/');
