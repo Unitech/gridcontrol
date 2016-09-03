@@ -52,6 +52,27 @@ Now the bin `grid` is available via the CLI.
 $ grid new
 ```
 
+The Gridfile will look like this:
+
+```
+grid_name     = 'grid-name'
+grid_password = 'xxxx'
+
+servers = [
+  'user@ip1',
+  'user@ip2',
+  'user@ip3'
+]
+
+ssh_key = '''
+1024_PRIVATE_SSH_KEY
+'''
+
+ssh_public_key = '''
+PUBLIC_SSH_KEY
+'''
+```
+
 Change each attribute with the desired value.
 
 2/ Provision every hosts listed in the Gridfile:
