@@ -46,7 +46,7 @@ Now the bin `grid` is available via the CLI.
 
 ### Commands
 
-1/ Generate a new **Gridfile** in the current path that contains grid name, grid password, host and SSH keys:
+**1/** Generate a new **Gridfile** in the current path that contains grid name, grid password, host and SSH keys:
 
 ```bash
 $ grid new
@@ -75,7 +75,7 @@ PUBLIC_SSH_KEY
 
 Change each attribute with the desired value.
 
-2/ Provision every hosts listed in the Gridfile:
+**2/** Provision every hosts listed in the Gridfile:
 
 ```bash
 $ grid provision
@@ -84,7 +84,7 @@ $ grid provision
 *This will copy the SSH pub key and install NVM, Node.js, PM2 and Gridcontrol*
 *This installation does not need ROOT access rights at anytime*
 
-3/ Grid management
+**3/** Grid management
 
 ```bash
 # List all nodes linked to the grid
