@@ -132,7 +132,7 @@ module.exports = function(context, cb) {
 To call this function, look at how it is done in `index.js`:
 
 ```javascript
-var grid = require('../grid-api/').init({
+var grid = require('grid-api').init({
   instances   : 1,
   env         : {
     NODE_ENV  : 'development'
@@ -215,49 +215,3 @@ Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)
 ## License
 
 Apache V2 (see LICENSE.txt)
-
-## $ grid
-
-```
->>> grid
-
-  Usage: grid [options] [command]
-
-  Commands:
-
-    install [grid_name]                              Generate Gridfile + Install a local Gridcontrol Node
-    list|ls [options]                                List all peers connected to network
-    conf:generate                                    Generate a Gridfile
-    conf:update                                      Update Gridfile with current hosts
-    conf:provision                                   Provision each host declared in Gridfile
-    conf:recover                                     Restore the Grid based on current Gridfile
-    conf:keycopy [options] [custom_ssh_key]          Install public key on remote hosts (default to $HOME/.ssh/id_rsa.pub)
-    provision [options] <username> <ip> <grid_name>  provision a remote node
-    keygen [options] <key_name>                      Generate SSH keypairs
-    unprovision                                      Uninstall grid control on all nodes
-    detect                                           Use nmap to discover machines in network
-    move <new_grid_name>                             move all server to another grid namespace
-    list-tasks|tasks                                 List all tasks
-    upgrade <gridfile>                               Upgrade whole grid to latest gridcontrol version
-    spread <bash_command>                            Execute a bash command on each Grid nodes
-    conf:spread <gridfile> <bash_command>            Execute a bash command on each Grid nodes
-    logs|log [task_name]                             Display logs of all nodes
-
-```
-
-## CHEATSHEET
-
-```
-$ npm install grid-cli -g
-$ grid install               # generate Gridfile + install pm2, gridcontrol
-$ # Edit Gridfile with host to provision
-$ grid conf:provision        # check if everything is installed on remote hosts
-$ grid list
-```
-
-Adding one node:
-
-```
-$ grid provision root xx.xxx.xx.xx <grid_name>
-$ grid conf:update # Update conf file with new node added
-```

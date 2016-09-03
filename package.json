@@ -53,7 +53,7 @@
     "thunky": "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
-  "license": "GPL2.0",
+  "license": "Apachev2",
   "devDependencies": {
     "should": "*",
     "mocha": "*",
