@@ -207,24 +207,6 @@ Distributed processing, on-premise!
 
 Avoid re synchronizing the application in case of some file changes by adding a `.gridignore` file, containing a list of regex/files to ignore separated by a newline.
 
-### Password protection
-
-To add a password to your grid export the environment variable GRID_AUTH with the desired password.
-
-```bash
-$ export GRID_AUTH='password'
-$ grid restart
-```
-
-### Default GRID name
-
-To avoid setting a grid name for each command export the environment variable GRID
-
-```bash
-$ export GRID='grid_name'
-$ grid restart
-```
-
 ### Disable local tasks computation
 
 To make the head node act as a load balancer only pass the `local : false` in `grid.init` options.
