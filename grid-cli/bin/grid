@@ -61,6 +61,18 @@ program
     Common.parseGridfile(conf_path)
       .then((_conf) => {
         conf = _conf;
+        return Promise.resolve();
+      })
+      .then(() => {
+        return new Promise((resolve, reject) => {
+          var cmd = 'ssh-add ' + conf.ssh_key;
+          console.log(cmd);
+          shelljs.exec(cmd, () => {
+            return resolve();
+          });
+        });
+      })
+      .then(() => {
         return SSH.copy_public_key(conf, conf.ssh_public_key)
       })
       .then(() => {
