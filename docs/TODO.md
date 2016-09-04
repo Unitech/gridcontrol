@@ -1,5 +1,6 @@
 ## Todo
 
+- [ ] be able to customize configuration for each host instead of a simple host array
 - [ ] ssh-add private key when provisioning
 - [ ] generate gridfile with random grid name and random password
 - [ ] Fix when Gridfile is missing (sometime no message is thrown)
