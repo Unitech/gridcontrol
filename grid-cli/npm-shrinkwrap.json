@@ -1,6 +1,6 @@
 {
   "name": "grid-cli",
-  "version": "0.4.6",
+  "version": "0.4.12",
   "dependencies": {
     "ansi-escapes": {
       "version": "1.4.0",
@@ -178,16 +178,6 @@
       "from": "delayed-stream@>=1.0.0 <1.1.0",
       "resolved": "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz"
     },
-    "dns-packet": {
-      "version": "1.1.0",
-      "from": "dns-packet@>=1.1.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/dns-packet/-/dns-packet-1.1.0.tgz"
-    },
-    "dns-socket": {
-      "version": "1.4.1",
-      "from": "dns-socket@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/dns-socket/-/dns-socket-1.4.1.tgz"
-    },
     "duplexify": {
       "version": "3.4.5",
       "from": "duplexify@>=3.2.0 <4.0.0",
@@ -335,11 +325,6 @@
       "from": "interpret@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/interpret/-/interpret-1.0.1.tgz"
     },
-    "ip": {
-      "version": "1.1.3",
-      "from": "ip@>=1.1.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/ip/-/ip-1.1.3.tgz"
-    },
     "is-fullwidth-code-point": {
       "version": "1.0.0",
       "from": "is-fullwidth-code-point@>=1.0.0 <2.0.0",
@@ -435,10 +420,15 @@
       "from": "moment@*",
       "resolved": "https://registry.npmjs.org/moment/-/moment-2.14.1.tgz"
     },
+    "moniker": {
+      "version": "0.1.2",
+      "from": "moniker@*",
+      "resolved": "https://registry.npmjs.org/moniker/-/moniker-0.1.2.tgz"
+    },
     "multissh": {
-      "version": "2.0.3",
+      "version": "2.0.4",
       "from": "multissh@*",
-      "resolved": "https://registry.npmjs.org/multissh/-/multissh-2.0.3.tgz"
+      "resolved": "https://registry.npmjs.org/multissh/-/multissh-2.0.4.tgz"
     },
     "mute-stream": {
       "version": "0.0.6",
@@ -494,11 +484,6 @@
       "version": "1.0.0",
       "from": "path-is-absolute@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.0.tgz"
-    },
-    "pify": {
-      "version": "2.3.0",
-      "from": "pify@>=2.3.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/pify/-/pify-2.3.0.tgz"
     },
     "pinkie": {
       "version": "2.0.4",
@@ -1093,11 +1078,6 @@
       "version": "1.0.7",
       "from": "process-nextick-args@>=1.0.6 <1.1.0",
       "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-1.0.7.tgz"
-    },
-    "public-ip": {
-      "version": "2.0.1",
-      "from": "public-ip@*",
-      "resolved": "https://registry.npmjs.org/public-ip/-/public-ip-2.0.1.tgz"
     },
     "qs": {
       "version": "6.2.1",
