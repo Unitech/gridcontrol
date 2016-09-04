@@ -30,7 +30,7 @@ CliUX.chooseHostname = function(servers, cb) {
 CliUX.displayHosts = function(peers, cb) {
   // instantiate
   var table = new Table({
-    head: ['peer name', 'public ip', 'private ip', 'grid version', 'hostname', 'synchronized', 'namespace', 'files master', 'ssh'],
+    head: ['peer name', 'public ip', 'private ip', 'grid version', 'hostname', 'synchronized', 'namespace', 'files master'],
     style : {
       head : ['cyan', 'bold'],
       border : ['cyan'],
@@ -47,8 +47,7 @@ CliUX.displayHosts = function(peers, cb) {
       server.hostname,
       (!server.files_master ? (server.synchronized ? chalk.bold.green("true") : chalk.bold.yellow("false")) : chalk.bold("master")),
       server.ns,
-      server.files_master || false,
-      'ssh ' + server.user + '@' + server.public_ip
+      server.files_master || false
     ]);
   });
 

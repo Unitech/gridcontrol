@@ -87,6 +87,10 @@ $ grid provision
 
 **3/** Grid management
 
+![Grid dashboard](https://github.com/gridcontrol/gridcontrol/master/docs/dashboard.png)
+
+<center><small>$ grid dash</small></center>
+
 ```bash
 # List all nodes linked to the grid
 $ grid ls
