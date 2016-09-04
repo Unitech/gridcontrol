@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+   - "0.12"
+   - "0.10"
+   - "4"
+   - "6"
+os:
+  - linux
+before_install:
+sudo: required
+services:
+  - docker
