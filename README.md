@@ -3,6 +3,10 @@
 <img width=560px src="https://github.com/gridcontrol/gridcontrol/raw/master/logo2.png">
 </div>
 
+<a href="https://travis-ci.org/gridcontrol/gridcontrol">
+  <img src="https://travis-ci.org/gridcontrol/gridcontrol.svg?branch=master" alt="Build Status"/>
+</a>
+
 # GridControl
 
 GridControl provision and links multiple servers togethers to form a **Grid**.
