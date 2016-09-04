@@ -4,7 +4,12 @@ node_js:
    - "6"
 os:
   - linux
-before_install:
+before_script:
+  - cd grid-api; npm install
 sudo: required
+env:
+  - NODE_ENV=test
 services:
   - docker
+script:
+  - npm test && npm run testbheavior
