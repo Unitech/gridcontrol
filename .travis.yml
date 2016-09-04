@@ -4,8 +4,8 @@ node_js:
    - "6"
 os:
   - linux
-before_script:
-  - cd grid-api; npm install
+#before_script:
+#  - cd grid-api; npm install
 sudo: required
 env:
   - NODE_ENV=test
