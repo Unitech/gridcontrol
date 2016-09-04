@@ -74,6 +74,7 @@ PUBLIC_SSH_KEY
 ```
 
 Change each attribute with the desired value.
+**Note that a SSH client should run on the defaut 22 port on each remote machine**
 
 **2/** Provision every hosts listed in the Gridfile:
 
@@ -161,6 +162,7 @@ var grid = require('grid-api').init({
 });
 
 function triggerTask() {
+  // 'get-ip' is the filename
   grid.exec('get-ip', function(err, data, server) {
     if (err) {
       console.log(err);
@@ -189,14 +191,14 @@ $ node index.js
 At the beginning, only the local gridcontrol will respond. Once the other peers are synchronized they will also process the queries:
 
 ```
-From server alor-vital:88.123.12.21
-Got response $HTML
-From server xtreme-ventage:5.10.123.144
-Got response $HTML
-From server veolia-graphia:88.125.120.20
-Got response $HTML
-From server hector-castor:120.12.1.145
-Got response $HTML
+Got response from server pub_ip=(88.123.12.21) priv_ip=(10.2.2.1):
+$HTML
+Got response from server pub_ip=(88.123.12.22) priv_ip=(10.2.2.8):
+$HTML
+Got response from server pub_ip=(88.125.120.20) priv_ip=(10.2.2.10):
+$HTML
+Got response from server pub_ip=(88.123.23.42) priv_ip=(10.2.2.12):
+$HTML
 ```
 
 Distributed processing, on-premise!
@@ -205,10 +207,12 @@ Distributed processing, on-premise!
 
 ### Ignoring files for synchronization
 
+(TODO)
 Avoid re synchronizing the application in case of some file changes by adding a `.gridignore` file, containing a list of regex/files to ignore separated by a newline.
 
 ### Disable local tasks computation
 
+(TODO)
 To make the head node act as a load balancer only pass the `local : false` in `grid.init` options.
 
 ## Contributing
