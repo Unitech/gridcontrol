@@ -3,6 +3,7 @@ SRC=$(cd $(dirname "$0"); pwd)
 source "${SRC}/include.sh"
 
 export NODE_ENV='test'
+export NON_INTERACTIVE_MODE=true
 export GRID='test-grid-scenario'
 
 npm install pm2@next -g
