@@ -221,7 +221,7 @@ To make the head node act as a load balancer only pass the `local : false` in `g
 
 ## Contributing
 
-Please refer to [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)
+Please refer to [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
 
 ## License
 
