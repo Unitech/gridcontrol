@@ -87,7 +87,7 @@ $ grid provision
 
 **3/** Grid management
 
-![Grid dashboard](https://github.com/gridcontrol/gridcontrol/master/docs/dashboard.png)
+![Grid dashboard](https://github.com/gridcontrol/gridcontrol/blob/master/docs/dashboard.png)
 
 <center><small>$ grid dash</small></center>
 
