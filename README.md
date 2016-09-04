@@ -78,7 +78,7 @@ PUBLIC_SSH_KEY
 ```
 
 Change each attribute to the desired value.
-**Note that an SSH client should run on the defaut port (22) on each remote machine**
+**Note that an SSH client should be running on the defaut port (22) on each remote machine**
 
 **2/** Provision every host listed in the Gridfile:
 
