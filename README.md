@@ -211,21 +211,11 @@ $HTML
 
 Distributed processing, on-premise!
 
-## Advanced documentation
-
-### Ignoring files for synchronization
-
-(TODO)
-Avoid re synchronizing the application in case of some file changes by adding a `.gridignore` file, containing a list of regex/files to ignore separated by a newline.
-
-### Disable local tasks computation
-
-(TODO)
-To make the head node act as a load balancer only pass the `local : false` in `grid.init` options.
-
 ## Contributing
 
-Please refer to [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
+If you find any issue please [open an issue on Github](https://github.com/gridcontrol/gridcontrol/issues)
+
+For Contributing please refer to [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
 
 ## License
 
