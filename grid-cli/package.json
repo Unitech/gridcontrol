@@ -29,29 +29,13 @@
     "multissh": "*",
     "ssh-keygen2": "*",
     "strip-ansi" : "*",
-    "pm2" : "next"
+    "pm2" : "next",
+    "moniker": "*"
   },
   "devDependencies": {
     "should": "*",
     "mocha": "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",
-  "license": "ISC",
-  "bundledDependencies": [
-    "async",
-    "chalk",
-    "clear",
-    "cli-spinners",
-    "cli-table2",
-    "commander",
-    "grid-api",
-    "inquirer",
-    "multissh",
-    "ora",
-    "public-ip",
-    "request",
-    "shelljs",
-    "ssh-exec",
-    "ssh-keygen2"
-  ]
+  "license": "ISC"
 }

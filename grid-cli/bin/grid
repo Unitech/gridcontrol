@@ -52,13 +52,15 @@ program
 
 program
   .command('provision')
+  .option('--only <host>', 'Provision only specified host')
   .description('Provision each host declared in Gridfile')
-  .action(function(gridfile) {
+  .action(function(opts) {
     var conf_path = path.join(process.cwd(), 'Gridfile');
-
     var conf;
 
-    Common.parseGridfile(conf_path)
+    Common.parseGridfile(conf_path, {
+      only : opts.only || null
+    })
       .then((_conf) => {
         conf = _conf;
         return Promise.resolve();
@@ -76,7 +78,6 @@ program
         return SSH.copy_public_key(conf, conf.ssh_public_key)
       })
       .then(() => {
-
         // Copy install script locally
         shelljs.cp(path.join(__dirname, '../lib/install.sh'), '/tmp/');
         console.log(chalk.bold.green('✓ Install script copied successfully locally'));
@@ -117,6 +118,7 @@ program
     var sample_project = path.join(__dirname, '../lib/template/sample-project');
     var destination_folder = path.join(process.cwd(), project_name);
     shelljs.cp('-R', sample_project, destination_folder);
+    console.log(chalk.bold.green('✓ Sample project created in %s', destination_folder));
   });
 
 program

@@ -2,8 +2,8 @@
 # Gridfile Server Access ID Card
 #
 
-grid_name     = 'grid-test-1'
-#grid_password =
+grid_name     = '%GRID_NAME%'
+#grid_password = '%GRID_PASSWORD%'
 
 servers = [
   'ubuntu@ip1',
