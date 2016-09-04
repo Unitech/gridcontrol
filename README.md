@@ -89,7 +89,7 @@ $ grid provision
 
 ![Grid dashboard](https://github.com/gridcontrol/gridcontrol/blob/master/docs/dashboard.png)
 
-<center><small>$ grid dash</small></center>
+Commands to manage your grid:
 
 ```bash
 # List all nodes linked to the grid
