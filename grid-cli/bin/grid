@@ -118,7 +118,7 @@ program
     var sample_project = path.join(__dirname, '../lib/template/sample-project');
     var destination_folder = path.join(process.cwd(), project_name);
     shelljs.cp('-R', sample_project, destination_folder);
-    console.log(chalk.bold.green('✓ Sample project created in %s', destination_folder));
+    console.log(chalk.bold.green('✓ Sample project created in %s'), destination_folder);
   });
 
 program
