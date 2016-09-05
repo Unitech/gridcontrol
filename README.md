@@ -11,7 +11,7 @@
 
 GridControl provisions and links multiple servers together to form a **Grid**.
 
-Files are synchronized, Opionated Pub/Sub system is implemented, Servers get linked together.
+Files are synchronized, Opinionated Pub/Sub system is implemented, Servers get linked together.
 
 You develop, you play, in a scalable way. The more Servers you add to the Grid, the more calculation power you get.
 
