@@ -9,9 +9,9 @@
 
 # GridControl
 
-GridControl provision and links multiple servers togethers to form a **Grid**.
+GridControl provisions and links multiple servers together to form a **Grid**.
 
-Files are synchronized, Opionated Pub/Sub system is set, Servers get linked together.
+Files are synchronized, Opionated Pub/Sub system is implemented, Servers get linked together.
 
 You develop, you play, in a scalable way. The more Servers you add to the Grid, the more calculation power you get.
 
@@ -22,7 +22,7 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 
 5 minutes to get started. By the authors of [PM2](https://github.com/Unitech/pm2).
 
-*Behind the scene: GridControl is a network layer built on top of PM2 allowing file synchronization, inter process communication via an opionated PUB/SUB system and a wide-range system discovery*
+*Behind the scenes: GridControl is a network layer built on top of PM2 allowing file synchronization, inter-process communication via an opionated PUB/SUB system and a wide-range system discovery*
 
 ## Features
 
@@ -30,17 +30,17 @@ You develop, you play, in a scalable way. The more Servers you add to the Grid, 
 - **0 conf** P2P application source sharing
 - **Ecosystem** Grid management toolbox (CLI, provisioning, Logs, Monitoring)
 - **Secure** Diffie Hellman key exchange and password authentication
-- **Decentralized** Each Nodes can trigger actions executed by another Nodes
+- **Decentralized** Each Node can trigger actions executed by another Nodes
 - **Fast** Grid interconnected via TCP sockets
 - **Fast** Services are started once, then stay alive waiting for inputs. This saves non-negligible startup time
-- **Polyglot** Services can be wrotte in any language
+- **Polyglot** Services can be written in any language
 - **Compatible** with Amazon Lambda, Google Cloud Functions
 - **Rock Solid** [PM2](https://github.com/Unitech/pm2) behind the scene for process management and cluster capabilities
 - And a lot more like Buffering, Retry on Failure...
 
 ## Creating a Grid
 
-Install your Army Swiss Knife to manage a Grid:
+Install your Swiss Army Knife to manage a Grid:
 
 ```bash
 $ npm install grid-cli -g
@@ -77,17 +77,17 @@ PUBLIC_SSH_KEY
 '''
 ```
 
-Change each attribute with the desired value.
-**Note that a SSH client should run on the defaut 22 port on each remote machine**
+Change each attribute to the desired value.
+**Note that an SSH client should be running on the defaut port (22) on each remote machine**
 
-**2/** Provision every hosts listed in the Gridfile:
+**2/** Provision every host listed in the Gridfile:
 
 ```bash
 $ grid provision
 ```
 
 *This will copy the SSH pub key and install NVM, Node.js, PM2 and Gridcontrol*
-*This installation does not need ROOT access rights at anytime*
+*This installation does not need ROOT access rights at any time*
 
 **3/** Grid management
 
@@ -117,7 +117,7 @@ $ grid logs
 # Monitor the whole Grid with Keymetrics
 $ grid monitor <secret> <public>
 
-# Interactively SSH to desired machine
+# Interactively SSH into desired machine
 $ grid ssh
 ```
 
@@ -132,7 +132,7 @@ $ cd [project-name]
 $ npm install
 ```
 
-You will get a project looking like this:
+Now you'll have a project that looks like this:
 
 ```
 .
@@ -159,7 +159,7 @@ module.exports = function(context, cb) {
 };
 ```
 
-To call this function, look at how it is done in `index.js`:
+To call this function, look at how it's done in `index.js`:
 
 ```javascript
 var grid = require('grid-api').init({
@@ -213,7 +213,7 @@ Distributed processing, on-premise!
 
 ## Contributing
 
-If you find any issue please [open an issue on Github](https://github.com/gridcontrol/gridcontrol/issues)
+If you find any issues please [open an issue on Github](https://github.com/gridcontrol/gridcontrol/issues)
 
 For Contributing please refer to [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
 
