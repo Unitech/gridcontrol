@@ -12,7 +12,7 @@ var request     = require('request');
 var Plan        = require('./plan.js');
 
 describe('Gridcontrol', function() {
-  this.timeout(5000);
+  this.timeout(10000);
 
   var n1, n2, n3;
   var sync_file_size;

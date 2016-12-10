@@ -8,7 +8,7 @@ const defaults        = require('../constants.js');
 const path            = require('path');
 const rimraf          = require('rimraf');
 
-const Hyperdrive      = require('hypelight')
+const Hyperdrive      = require('hyperdrive')
 const Level           = require('memdb')
 const Archiver        = require('./archiver.js')
 
