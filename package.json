@@ -59,6 +59,7 @@
     "should": "*",
     "mocha": "*",
     "jsdoc": "*",
-    "ink-docstrap": "*"
+    "ink-docstrap": "*",
+    "changelog-maker": "^2.2.2"
   }
 }
