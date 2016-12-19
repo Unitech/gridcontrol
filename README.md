@@ -116,6 +116,7 @@ $ grid logs
 
 # Monitor the whole Grid with Keymetrics
 $ grid monitor <secret> <public>
+$ grid unmonitor
 
 # Interactively SSH into desired machine
 $ grid ssh

@@ -51,10 +51,10 @@ program
   });
 
 program
-  .command('provision')
+  .command('provision [stage]')
   .option('--only <host>', 'Provision only specified host')
-  .description('Provision each host declared in Gridfile')
-  .action(function(opts) {
+  .description('Provision each host declared in Gridfile - Stage = ssh | all')
+  .action(function(stage, opts) {
     var conf_path = path.join(process.cwd(), 'Gridfile');
     var conf;
 
@@ -78,6 +78,8 @@ program
         return SSH.copy_public_key(conf, conf.ssh_public_key)
       })
       .then(() => {
+        if (stage == 'ssh')
+          return process.exit(0);
         // Copy install script locally
         shelljs.cp(path.join(__dirname, '../lib/install.sh'), '/tmp/');
         console.log(chalk.bold.green('✓ Install script copied successfully locally'));
@@ -364,23 +366,23 @@ program
     });
   });
 
-program
-  .command('conf:update')
-  .description('Update Gridfile with current hosts')
-  .action(function(opts) {
-    var gridfile = path.join(process.cwd(), 'Gridfile');
-    Common.updateGridfile(gridfile)
-      .then((data) => {
-        console.log(chalk.bold('Gridfile updated (%s)'), data.file);
-        console.log();
-        console.log(chalk.bold('Gridfile content:\n'));
-        var file = fs.readFileSync(data.file);
-        console.log(file.toString());
-      })
-      .catch((err) => {
-        exitError(err);
-      });
-  });
+// program
+//   .command('conf:update')
+//   .description('Update Gridfile with current hosts')
+//   .action(function(opts) {
+//     var gridfile = path.join(process.cwd(), 'Gridfile');
+//     Common.updateGridfile(gridfile)
+//       .then((data) => {
+//         console.log(chalk.bold('Gridfile updated (%s)'), data.file);
+//         console.log();
+//         console.log(chalk.bold('Gridfile content:\n'));
+//         var file = fs.readFileSync(data.file);
+//         console.log(file.toString());
+//       })
+//       .catch((err) => {
+//         exitError(err);
+//       });
+//   });
 
 program
   .command('logs [task_name]')
@@ -413,7 +415,29 @@ program
 
     Common.parseGridfile(conf_path)
       .then((conf) => {
-        var cmd = 'pm2 link ' + secret + ' ' + public;
+        var cmd = 'pm2 link ' + secret + ' ' + public + ' `hostname -I | cut -d" " -f1`';
+
+        execCmd({
+          cmd         : cmd,
+          server_list : conf.servers,
+          ssh_key     : conf.ssh_key,
+          title       : 'Linking to Keymetrics'
+        });
+      })
+      .catch((e) => {
+        exitError(e);
+      });
+  });
+
+program
+  .command('unmonitor')
+  .description('UnMonitor all Grid Nodes with Keymetrics')
+  .action(function(secret, public) {
+    var conf_path = path.join(process.cwd(), 'Gridfile');
+
+    Common.parseGridfile(conf_path)
+      .then((conf) => {
+        var cmd = 'pm2 link delete';
 
         execCmd({
           cmd         : cmd,

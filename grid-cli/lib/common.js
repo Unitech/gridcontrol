@@ -128,6 +128,9 @@ function saveGridfile(conf_path, gridfile_obj) {
       new_gridfile.servers.push(c.user + '@' + c.ip);
     });
 
+    new_gridfile.ssh_key = fs.readFileSync(new_gridfile.ssh_key).toString();
+    new_gridfile.ssh_public_key = fs.readFileSync(new_gridfile.ssh_public_key).toString();
+
     fs.writeFile(conf_path, toml.dump(new_gridfile), (err) => {
       if (err) reject(err);
       return resolve({new_gridfile : new_gridfile, file : conf_path});
