@@ -163,7 +163,7 @@ program
         if (gridfile.grid_password)
           cmd += ' GRID_AUTH="' + gridfile.grid_password + '"';
 
-        cmd += ' pm2 restart gridcontrol';
+        cmd += ' pm2 restart gridcontrol --update-env';
 
         if (opts.local === true)
           servers = [];
@@ -354,10 +354,12 @@ program
   });
 
 program
-  .command('detect')
+  .command('detect [ip address]')
   .description('Use nmap to discover machines in network')
-  .action(function(opts) {
-    var exec = shelljs.exec('sudo nmap -sP 192.168.0.1/24', function() {
+  .action(function(address) {
+    address = address || '192.168.0.1';
+    console.log('Detecting running machines in network %s', address);
+    var exec = shelljs.exec('sudo nmap -sP ' + address + '/24', function() {
       Common.displayHosts();
     });
   });

@@ -1,0 +1,2 @@
+- [ ] when doing grid dump (conf:update) -> if address has 192.168.*.* = dump private ip instead of public
+- [ ] allow to activate each grid control part (discovery, file sharing, pub/sub)
