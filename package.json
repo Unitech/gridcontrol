@@ -47,10 +47,10 @@
     "pump": "^1.0.1",
     "random-access-file": "^1.2.0",
     "request": "*",
-    "rimraf": "^2.5.2",
+    "rimraf": "^2.6.1",
     "tar-fs": "*",
     "to-buffer": "^1.0.1",
-    "dns-discovery": "^5.5.0",
+    "dns-discovery": "^5.6.0",
     "thunky": "*"
   },
   "author": "Gridcontrol <contact@gridcontrol.tech>",

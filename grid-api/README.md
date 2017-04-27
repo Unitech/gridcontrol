@@ -1,5 +1,17 @@
 # Gridcontrol API
 
+```
+.init(<opts>, <cb>)
+.exec / .invoke(<task_name>, <data>, <cb>)
+.listTasks(<cb>)
+.listProcessingTasks(<cb>)
+.listHosts(<cb>)
+.stopTasks(<cb>)
+.all(<task_name>, <data>, <eventemitter>
+```
+
+## Example
+
 ```javascript
 var grid = require('gridcontrol').init({
   task_folder : 'tasks',
@@ -40,16 +52,4 @@ setInterval(function() {
     console.log('From server %s:%s', server.name, server.public_ip);
     console.log('Got response %s', data);
   });
-```
-
-## API
-
-```
-.init(<opts>, <cb>)
-.exec / .invoke(<task_name>, <data>, <cb>)
-.listTasks(<cb>)
-.listProcessingTasks(<cb>)
-.listHosts(<cb>)
-.stopTasks(<cb>)
-.all(<task_name>, <data>, <eventemitter>
 ```
