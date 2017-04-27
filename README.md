@@ -91,6 +91,10 @@ $ grid provision
 
 **3/** Grid management
 
+```bash
+$ grid dash
+```
+
 ![Grid dashboard](https://github.com/gridcontrol/gridcontrol/blob/master/docs/dashboard.png)
 
 Commands to manage your grid:
