@@ -17,7 +17,27 @@ const SSH          = require('../lib/workflows/ssh.js');
 const Dashboard    = require('../lib/dashboard.js');
 
 function getConfPath() {
-  return process.env.GRIDFILE || path.join(process.cwd(), 'Gridfile');
+  var p_grid = path.join(process.cwd(), 'Gridfile');
+  var conf_path = path.join(Common.getDefaultPM2Home(), 'grid-cli.conf');
+
+  try {
+    fs.statSync(p_grid);
+  } catch(e) {
+    p_grid = null;
+  }
+
+  if (p_grid === null) {
+    try {
+      p_grid = fs.readFileSync(path);
+    } catch(e) {
+      p_grid = path.join(process.cwd(), 'Gridfile');
+    }
+  }
+  else {
+    fs.writeFileSync(conf_path, p_grid);
+  }
+
+  return p_grid;
 }
 
 program
