@@ -134,16 +134,17 @@ LoadBalancer.prototype.route = function(req, res, next) {
     this._rri = 0;
   }
 
-  if (req.task_manager.taskExists(task_id) == false) {
-    return res.send({
-      err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))
-    });
-  }
-
   this.bumpStatTask(task_id);
 
   this.findSuitablePeer(req)
     .then((peer) => {
+
+      if (req.task_manager.taskExists(task_id) == false) {
+        return res.send({
+          err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))
+        });
+      }
+
       this.processing_tasks[uuid] = {
         started_at : new Date(),
         peer_info  : peer.identity,
@@ -210,15 +211,15 @@ LoadBalancer.prototype.broadcast = function(req, res, next) {
   let task_opts = req.body.opts || {};
   let uuid      = crypto.randomBytes(32).toString('hex');
 
-  if (req.task_manager.taskExists(task_id) == false) {
-    return res.send({
-      err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))
-    }).status(500);
-  }
-
   this.findSynchronizedPeers(req)
     .then((peers) => {
       var responses_nb = peers.length;
+
+      if (req.task_manager.taskExists(task_id) == false) {
+        return res.send({
+          err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))
+        }).status(500);
+      }
 
       this.bumpStatTask(task_id);
 

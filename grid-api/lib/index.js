@@ -39,7 +39,7 @@ Client.prototype.init = function(opts, cb) {
   var meta = {
     task_folder : this.task_folder,
     instances   : this.instances,
-    base_folder : process.cwd(),
+    base_folder : opts.base_folder || process.cwd(),
     env         : this.env
   };
 

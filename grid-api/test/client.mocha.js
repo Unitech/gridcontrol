@@ -7,6 +7,7 @@ process.env.DEBUG='gc:*';
 var should  = require('should');
 var Plan    = require('./plan.js');
 var Gridcontrol = require('../..');
+const path = require('path');
 
 describe('Client test', function() {
   this.timeout(7000);
@@ -58,9 +59,22 @@ describe('Client test', function() {
 
   it('should buffer query and receive ready event', function(done) {
     var plan = new Plan(3, done);
+    var base_folder = path.join(__dirname, 'fixtures', 'app1');
+    var task_folder = 'tasks';
+
+    client.on('ready', function() {
+      plan.ok(true);
+
+      client.exec('echo', { name : 'heya' }, function(err, data) {
+        should(data.hello).eql('heya');
+        plan.ok(true);
+      });
+
+    });
 
     client.init({
-      task_folder : 'test/fixtures/app1/tasks',
+      base_folder : base_folder,
+      task_folder : task_folder,
       instances   : 1,
       env         : {
         NODE_ENV : 'production'
@@ -72,15 +86,6 @@ describe('Client test', function() {
       plan.ok(true);
     });
 
-    client.on('ready', function() {
-      plan.ok(true);
-
-      client.exec('echo', { name : 'heya' }, function(err, data) {
-        should(data.hello).eql('heya');
-        plan.ok(true);
-      });
-
-    });
   });
 
   it('should be able to dispatch action without data param', function(done) {
