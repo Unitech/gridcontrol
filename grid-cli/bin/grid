@@ -177,6 +177,9 @@ program
           title       : 'Recovering Grid: ' + grid_name
         });
       })
+      .catch((e) => {
+        exitError(e);
+      });
 
   });
 
