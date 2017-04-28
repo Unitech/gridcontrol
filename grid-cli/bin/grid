@@ -28,7 +28,7 @@ function getConfPath() {
 
   if (p_grid === null) {
     try {
-      p_grid = fs.readFileSync(path);
+      p_grid = fs.readFileSync(conf_path).toString();
     } catch(e) {
       p_grid = path.join(process.cwd(), 'Gridfile');
     }

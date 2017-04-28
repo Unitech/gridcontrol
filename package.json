@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.12.3",
+  "version": "0.12.4",
   "description": "Grid control system for scalable micro service applications",
   "repository": {
     "type": "git",
