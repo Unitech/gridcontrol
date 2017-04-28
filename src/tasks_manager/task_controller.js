@@ -21,6 +21,7 @@ Controller.init_task_group = function(req, res, next) {
   if (!base_folder)
     return next(new Error('base_folder is missing'));
 
+  // Reset All Peers as not synced
   req.net_manager.setAllPeersAsNotSynced();
 
   req.task_manager.initTasks({

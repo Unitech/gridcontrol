@@ -156,7 +156,7 @@ Archiver.prototype.archive = function(directory, options) {
  })
 }
 
-Archiver.prototype.spread = function(archive) {
+Archiver.prototype.joinPool = function(archive) {
   return new Promise((resolve, reject) => {
     this.join(archive, (err) => {
       return resolve(this.link)
@@ -183,7 +183,7 @@ function bytesToSize(bytes) {
 Archiver.prototype.download = function(link) {
   let archive = this._createArchive(link)
 
-  return this.spread(archive)
+  return this.joinPool(archive)
     .then(() => {
 
       let acc = 0;

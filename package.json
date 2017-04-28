@@ -1,6 +1,6 @@
 {
   "name": "gridcontrol",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "description": "Grid control system for scalable micro service applications",
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
     "docs": "rm -rf apidocs; ./node_modules/.bin/jsdoc src -c jsdoc.json -t ./node_modules/ink-docstrap/template -R DOC.md -d apidocs -r"
   },
   "dependencies": {
+    "async" : "*",
     "amp": "0.3.1",
     "amp-message": "0.1.1",
     "bluebird": "^3.4.0",

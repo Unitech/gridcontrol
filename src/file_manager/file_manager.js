@@ -83,7 +83,7 @@ FilesManagement.prototype.initializeAndSpread = function(target_folder) {
   })
   .then((archive) => {
     this.current_link = archive.key.toString('hex');
-    return this.archiver.spread(archive);
+    return this.archiver.joinPool(archive);
   });
 }
 

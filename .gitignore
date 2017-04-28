@@ -8,3 +8,4 @@ test/sync.tar.gz
 *.zip
 *.tar
 Gridfile
+conf.json

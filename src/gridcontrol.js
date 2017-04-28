@@ -335,8 +335,8 @@ GridControl.prototype.mountActions = function(router) {
         this.emit('synchronized');
 
         sync_meta.meta.base_folder = destination;
-        // @todo return is missing?
-        this.task_manager.initTasks(sync_meta.meta)
+
+        return this.task_manager.initTasks(sync_meta.meta)
           .then(() => {
             this.emit('tasks_started');
             this.socket_pool.broadcast('sync:done', {
@@ -442,18 +442,22 @@ GridControl.prototype.setAllPeersAsSynced = function() {
   });
 };
 
+const async = require('async');
+
 /**
  * Send command to all peers to synchronize
  */
 GridControl.prototype.askAllPeersToSync = function() {
-  setTimeout(() => {
-    this.socket_pool.getRouters().forEach((router) => {
-      this.askPeerToSync(router);
-    });
-  }, 1000);
+  var routers = this.socket_pool.getRouters();
+
+  async.forEachLimit(routers, 1, (router, next) => {
+    this.askPeerToSync(router, next);
+  }, (err) => {
+    debug('All Peers Synced');
+  });
 };
 
-GridControl.prototype.askPeerToSync = function(router) {
+GridControl.prototype.askPeerToSync = function(router, cb) {
   this.emit('peer:synchronize');
 
   if (!router.identity) {
@@ -471,6 +475,12 @@ GridControl.prototype.askPeerToSync = function(router) {
     meta       : this.task_manager.getTaskMeta(),
     link       : this.file_manager.currentLink
   });
+
+  if (cb) {
+    router.once('sync:done', (data) => {
+      cb(null, data);
+    });
+  }
 };
 
 module.exports = GridControl;
