@@ -18,9 +18,11 @@ describe('Broadcast action', function() {
   var sync_file_size;
 
   after(function(cb) {
-    n1.close();
-    n2.close();
-    n3.close(cb);
+    n1.close(() => {
+      n2.close(() => {
+        n3.close(cb);
+      });
+    });
   });
 
   it('should create a first client', function() {
