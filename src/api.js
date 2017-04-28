@@ -142,7 +142,7 @@ API.prototype.mountRoutes = function() {
   });
 
   app.post('/tasks/lb_trigger_all', function(req, res, next) {
-    req.load_balancer.route(req, res, next);
+    req.load_balancer.broadcast(req, res, next);
   });
 
   app.post('/tasks/init', this.task_manager.controller.init_task_group);
@@ -153,33 +153,9 @@ API.prototype.mountRoutes = function() {
   });
 
   app.get('/tasks/list', this.task_manager.controller.list_tasks);
+
   app.get('/tasks/stats', function(req, res, next) {
     return res.send(req.load_balancer.stats_tasks);
-    // var final = {};
-
-    // req.task_manager
-    //   .listAllPM2Tasks()
-    //   .then((pm2_tasks) => {
-    //     let tasks = req.load_balancer.stats_tasks;
-
-    //     pm2_tasks.forEach((pm2_task_name) => {
-    //       var pm2_task = pm2_task_name.split('ask:')[1]
-    //       if (tasks[pm2_task])
-    //         final[pm2_task] = tasks[pm2_task];
-    //       else
-    //         final[pm2_task] = {
-    //           invokations : 0,
-    //           success     : 0,
-    //           errors      : 0,
-    //           remote_invok: 0
-    //         };
-    //     });
-
-    //     return res.send(final);
-    //   })
-    //   .catch((e) => {
-    //     return next(e);
-    //   });
   });
 
   /**

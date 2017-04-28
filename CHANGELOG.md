@@ -1,4 +1,8 @@
 
+# 0.12.5
+
+- can now broadcast action
+
 # 0.12.2
 
 - Peers now join the pool progressively

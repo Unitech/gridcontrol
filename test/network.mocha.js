@@ -132,7 +132,6 @@ describe('Gridcontrol', function() {
     });
 
     it('should start all fixtures tasks', function(done) {
-      this.timeout(5000);
       var base_folder = path.join(__dirname, 'fixtures', 'app1');
       var task_folder = 'tasks';
 
@@ -165,7 +164,6 @@ describe('Gridcontrol', function() {
     });
 
     it('should RESTART all fixtures tasks', function(done) {
-      this.timeout(5000);
       var base_folder = path.join(__dirname, 'fixtures', 'app1');
 
       request.post('http://localhost:10000/tasks/init', {
@@ -280,8 +278,6 @@ describe('Gridcontrol', function() {
   describe('Third node', function() {
     it('should connect THIRD node and wait for file to be sync', function(done) {
       var plan = new Plan(4, done);
-
-      this.timeout(7000);
 
       n3 = new gridcontrol({
         peer_api_port  : 12000,

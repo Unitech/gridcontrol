@@ -16,6 +16,26 @@ const LoadBalancer = function(opts) {
   this.stats_tasks = {};
 };
 
+function processResponse(err, data, peer) {
+  if (err) {
+    if (!data) data = {};
+    data.err = err;
+    // Will be catched by Promise.catch
+    throw err;
+  }
+
+  if (typeof(data) == 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch(e) {
+    }
+    data.server = peer.identity;
+  }
+  else if (typeof(data) == 'object')
+    data.server = peer.identity;
+  return data;
+}
+
 /**
  * Method to find suitable peer
  * for now it only checks if peer is SYNCHRONIZED + TASKS have been started
@@ -77,8 +97,9 @@ LoadBalancer.prototype.findSynchronizedPeers = function(req) {
     }
 
     peer_list.forEach((peer) => {
-      if (peer.synchronized == true)
+      if (peer.identity.synchronized == true && !peer.local) {
         peer_ready.push(peer)
+      }
     });
 
     //@todo take monitoring data into account
@@ -113,24 +134,26 @@ LoadBalancer.prototype.route = function(req, res, next) {
     this._rri = 0;
   }
 
+  if (req.task_manager.taskExists(task_id) == false) {
+    return res.send({
+      err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))
+    });
+  }
+
   this.bumpStatTask(task_id);
 
   this.findSuitablePeer(req)
     .then((peer) => {
-      if (req.task_manager.taskExists(task_id) == false) {
-        return res.send({err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))});
-      }
-
       this.processing_tasks[uuid] = {
         started_at : new Date(),
         peer_info  : peer.identity,
         task_id    : task_id
       };
 
+      /**
+       * Local Task
+       */
       if (peer.local) {
-        /**
-         * send task action to local node
-         */
         console.log('status=routing task=%s target=localhost', task_id);
         return req.task_manager.triggerTask({
           task_id  : task_id,
@@ -150,6 +173,9 @@ LoadBalancer.prototype.route = function(req, res, next) {
           });
       }
 
+      /**
+       * Remote Task
+       */
       debug('status=routing task=%s target=%s port=%s',
             task_id,
             peer.identity.public_ip,
@@ -163,24 +189,10 @@ LoadBalancer.prototype.route = function(req, res, next) {
         task_opts : task_opts
       }, (err, data) => {
         delete this.processing_tasks[uuid];
-        if (err) {
-          if (!data) data = {};
-          data.err = err;
-          // Will be catched by Promise.catch
-          throw err;
-        }
 
-        if (typeof(data) == 'string') {
-          try {
-            data = JSON.parse(data);
-          } catch(e) {
-          }
-          data.server = peer.identity;
-        }
-        else if (typeof(data) == 'object')
-          data.server = peer.identity;
-
+        data = processResponse(err, data, peer);
         this.stats_tasks[task_id].success++;
+
         res.send(data);
         // @todo configure timeout for remote request
       }).timeout(defaults.REMOTE_REQUEST_TIMEOUT);
@@ -198,15 +210,54 @@ LoadBalancer.prototype.broadcast = function(req, res, next) {
   let task_opts = req.body.opts || {};
   let uuid      = crypto.randomBytes(32).toString('hex');
 
-  this.findSynchronizedPeers()
+  if (req.task_manager.taskExists(task_id) == false) {
+    return res.send({
+      err : Tools.safeClone(new Error('Task file ' + task_id + ' does not exists'))
+    }).status(500);
+  }
+
+  this.findSynchronizedPeers(req)
     .then((peers) => {
+      var responses_nb = peers.length;
+
+      this.bumpStatTask(task_id);
+
+      var the_end = setInterval(() => {
+        if (responses_nb <= 0) {
+          clearInterval(the_end);
+          res.end();
+        }
+      }, 100);
 
       return bluebird.map(peers, (peer) => {
-        return new Promise(resolve => {
-          this.bumpStatTask(task_id);
-        })
+
+        this.processing_tasks[uuid] = {
+          started_at : new Date(),
+          peer_info  : peer.identity,
+          task_id    : task_id
+        };
+
+        this.stats_tasks[task_id].remote_invok++;
+
+        peer.send('trigger', {
+          task_id   : task_id,
+          task_data : task_data,
+          task_opts : task_opts
+        }, (err, data) => {
+          responses_nb--;
+          delete this.processing_tasks[uuid];
+
+          data = processResponse(err, data, peer);
+          this.stats_tasks[task_id].success++;
+
+          res.write(JSON.stringify(data));
+        }).timeout(defaults.REMOTE_REQUEST_TIMEOUT);
       }, {concurrency: 20});
     })
+    .catch((e) => {
+      console.error(e);
+      res.send(e);
+    });
 };
 
 module.exports = LoadBalancer;

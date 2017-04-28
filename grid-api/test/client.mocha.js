@@ -6,7 +6,7 @@ process.env.DEBUG='gc:*';
 
 var should  = require('should');
 var Plan    = require('./plan.js');
-var Gridcontrol = require('gridcontrol');
+var Gridcontrol = require('../..');
 
 describe('Client test', function() {
   this.timeout(7000);

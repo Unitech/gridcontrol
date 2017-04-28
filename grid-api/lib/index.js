@@ -156,7 +156,7 @@ Client.prototype.stopTasks = function(cb) {
   });
 };
 
-Client.prototype.all = function(task_name, data, eventemitter) {
+Client.prototype.all = Client.prototype.broadcast = function(task_name, data, eventemitter) {
   var ee = new EventEmitter();
 
   var a = request.post(this.base_url + '/tasks/lb_trigger_all', data);
