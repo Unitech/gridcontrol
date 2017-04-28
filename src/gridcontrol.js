@@ -58,14 +58,29 @@ var GridControl = function(opts) {
   var that = this;
 
   this.peer_name        = opts.peer_name        || Moniker.choose();
-  this.namespace        = process.env.GRID      || opts.namespace || defaults.GRID_NAME;
-  this.password         = process.env.GRID_AUTH || opts.password || null;
   this.peer_api_port    = opts.peer_api_port    || 10000;
   this.private_ip       = InternalIp.v4();
   this.processing_tasks = [];
   this.peer_list        = [];
-
   this.socket_pool      = new SocketPool();
+  this.namespace        = process.env.GRID      || opts.namespace;
+  this.password         = process.env.GRID_AUTH || opts.password || null;
+
+  var conf = null;
+
+  try {
+    conf = JSON.parse(fs.readFileSync(defaults.CONF_FILE));
+  } catch(e) {}
+
+  if (!this.namespace) {
+    this.namespace = conf ? conf.namespace : defaults.GRID_NAME;
+    this.password  = conf ? conf.password  : null;
+  }
+
+  fs.writeFileSync(defaults.CONF_FILE, JSON.stringify({
+    namespace : this.namespace,
+    password  : this.password
+  }));
 
   /**
    * File manager initialization
