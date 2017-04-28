@@ -156,17 +156,24 @@ Client.prototype.stopTasks = function(cb) {
   });
 };
 
-Client.prototype.all = Client.prototype.broadcast = function(task_name, data, eventemitter) {
+Client.prototype.all = Client.prototype.broadcast = function(task_name, data, opts) {
   var ee = new EventEmitter();
 
-  var a = request.post(this.base_url + '/tasks/lb_trigger_all', data);
+  var a = request.post(this.base_url + '/tasks/lb_trigger_all', {
+    form : {
+      task_id : task_name,
+      data    : data,
+      opts    : opts
+    }
+  });;
 
   a.on('error', function(e) {
     ee.emit('error', e);
   });
 
   a.on('data', function(data) {
-    ee.emit('task:progress', data);
+    data = parseBody(data)
+    ee.emit('response', data);
   });
 
   a.on('end', function(data) {

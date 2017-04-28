@@ -4,6 +4,16 @@
 - [ ] Express decapsulator POC
 - [ ] Transpose client in Python, Java, Go
 
+
+- [ ] Fix biases about dynamic node (updating the Gridfile accordingly (auto?manual?)
+- [ ] Understand how it could work on private network
+- [ ] add bump in main pck.json
+
+## Desc sugar
+
+- Warm Start
+- Iterative Propagation
+
 ## Todo
 
 - configuration of tasks (JSON conf (ecosystem)? max memory/timeout?)
