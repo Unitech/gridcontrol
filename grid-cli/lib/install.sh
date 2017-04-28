@@ -60,41 +60,18 @@ function install_pm2 {
   else
     installing PM2
     npm install -g pm2@latest
+    npm install -g yarn
     . ~/.nvm/nvm.sh
     pm2 update
     success PM2
   fi
 }
 
-function install_net_functions {
+function install_gridcontrol {
     installing Gridcontrol
     . ~/.nvm/nvm.sh
     pm2 install gridcontrol
     success Gridcontrol
-}
-
-function link_pm2 {
-  echo -e "${GREEN}[~]Checking connectivity with Keymetrics servers...${NEUTRAL}"
-
-  echo -en "${GREEN}[~]Checking port 80 connectivity...${NEUTRAL}"
-  nc -z alphacentauri.keymetrics.io 80 &>/dev/null
-  if [ $? == "1" ]; then
-    echo -e "${RED}[KO]${NEUTRAL}"
-    echo -e "${RED}[!]Connectivity issues when trying to connect to alphacentauri.keymetrics.io:80${NEUTRAL}"
-    exit
-  fi
-  echo -e "${GREEN}[OK]${NEUTRAL}"
-
-  echo -en "${GREEN}[~]Checking port 43554 connectivity...${NEUTRAL}"
-  nc -z alphacentauri.keymetrics.io 43554 &>/dev/null
-  if [ $? == "1" ]; then
-    echo -e "${RED}[KO]${NEUTRAL}"
-    echo -e "${RED}[!]Connectivity issues when trying to connect to alphacentauri.keymetrics.io:43554${NEUTRAL}"
-    exit
-  fi
-  echo -e "${GREEN}[OK]${NEUTRAL}"
-
-  pm2 link $SECRET_ID $PUBLIC_ID
 }
 
 #
@@ -104,8 +81,7 @@ function link_pm2 {
 install_nvm
 install_node
 install_pm2
-#link_pm2
-install_net_functions
+install_gridcontrol
 
 echo
 echo -e "${GREEN}[+]Done.${NEUTRAL}"
